@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jason’s Christmas Birthday Stream</title>
+<meta name="description" content="Six hours of holiday games, chats with tech folks, and a giveaway every hour. Friday Dec 18, 2–8 PM ET. Raising $10,000 for freeCodeCamp.">
+<meta property="og:title" content="Jason’s Christmas Birthday Stream">
+<meta property="og:description" content="Fri Dec 18 · 2–8 PM ET · Live on X, YouTube, LinkedIn & Twitch. Raising $10,000 for freeCodeCamp.">
+<meta property="og:image" content="/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#17110d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,500..900,0..100;1,9..144,500..900,0..100&family=Oswald:wght@400..700&display=swap">
+<style>
+:root {
+  --ground: #17110d;
+  --panel: #221a14;
+  --line: rgba(245, 230, 184, 0.22);
+  --cream: #f5e6b8;
+  --muted: #cdbf98;
+  --gold: #f2b33d;
+  --red: #c8322b;
+  --display: "Fraunces", Georgia, serif;
+  --label: "Oswald", "Arial Narrow", Impact, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--ground); color: var(--cream);
+  font-family: var(--display); font-size: 18px; line-height: 1.55;
+  background-image: radial-gradient(ellipse at 50% -10%, #3a2a1d 0%, var(--ground) 60%);
+  background-repeat: no-repeat;
+}
+.gutter { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; }
+a { color: var(--gold); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.label { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.16em; font-weight: 600; }
+h1, h2, h3 { margin: 0; font-variation-settings: "SOFT" 100, "opsz" 144; text-wrap: balance; }
+
+/* masthead */
+.mast { padding-block: 20px 14px; border-bottom: 4px double var(--line); }
+.mast .wrap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; }
+.mast-name { font-weight: 900; font-style: italic; font-size: 1.7rem; letter-spacing: -0.02em; font-variation-settings: "SOFT" 100, "opsz" 144; }
+.mast-meta { font-size: 0.82rem; color: var(--muted); }
+.mast-meta b { color: var(--gold); font-weight: 600; }
+
+/* hero */
+.hero { padding-block: 56px 64px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr); gap: 56px; align-items: center; }
+.hero-copy { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.kicker { color: var(--gold); font-size: 1rem; }
+h1 { font-size: clamp(2.6rem, 6.6vw, 5rem); line-height: 0.95; font-weight: 900; letter-spacing: -0.02em; }
+h1 em { font-style: italic; color: var(--gold); }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 52ch; margin: 0; }
+.goal { display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; padding: 10px 16px; background: var(--red); color: #fff6e0; transform: rotate(-1.5deg); box-shadow: 0 10px 22px rgba(0,0,0,0.4); }
+.goal span { font-size: 0.85rem; }
+.goal b { font-size: 1.35rem; font-weight: 800; }
+
+.countdown { display: flex; gap: 10px; flex-wrap: wrap; }
+.unit { min-width: 84px; padding: 10px 12px 8px; border: 2px solid var(--line); border-radius: 10px; text-align: center; background: rgba(255, 248, 225, 0.04); }
+.unit b { display: block; font-size: 2.1rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.unit span { font-size: 0.72rem; color: var(--muted); }
+.live-now { display: none; font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; text-decoration: none; font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; font-size: 0.95rem; transition: transform .15s ease, background .15s ease; }
+.btn:hover { transform: translateY(-2px); }
+.btn-gold { background: var(--gold); color: var(--ground); }
+.btn-ghost { border: 2px solid var(--cream); color: var(--cream); }
+.btn-ghost:hover { background: rgba(245, 230, 184, 0.1); }
+
+.cover { margin: 0; justify-self: center; width: 100%; max-width: 380px; transform: rotate(2.5deg); }
+.cover img { display: block; width: 100%; height: auto; border: 10px solid var(--cream); box-shadow: 0 24px 50px rgba(0,0,0,0.6); }
+
+/* marquee */
+.band { border-block: 4px double var(--line); background: rgba(0,0,0,0.25); padding-block: 26px 30px; }
+.band-title { text-align: center; font-size: 0.85rem; color: var(--muted); margin: 0 0 22px; }
+.marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.track { display: flex; width: max-content; animation: scroll 32s linear infinite; }
+.marquee:hover .track { animation-play-state: paused; }
+.set { display: flex; align-items: center; gap: 88px; padding-right: 88px; }
+.logo { display: flex; align-items: center; gap: 12px; height: 64px; flex-shrink: 0; }
+.logo img { height: 46px; width: auto; }
+.logo .mark { height: 52px; }
+.logo .tile { height: 56px; border-radius: 8px; }
+.logo small { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; line-height: 1.2; color: var(--muted); }
+@keyframes scroll { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .track { animation: none; width: auto; }
+  .set { flex-wrap: wrap; justify-content: center; gap: 28px 56px; padding: 0; }
+  .set[aria-hidden] { display: none; }
+  .marquee { -webkit-mask-image: none; mask-image: none; }
+  .btn { transition: none; }
+}
+
+/* sections */
+section { padding-block: 72px 8px; }
+.head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px; }
+.head .label { color: var(--gold); font-size: 0.9rem; }
+h2 { font-size: clamp(2rem, 4.4vw, 3rem); font-weight: 850; line-height: 1.02; }
+
+.watch { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.platform { display: flex; flex-direction: column; gap: 4px; padding: 20px; border: 2px solid var(--line); border-radius: 14px; background: var(--panel); text-decoration: none; color: var(--cream); transition: border-color .15s ease, transform .15s ease; }
+a.platform:hover { border-color: var(--gold); transform: translateY(-2px); }
+.platform b { font-size: 1.4rem; font-weight: 800; }
+.platform span { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat { padding: 18px; border-radius: 12px; background: var(--panel); }
+.stat b { display: block; font-size: 2.3rem; font-weight: 850; color: var(--gold); line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 0.95rem; color: var(--muted); }
+.audience { max-width: 62ch; margin: 0; }
+
+.tiers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.tier { padding: 22px; border: 2px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.tier.top { grid-column: 1 / -1; border-color: var(--gold); }
+.tier-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+.tier h3 { font-size: 1.6rem; font-weight: 800; }
+.price { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold); font-weight: 600; }
+.tier p { margin: 0; color: var(--muted); }
+.segments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 6px; }
+.segment { padding: 14px 16px; border-radius: 10px; background: rgba(245, 230, 184, 0.07); }
+.segment b { display: block; color: var(--cream); }
+.fine { color: var(--muted); font-size: 0.95rem; max-width: 70ch; margin: 16px 0 0; }
+
+.walkaway { margin-top: 28px; padding: 26px; border: 2px solid var(--gold); border-radius: 16px; background: rgba(242, 179, 61, 0.07); }
+.walkaway h3 { font-size: 1.7rem; font-weight: 800; margin-bottom: 10px; }
+.walkaway ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+
+.dates { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.dates li { padding: 16px; border-top: 4px solid var(--gold); background: var(--panel); border-radius: 0 0 10px 10px; display: flex; flex-direction: column; gap: 4px; }
+.dates time { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; color: var(--gold); }
+.dates span { font-size: 0.95rem; color: var(--muted); }
+
+.contact { padding-block: 72px 80px; }
+.contact-card { padding: 34px; border-radius: 18px; background: var(--red); color: #fff6e0; display: flex; flex-direction: column; gap: 16px; }
+.contact-card h2 { color: #fff6e0; }
+.contact-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.email { font-size: 1.35rem; font-weight: 800; user-select: all; word-break: break-all; }
+.copy { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid #fff6e0; background: transparent; color: #fff6e0; font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; cursor: pointer; }
+.copy:hover { background: rgba(255, 246, 224, 0.15); }
+.contact-card a { color: #fff6e0; }
+
+footer { border-top: 4px double var(--line); padding-block: 22px 32px; color: var(--muted); font-size: 0.9rem; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
+
+@media (max-width: 860px) {
+  .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: 44px; }
+  .cover { max-width: 300px; }
+  .watch, .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tiers, .segments { grid-template-columns: minmax(0, 1fr); }
+  .dates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .logo img { height: 36px; } .logo .mark { height: 42px; } .logo .tile { height: 46px; }
+  .set { gap: 56px; padding-right: 56px; }
+}
+@media (max-width: 420px) {
+  .unit { min-width: 70px; }
+  .unit b { font-size: 1.7rem; }
+  .dates { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="mast gutter">
+  <div class="wrap">
+    <span class="mast-name">Stream Weekly</span>
+    <span class="mast-meta label"><b>Holiday Issue</b> · Dec. 12–18, 1987 · 75¢</span>
+  </div>
+</header>
+
+<main>
+  <div class="hero gutter">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="kicker label">Live · Friday 12/18 · 2–8 PM ET</span>
+        <h1>Jason’s Christmas <em>Birthday</em> Stream</h1>
+        <p class="lede">Six hours of holiday games, easygoing chats with tech folks, and a giveaway every single hour. No sales pitches, just good vibes for a good cause.</p>
+        <div class="goal label"><span>The goal</span><b>$10,000 for freeCodeCamp</b></div>
+        <div>
+          <div class="countdown" id="countdown" aria-label="Time until the stream starts">
+            <div class="unit"><b id="cd-d">--</b><span class="label">Days</span></div>
+            <div class="unit"><b id="cd-h">--</b><span class="label">Hours</span></div>
+            <div class="unit"><b id="cd-m">--</b><span class="label">Min</span></div>
+            <div class="unit"><b id="cd-s">--</b><span class="label">Sec</span></div>
+          </div>
+          <p class="live-now" id="live-now">We’re live! Come hang out.</p>
+        </div>
+        <div class="ctas">
+          <a class="btn btn-gold" href="#sponsor">Become a sponsor</a>
+          <a class="btn btn-ghost" href="#watch">Where to watch</a>
+        </div>
+      </div>
+      <figure class="cover">
+        <img src="/cover.jpg" alt="Stream Weekly cover announcing the sponsors: Laravel and Unkey at Platinum, Coder at Gold, Randstad powered by Torc and CodeRabbit at Silver" width="540" height="675">
+      </figure>
+    </div>
+  </div>
+
+  <div class="band" aria-labelledby="band-title">
+    <p class="band-title label" id="band-title">Brought to you by</p>
+    <div class="marquee">
+      <div class="track">
+        <div class="set">
+          <div class="logo"><img class="mark" src="/logos/laravel-mark.png" alt=""><img src="/logos/laravel-wordmark.png" alt="Laravel"></div>
+          <div class="logo"><img src="/logos/unkey.svg" alt="Unkey"></div>
+          <div class="logo"><img src="/logos/coder.png" alt="Coder" style="height: 34px"></div>
+          <div class="logo"><img class="tile" src="/logos/randstad.png" alt="Randstad"><small>powered<br>by Torc</small></div>
+          <div class="logo"><img src="/logos/coderabbit.png" alt="CodeRabbit" style="height: 38px"></div>
+        </div>
+        <div class="set" aria-hidden="true">
+          <div class="logo"><img class="mark" src="/logos/laravel-mark.png" alt=""><img src="/logos/laravel-wordmark.png" alt=""></div>
+          <div class="logo"><img src="/logos/unkey.svg" alt=""></div>
+          <div class="logo"><img src="/logos/coder.png" alt="" style="height: 34px"></div>
+          <div class="logo"><img class="tile" src="/logos/randstad.png" alt=""><small>powered<br>by Torc</small></div>
+          <div class="logo"><img src="/logos/coderabbit.png" alt="" style="height: 38px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="watch" class="gutter">
+    <div class="wrap">
+      <div class="head"><span class="label">Tune in</span><h2>Where to watch</h2></div>
+      <div class="watch">
+        <a class="platform" href="https://x.com/TasonJorres" target="_blank" rel="noopener"><span>Live on</span><b>X</b></a>
+        <a class="platform" href="__YOUTUBE__" target="_blank" rel="noopener"><span>Live on</span><b>YouTube</b></a>
+        <a class="platform" href="__LINKEDIN__" target="_blank" rel="noopener"><span>Live on</span><b>LinkedIn</b></a>
+        <a class="platform" href="__TWITCH__" target="_blank" rel="noopener"><span>Live on</span><b>Twitch</b></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="sponsor" class="gutter">
+    <div class="wrap">
+      <div class="head"><span class="label">For sponsors</span><h2>Who’s watching</h2></div>
+      <div class="stats">
+        <div class="stat"><b>23K+</b><span>combined followers</span></div>
+        <div class="stat"><b>17.4K</b><span>on LinkedIn</span></div>
+        <div class="stat"><b>5.3K</b><span>on X</span></div>
+        <div class="stat"><b>~20K</b><span>views across platforms at last year’s stream</span></div>
+      </div>
+      <p class="audience"><b>Frontend developers, mostly junior to mid-level, plus a strong DevRel crowd.</b> <span style="color: var(--muted)">The people choosing tools now and championing them on their teams next.</span></p>
+    </div>
+  </section>
+
+  <section class="gutter" aria-labelledby="tiers-h">
+    <div class="wrap">
+      <div class="head"><span class="label">Sponsorship levels</span><h2 id="tiers-h">Pick your level</h2></div>
+      <div class="tiers">
+        <article class="tier top">
+          <div class="tier-row"><h3>Platinum</h3><span class="price">$3,000 cash or a $1,500+ prize</span></div>
+          <p>You own one hour plus a named segment in it. Your logo is on screen all six hours, and I thank you at the open and the close.</p>
+          <div class="segments">
+            <div class="segment"><b>The [Your Brand] Gift Drop</b>Your guest draws that hour’s winner live.</div>
+            <div class="segment"><b>The [Your Brand] Hot Seat</b>A 10-minute holiday chat with someone from your team.</div>
+          </div>
+        </article>
+        <article class="tier">
+          <div class="tier-row"><h3>Gold</h3></div>
+          <span class="price">$1,000 cash or a $500+ prize</span>
+          <p>You own one hour, bring a guest or jump into a game, and get a live giveaway moment.</p>
+        </article>
+        <article class="tier">
+          <div class="tier-row"><h3>Silver</h3></div>
+          <span class="price">$500 cash or a $200+ prize</span>
+          <p>A shoutout during the stream and a spot on the sponsor logo wall.</p>
+        </article>
+        <article class="tier">
+          <div class="tier-row"><h3>Community</h3></div>
+          <span class="price">$100+ cash or any physical prize</span>
+          <p>Your name on the thank-you wall.</p>
+        </article>
+      </div>
+      <p class="fine">Cash and prizes can be combined, and prizes count at retail value. Prizes should be physical gear (think laptops, keyboards, headphones), not product credits or coupons. No product demos, and 2–3 minutes of sponsor talk per hour.</p>
+
+      <div class="walkaway">
+        <h3>What you walk away with</h3>
+        <ul>
+          <li><b>A recap within a week:</b> viewers per platform, giveaway entry count, and timestamps of every one of your mentions.</li>
+          <li><b>A CSV of only the people who opted in to hear from you.</b> Each sponsor gets its own opt-in checkbox on the entry form, so every lead chose you.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="gutter" aria-labelledby="dates-h">
+    <div class="wrap">
+      <div class="head"><span class="label">2026</span><h2 id="dates-h">Key dates</h2></div>
+      <ol class="dates">
+        <li><time datetime="2026-11-13">Nov 13</time><span>Claim your level</span></li>
+        <li><time datetime="2026-11-20">Nov 20</time><span>Assets due: logo, one URL, talking points, prize or cash details</span></li>
+        <li><time datetime="2026-11-30">Nov 30</time><span>Sponsor promo posts start</span></li>
+        <li><time datetime="2026-12-18">Dec 18</time><span>We’re live, 2–8 PM ET</span></li>
+        <li><time datetime="2026-12-22">Dec 22</time><span>Your recap lands</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="contact gutter">
+    <div class="wrap">
+      <div class="contact-card">
+        <span class="label">Let’s make it happen</span>
+        <h2>Grab an hour before they’re gone</h2>
+        <div class="contact-row">
+          <span class="email" id="email">jason.torres@jetbrains.com</span>
+          <button class="copy" type="button" id="copy">Copy email</button>
+        </div>
+        <p style="margin: 0">Or DM <a href="https://x.com/TasonJorres" target="_blank" rel="noopener">@TasonJorres</a> on X · <a href="/sponsor-packet.pdf" download>Download the sponsor packet (PDF)</a></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="gutter">
+  <div class="wrap">
+    <span>Jason Torres · Christmas Birthday Stream 2026</span>
+    <span>Every cash dollar goes to freeCodeCamp.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var start = new Date('2026-12-18T14:00:00-05:00').getTime();
+  var end = new Date('2026-12-18T20:00:00-05:00').getTime();
+  var ids = ['cd-d', 'cd-h', 'cd-m', 'cd-s'].map(function (id) { return document.getElementById(id); });
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    var now = Date.now(), diff = start - now;
+    if (diff <= 0) {
+      document.getElementById('countdown').style.display = 'none';
+      var live = document.getElementById('live-now');
+      live.style.display = 'block';
+      if (now > end) live.textContent = 'That’s a wrap. Thank you for an amazing stream!';
+      return;
+    }
+    var s = Math.floor(diff / 1000);
+    ids[0].textContent = Math.floor(s / 86400);
+    ids[1].textContent = pad(Math.floor(s % 86400 / 3600));
+    ids[2].textContent = pad(Math.floor(s % 3600 / 60));
+    ids[3].textContent = pad(s % 60);
+    setTimeout(tick, 1000);
+  }
+  tick();
+
+  document.getElementById('copy').addEventListener('click', function () {
+    var btn = this, el = document.getElementById('email');
+    function select() { var r = document.createRange(); r.selectNodeContents(el); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); btn.textContent = 'Selected'; }
+    if (navigator.clipboard) navigator.clipboard.writeText(el.textContent).then(function () { btn.textContent = 'Copied!'; }, select); else select();
+    setTimeout(function () { btn.textContent = 'Copy email'; }, 2400);
+  });
+})();
+</script>
+</body>
+</html>
