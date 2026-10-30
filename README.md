@@ -1,6 +1,6 @@
 # xmas-stream
 
-Landing page for Jason Torres' Christmas Birthday Livestream (Fri Dec 18, 2026, 2–8 PM ET), raising $10,000 for freeCodeCamp.
+Landing page for Jason Torres' Christmas Birthday Livestream (Fri Dec 18, 2026, 2–8 PM ET).
 
 - `public/` is the site: `index.html`, sponsor logos, cover art, and the sponsor packet PDF.
 - `Dockerfile` serves it with nginx on `$PORT` (default 8080), which is what Unkey expects.
