@@ -47,6 +47,9 @@ h1, h2, h3 { margin: 0; font-variation-settings: "SOFT" 100, "opsz" 144; text-wr
 .mast-name { font-weight: 900; font-style: italic; font-size: 1.7rem; letter-spacing: -0.02em; font-variation-settings: "SOFT" 100, "opsz" 144; }
 .mast-meta { font-size: 0.82rem; color: var(--muted); }
 .mast-meta b { color: var(--gold); font-weight: 600; }
+.mast-portal { color: var(--cream); text-decoration: none; font-size: 0.82rem; }
+.mast-portal:hover { color: var(--gold); }
+.tier p.spots { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); font-size: 0.92rem; margin: 0; }
 
 /* hero */
 .hero { padding-block: 56px 64px; }
@@ -170,6 +173,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap">
     <span class="mast-name">Stream Weekly</span>
     <span class="mast-meta label"><b>Holiday Issue</b> · Dec. 12–18, 1987 · 75¢</span>
+    <a class="mast-portal label" href="/portal">Sponsor portal</a>
   </div>
 </header>
 
@@ -254,16 +258,17 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="tiers">
         <article class="tier top">
           <div class="tier-row"><h3>Platinum</h3><span class="price">$3,000 cash or a $1,500+ prize</span></div>
-          <p>You own one hour plus a named segment in it. Your logo is on screen all six hours, and I thank you at the open and the close.</p>
+          <p class="spots">3 spots · 1-hour block</p>
+          <p>You get a 1-hour block, plus a named segment inside it. Your logo is on screen all six hours, and I thank you at the open and the close.</p>
           <div class="segments">
             <div class="segment"><b>The [Your Brand] Gift Drop</b>Your guest draws that hour’s winner live.</div>
             <div class="segment"><b>The [Your Brand] Hot Seat</b>A 10-minute holiday chat with someone from your team.</div>
           </div>
         </article>
         <article class="tier">
-          <div class="tier-row"><h3>Gold</h3></div>
-          <span class="price">$1,000 cash or a $500+ prize</span>
-          <p>You own one hour, bring a guest or jump into a game, and get a live giveaway moment.</p>
+          <div class="tier-row"><h3>Gold</h3><span class="price">$1,000 cash or a $500+ prize</span></div>
+          <p class="spots">4 spots · 30-minute block</p>
+          <p>You get a 30-minute block, bring a guest or jump into a game, and get a live giveaway moment.</p>
         </article>
         <article class="tier">
           <div class="tier-row"><h3>Silver</h3></div>
@@ -277,6 +282,10 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         </article>
       </div>
       <p class="fine">Cash and prizes can be combined, and prizes count at retail value. Prizes should be physical gear (think laptops, keyboards, headphones), not product credits or coupons. No product demos, and 2–3 minutes of sponsor talk per hour.</p>
+      <div class="ctas" style="margin-top:22px">
+        <a class="btn btn-gold" href="/portal">Sponsor portal</a>
+      </div>
+      <p class="fine">Platinum books a 1-hour block and Gold books a 30-minute block, first come, first served from 2:00–8:00 PM ET. Silver and Community send assets in the same portal. Jason sends each sponsor a private link.</p>
 
       <div class="walkaway">
         <h3>What you walk away with</h3>
@@ -293,9 +302,9 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="head"><span class="label">2026</span><h2 id="dates-h">Key dates</h2></div>
       <ol class="dates">
         <li><time datetime="2026-11-13">Nov 13</time><span>Claim your level</span></li>
-        <li><time datetime="2026-11-20">Nov 20</time><span>Assets due: logo, one URL, talking points, prize or cash details</span></li>
+        <li><time datetime="2026-11-20">Nov 20</time><span>Assets due in the sponsor portal: logo, one URL, talking points, prize or cash, shipping, X handle, and credit</span></li>
         <li><time datetime="2026-11-30">Nov 30</time><span>Sponsor promo posts start</span></li>
-        <li><time datetime="2026-12-18">Dec 18</time><span>We’re live, 2–8 PM ET</span></li>
+        <li><time datetime="2026-12-18">Dec 18</time><span>We’re live, 2:00–8:00 PM ET</span></li>
         <li><time datetime="2026-12-22">Dec 22</time><span>Your recap lands</span></li>
       </ol>
     </div>
@@ -305,12 +314,12 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="wrap">
       <div class="contact-card">
         <span class="label">Let’s make it happen</span>
-        <h2>Grab an hour before they’re gone</h2>
+        <h2>Claim your block before it’s gone</h2>
         <div class="contact-row">
           <span class="email" id="email">jason.torres@jetbrains.com</span>
           <button class="copy" type="button" id="copy">Copy email</button>
         </div>
-        <p style="margin: 0">Or DM <a href="https://x.com/TasonJorres" target="_blank" rel="noopener">@TasonJorres</a> on X · <a href="/sponsor-packet.pdf" download>Download the sponsor packet (PDF)</a></p>
+        <p style="margin: 0">Platinum is a 1-hour block. Gold is 30 minutes. <a href="/portal">Open the sponsor portal</a> to book and send assets, or DM <a href="https://x.com/TasonJorres" target="_blank" rel="noopener">@TasonJorres</a> on X · <a href="/sponsor-packet.pdf" download>Download the sponsor packet (PDF)</a></p>
       </div>
     </div>
   </div>
