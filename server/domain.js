@@ -78,6 +78,25 @@ export function spotLines(sponsors, caps) {
   };
 }
 
+/** Openings for the public one-pager. A cap of 0 means the original pitch did not set a limit. */
+export function tierOpenings(sponsors, caps) {
+  const rows = [
+    ["platinum", "Platinum", caps.platinum || 0],
+    ["gold", "Gold", caps.gold || 0],
+    ["silver", "Silver", caps.silver || 0],
+    ["community", "Community", caps.community || 0],
+  ];
+  return rows.map(([id, label, cap]) => {
+    const roster = sponsors.filter((sponsor) => sponsor.tier === id);
+    const taken = roster.length;
+    const limited = cap > 0;
+    const open = limited ? Math.max(0, cap - taken) : null;
+    let status = "Open";
+    if (limited) status = open === 0 ? `Full · ${taken} of ${cap}` : `${open === 1 ? "1 spot open" : `${open} spots open`} · ${taken} of ${cap}`;
+    return { id, label, cap: limited ? cap : null, taken, open, full: limited && open === 0, status, roster };
+  });
+}
+
 function nowIso() {
   return new Date().toISOString();
 }

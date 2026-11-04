@@ -28,6 +28,7 @@ import {
 } from "./domain.js";
 import { boundaryFrom, parseMultipart } from "./multipart.js";
 import { applyHome } from "./campaign.js";
+import { tiersHtml } from "./pitch.js";
 import { flashFrom, renderAdmin, renderAdminLogin, renderDenied, renderLogin, renderPortalDirectory, renderSponsor } from "./pages.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -155,14 +156,16 @@ export async function createApp(env = {}) {
         return;
       }
       if (req.method !== "GET") return text(res, 405, "Method not allowed\n");
-      if (url.pathname === "/" || url.pathname === "/index.html") {
+      if (url.pathname === "/" || url.pathname === "/index.html" || url.pathname === "/sponsor" || url.pathname === "/sponsor.html") {
         const sponsors = await listSponsors(db, config.sessionSecret);
-        const raw = await fs.promises.readFile(path.join(publicDir, "index.html"), "utf8");
+        const file = url.pathname === "/sponsor" || url.pathname === "/sponsor.html" ? "sponsor.html" : "index.html";
+        const raw = await fs.promises.readFile(path.join(publicDir, file), "utf8");
+        const body = applyHome(raw, sponsors).replaceAll("__TIERS__", tiersHtml(sponsors, config.caps));
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("X-Content-Type-Options", "nosniff");
         res.setHeader("Cache-Control", "no-cache");
-        res.end(applyHome(raw, sponsors));
+        res.end(body);
         return;
       }
       await serveStatic(res, url.pathname, publicDir);
