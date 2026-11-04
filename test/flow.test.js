@@ -3,7 +3,7 @@ import fs from "node:fs";
 import http from "node:http";
 import test from "node:test";
 import { createApp } from "../server/app.js";
-import { ensureAccessCodes, ensureWebsites } from "../server/domain.js";
+import { confirmRenderAtl, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
 import { formatRange } from "../server/time.js";
 
 test("admin code keeps symbols, quotes, and spaces, and health hides the values", async (t) => {
@@ -53,6 +53,16 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
   assert.equal(kept.url, "https://example.com/kept");
   assert.equal(laravelUrl.url, "https://laravel.com");
   assert.equal(lukeUrl.url, "");
+  await app.db.run("UPDATE sponsors SET tier = ?, prize_details = ? WHERE slug = ?", ["prize", "RenderATL VIP ticket. Travel TBD.", "renderatl"]);
+  await confirmRenderAtl(app.db);
+  const confirmed = await app.db.get("SELECT tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
+  assert.equal(confirmed.tier, "silver");
+  assert.equal(confirmed.prize_details, "All-access RenderATL ticket");
+  await app.db.run("UPDATE sponsors SET tier = ?, prize_details = ? WHERE slug = ?", ["gold", "Custom prize", "renderatl"]);
+  await confirmRenderAtl(app.db);
+  const keptTier = await app.db.get("SELECT tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
+  assert.equal(keptTier.tier, "gold");
+  assert.equal(keptTier.prize_details, "Custom prize");
   const typed = await fetch(`${base}/admin/login`, {
     method: "POST",
     headers: {
@@ -245,7 +255,8 @@ test("sponsor portal flow", async (t) => {
   assert.doesNotMatch(home.text, /Fraunces|Oswald/);
   assert.doesNotMatch(home.text, /hostjt|\/displayurl|\/vote/);
   assert.doesNotMatch(home.text, /href="\/admin/);
-  assert.doesNotMatch(home.text, /renderatl-/);
+  assert.match(home.text, /<h3>Silver<\/h3>[\s\S]*src="\/logos\/renderatl-mark-dark\.svg"[\s\S]*All-access RenderATL ticket/);
+  assert.doesNotMatch(home.text, /renderatl-mark-light|renderatl-wordmark-light/);
 
   const pitch = await client().fetch("/sponsor");
   assert.equal(pitch.status, 200);
@@ -268,7 +279,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Dec 22/);
   assert.match(pitch.text, /id="tier-platinum"[\s\S]*1 spot open · 2 of 3[\s\S]*Laravel[\s\S]*Unkey/);
   assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Kunal[\s\S]*Luke[\s\S]*Tighten/);
-  assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*Torc/);
+  assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*src="\/logos\/renderatl-mark-dark\.svg"[\s\S]*All-access RenderATL ticket[\s\S]*Torc/);
   assert.match(pitch.text, /id="tier-community"[\s\S]*Open · No timed block/);
   assert.match(pitch.text, /MacBook Pro/);
   assert.doesNotMatch(pitch.text, /Fraunces|__YOUTUBE__|__TIERS__|href="\/admin/);
@@ -336,7 +347,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /Access code: /);
   assert.match(desk.text, /Logo: present · public\/logos\/laravel-wordmark\.png/);
   assert.match(desk.text, /Logo: missing · none in the database/);
-  assert.match(desk.text, /id="sponsor-renderatl"[\s\S]*renderatl-wordmark-dark\.svg[\s\S]*renderatl-wordmark-light\.svg[\s\S]*renderatl-mark-dark\.svg[\s\S]*renderatl-mark-light\.svg/);
+  assert.match(desk.text, /id="sponsor-renderatl"[\s\S]*tier">Silver[\s\S]*Confirmed Silver[\s\S]*All-access RenderATL ticket[\s\S]*renderatl-mark-dark\.svg/);
   assert.match(desk.text, /server\/seed-logos\/tighten-wordmark\.png/);
   assert.match(desk.text, /2 in the database/);
   assert.match(desk.text, /Website: <a href="https:\/\/laravel\.com"/);

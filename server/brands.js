@@ -59,9 +59,9 @@ export const BRANDS = {
 };
 
 const SHOWCASE = [
-  { tier: "Platinum", slugs: ["laravel", "unkey"] },
-  { tier: "Gold", slugs: ["coder", "luke", "kunal", "tighten"] },
-  { tier: "Silver", slugs: ["coderabbit", "torc"] },
+  { tier: "Platinum", id: "platinum", slugs: ["laravel", "unkey"] },
+  { tier: "Gold", id: "gold", slugs: ["coder", "luke", "kunal", "tighten"] },
+  { tier: "Silver", id: "silver", slugs: ["coderabbit", "torc", "renderatl"] },
 ];
 
 export function brandFor(slug) {
@@ -91,20 +91,24 @@ export function logoStatusText(sponsor) {
   return `Logo: ${fileBit} · ${dbBit}`;
 }
 
+function showcaseRoster(sponsors, group) {
+  const inTier = (sponsors || []).filter((sponsor) => sponsor.tier === group.id);
+  const rank = new Map(group.slugs.map((slug, index) => [slug, index]));
+  return inTier.sort((a, b) => (rank.get(a.slug) ?? 99) - (rank.get(b.slug) ?? 99) || a.name.localeCompare(b.name));
+}
+
 export function showcaseHtml(sponsors) {
-  const bySlug = new Map((sponsors || []).map((sponsor) => [sponsor.slug, sponsor]));
   return `<div class="tiers">${SHOWCASE.map((group) => {
-    const items = group.slugs
-      .map((slug) => {
-        const sponsor = bySlug.get(slug);
-        const brand = brandFor(slug);
-        const name = sponsor?.name || slug;
-        const href = hubHref(sponsor || { slug, url: "", x_handle: "" });
+    const items = showcaseRoster(sponsors, group)
+      .map((sponsor) => {
+        const brand = brandFor(sponsor.slug);
+        const href = hubHref(sponsor);
         const mark = brand.hub
-          ? `<img src="${esc(brand.hub)}" alt="${esc(name)}">`
-          : `<span class="badge">${esc(name)}</span>`;
-        const handle = slug === "luke" || slug === "kunal" ? sponsor?.x_handle || "" : "";
-        const caption = `<span>${esc(name)}</span>${handle ? `<small>@${esc(handle)}</small>` : ""}`;
+          ? `<img src="${esc(brand.hub)}" alt="${esc(sponsor.name)}">`
+          : `<span class="badge">${esc(sponsor.name)}</span>`;
+        const handle = sponsor.slug === "luke" || sponsor.slug === "kunal" ? sponsor.x_handle || "" : "";
+        const prize = sponsor.slug === "renderatl" && sponsor.prize_details ? `<small>${esc(sponsor.prize_details)}</small>` : "";
+        const caption = `<span>${esc(sponsor.name)}</span>${handle ? `<small>@${esc(handle)}</small>` : ""}${prize}`;
         const body = `${mark}${caption}`;
         return `<li>${href ? `<a class="brand" href="${esc(href)}">${body}</a>` : `<div class="brand">${body}</div>`}</li>`;
       })

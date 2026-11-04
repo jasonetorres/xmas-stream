@@ -399,7 +399,7 @@ function earliestOptions(selected) {
 const HINTS = {
   torc: "On the public logo wall this is Randstad, powered by Torc. The gift cards are already on the prize lineup.",
   tighten: "CEO Matt. The mark and the wordmark are already on file.",
-  renderatl: "Tier isn’t set yet. The VIP ticket is on the prize lineup. Travel is TBD.",
+  renderatl: "Confirmed Silver. The giveaway is one all-access RenderATL ticket.",
 };
 
 function inviteMessage(sponsor, link) {
