@@ -60,4 +60,4 @@ Seeded sponsors: Laravel and Unkey (Platinum, one Platinum spot left open), Code
 
 ## The public fundraiser
 
-`server/campaign.js` is the only file for the public numbers. Set `raised` (it starts at `4000`) and `goal`. Add a locked prize by appending to `prizes`. Put the live campaign link in `tiltifyUrl`. The homepage reads that file on each request. The primary button is "Sponsor with cash" and it goes to Tiltify.
+`server/campaign.js` is the only file for the public numbers. Set `raised` (it starts at `4000`) and `goal`. Add a locked prize by appending to `prizes`. Put the live campaign link in `tiltifyUrl`. The homepage reads that file on each request. The primary button is "Sponsor with cash" and it goes to https://tilt.fyi/9va4uz7GEn.
