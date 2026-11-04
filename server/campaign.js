@@ -20,7 +20,7 @@ export const prizes = [
   { item: "NuPhy Air75 V3", from: "Unkey" },
   { item: "Work Louder keyboard", from: "CodeRabbit" },
   { item: "Amazon gift cards", from: "Torc" },
-  { item: "$500+ prize", from: "Luke", note: "TBD" },
+  { item: "Apple Watch Series 12 (GPS + Cellular) 42mm", from: "Level Up Financial Planning" },
 ];
 
 export function money(amount) {

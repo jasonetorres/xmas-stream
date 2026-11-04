@@ -22,7 +22,6 @@ export function durationFor(tier) {
 }
 
 export function pickerLabel(sponsor) {
-  if (sponsor.slug === "luke") return "Luke / LevelUp";
   return sponsor.name;
 }
 
@@ -510,6 +509,32 @@ export async function deleteSponsor(db, id) {
   await db.run("DELETE FROM sponsors WHERE id = ?", [id]);
 }
 
+const LUKE = {
+  name: "Level Up Financial Planning",
+  url: "https://www.levelupfinancialplanning.com/",
+  contact_name: "Lucas Casarez, CFP®, Founder of Level Up Financial Planning",
+  x_handle: "LukeCFPLevelUp",
+  prize_details: "Apple Watch Series 12 (GPS + Cellular) 42mm",
+  talking_points:
+    "Take your financial planning to the next level! Level Up helps tech professionals make sense of all the financial stuff that comes with their careers—from stock compensation, taxes, retirement, and investments to competing goals like buying a home, career breaks, or planning for the future.",
+};
+
+export async function confirmLuke(db) {
+  const row = await db.get("SELECT id, name, url, contact_name, x_handle, prize_details, talking_points FROM sponsors WHERE slug = ?", ["luke"]);
+  if (!row) return;
+  const name = row.name === "Luke" || !row.name ? LUKE.name : row.name;
+  const url = !row.url ? LUKE.url : row.url;
+  const contact = row.contact_name === "Luke" || !row.contact_name ? LUKE.contact_name : row.contact_name;
+  const handle = row.x_handle || LUKE.x_handle;
+  const prize = !row.prize_details || row.prize_details === "$500+ prize, details TBD" ? LUKE.prize_details : row.prize_details;
+  const blurb = !row.talking_points ? LUKE.talking_points : row.talking_points;
+  if (name === row.name && url === row.url && contact === row.contact_name && handle === row.x_handle && prize === row.prize_details && blurb === row.talking_points) return;
+  await db.run(
+    "UPDATE sponsors SET name = ?, url = ?, contact_name = ?, x_handle = ?, prize_details = ?, talking_points = ? WHERE id = ?",
+    [name, url, contact, handle, prize, blurb, row.id]
+  );
+}
+
 export async function confirmRenderAtl(db) {
   const row = await db.get("SELECT id, tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
   if (!row) return;
@@ -559,11 +584,12 @@ const SEED = [
   { slug: "coder", name: "Coder", tier: "gold", prize_details: "$1,000 cash", logos: [] },
   {
     slug: "luke",
-    name: "Luke",
+    name: LUKE.name,
     tier: "gold",
-    contact_name: "Luke",
-    x_handle: "LukeCFPLevelUp",
-    prize_details: "$500+ prize, details TBD",
+    contact_name: LUKE.contact_name,
+    x_handle: LUKE.x_handle,
+    prize_details: LUKE.prize_details,
+    talking_points: LUKE.talking_points,
     not_before: 14 * 60,
   },
   { slug: "kunal", name: "Kunal", tier: "gold", contact_name: "Kunal", x_handle: "kunalstwt", prize_details: "5 Keychron keyboards" },

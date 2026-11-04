@@ -3,7 +3,7 @@ import fs from "node:fs";
 import http from "node:http";
 import test from "node:test";
 import { createApp } from "../server/app.js";
-import { confirmRenderAtl, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
+import { confirmLuke, confirmRenderAtl, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
 import { formatRange } from "../server/time.js";
 
 test("admin code keeps symbols, quotes, and spaces, and health hides the values", async (t) => {
@@ -52,7 +52,20 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
   const lukeUrl = await app.db.get("SELECT url FROM sponsors WHERE slug = ?", ["luke"]);
   assert.equal(kept.url, "https://example.com/kept");
   assert.equal(laravelUrl.url, "https://laravel.com");
-  assert.equal(lukeUrl.url, "");
+  assert.equal(lukeUrl.url, "https://www.levelupfinancialplanning.com/");
+  await app.db.run(
+    "UPDATE sponsors SET name = ?, url = ?, contact_name = ?, prize_details = ?, talking_points = ? WHERE slug = ?",
+    ["Luke", "", "Luke", "$500+ prize, details TBD", "", "luke"]
+  );
+  await confirmLuke(app.db);
+  const levelUp = await app.db.get("SELECT slug, name, url, contact_name, x_handle, prize_details, talking_points FROM sponsors WHERE slug = ?", ["luke"]);
+  assert.equal(levelUp.slug, "luke");
+  assert.equal(levelUp.name, "Level Up Financial Planning");
+  assert.equal(levelUp.url, "https://www.levelupfinancialplanning.com/");
+  assert.match(levelUp.contact_name, /Lucas Casarez, CFP®/);
+  assert.equal(levelUp.x_handle, "LukeCFPLevelUp");
+  assert.equal(levelUp.prize_details, "Apple Watch Series 12 (GPS + Cellular) 42mm");
+  assert.match(levelUp.talking_points, /stock compensation/);
   await app.db.run("UPDATE sponsors SET tier = ?, prize_details = ? WHERE slug = ?", ["prize", "RenderATL VIP ticket. Travel TBD.", "renderatl"]);
   await confirmRenderAtl(app.db);
   const confirmed = await app.db.get("SELECT tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
@@ -248,7 +261,11 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /href="https:\/\/torc\.dev"/);
   assert.match(home.text, /href="https:\/\/x\.com\/LukeCFPLevelUp"/);
   assert.match(home.text, /href="https:\/\/x\.com\/kunalstwt"/);
-  assert.match(home.text, /class="badge">Luke</);
+  assert.match(home.text, /class="badge">Level Up Financial Planning</);
+  assert.match(home.text, /href="https:\/\/www\.levelupfinancialplanning\.com\/"/);
+  assert.match(home.text, /Lucas Casarez, CFP®/);
+  assert.match(home.text, /stock compensation/);
+  assert.match(home.text, /Apple Watch Series 12 \(GPS \+ Cellular\) 42mm/);
   assert.match(home.text, /class="badge">Kunal</);
   assert.doesNotMatch(home.text, /<img[^>]+luke/i);
   assert.match(home.text, /JetBrains\+Mono/);
@@ -278,7 +295,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Nov 30/);
   assert.match(pitch.text, /Dec 22/);
   assert.match(pitch.text, /id="tier-platinum"[\s\S]*1 spot open · 2 of 3[\s\S]*Laravel[\s\S]*Unkey/);
-  assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Kunal[\s\S]*Luke[\s\S]*Tighten/);
+  assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Kunal[\s\S]*Level Up Financial Planning[\s\S]*Tighten/);
+  assert.match(pitch.text, /id="level-up"[\s\S]*levelupfinancialplanning\.com[\s\S]*Lucas Casarez, CFP®[\s\S]*@LukeCFPLevelUp[\s\S]*stock compensation[\s\S]*Apple Watch Series 12/);
   assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*src="\/logos\/renderatl-mark-dark\.svg"[\s\S]*All-access RenderATL ticket[\s\S]*Torc/);
   assert.match(pitch.text, /id="tier-community"[\s\S]*Open · No timed block/);
   assert.match(pitch.text, /MacBook Pro/);
@@ -295,7 +313,8 @@ test("sponsor portal flow", async (t) => {
 
   const door = await client().fetch("/portal");
   assert.match(door.text, /href="\/portal\?s=laravel"/);
-  assert.match(door.text, /Luke \/ LevelUp/);
+  assert.match(door.text, /Level Up Financial Planning/);
+  assert.match(door.text, /href="\/portal\?s=luke"/);
   assert.match(door.text, /RenderATL/);
   assert.doesNotMatch(door.text, /New MacBook Pro/);
   assert.doesNotMatch(door.text, /name="code"/);
@@ -351,7 +370,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /server\/seed-logos\/tighten-wordmark\.png/);
   assert.match(desk.text, /2 in the database/);
   assert.match(desk.text, /Website: <a href="https:\/\/laravel\.com"/);
-  assert.match(desk.text, /id="sponsor-luke"[\s\S]*?Website: blank/);
+  assert.match(desk.text, /id="sponsor-luke"[\s\S]*Level Up Financial Planning[\s\S]*Lucas Casarez, CFP®[\s\S]*Apple Watch Series 12[\s\S]*stock compensation[\s\S]*Logo: missing[\s\S]*levelupfinancialplanning\.com/);
   const codeFile = await client().fetch("/admin/api/sponsor-codes", { headers: { "x-admin-code": "admin-test-code" } });
   assert.equal(codeFile.status, 200);
   for (const sponsor of JSON.parse(codeFile.text).sponsors) codes[sponsor.slug] = sponsor.code;
@@ -471,11 +490,12 @@ test("sponsor portal flow", async (t) => {
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       sponsor_id: /id="sponsor-luke"[\s\S]*?name="sponsor_id" value="(\d+)"/.exec(desk.text)[1],
-      name: "Luke",
+      name: "Level Up Financial Planning",
       tier: "gold",
-      contact_name: "Luke",
+      contact_name: "Lucas Casarez, CFP®, Founder of Level Up Financial Planning",
       x_handle: "LukeCFPLevelUp",
-      prize_details: "$500+ prize, details TBD",
+      prize_details: "Apple Watch Series 12 (GPS + Cellular) 42mm",
+      url: "https://www.levelupfinancialplanning.com/",
       not_before: String(15 * 60),
     }).toString(),
   });
