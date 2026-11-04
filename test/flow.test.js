@@ -3,6 +3,7 @@ import fs from "node:fs";
 import http from "node:http";
 import test from "node:test";
 import { createApp } from "../server/app.js";
+import { ensureAccessCodes, ensureWebsites } from "../server/domain.js";
 import { formatRange } from "../server/time.js";
 
 test("admin code keeps symbols, quotes, and spaces, and health hides the values", async (t) => {
@@ -29,7 +30,29 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
     body: "code=anything",
     redirect: "manual",
   });
-  assert.match(decodeURIComponent(missing.headers.get("location")), /SPONSOR_CODE is not set/);
+  assert.match(decodeURIComponent(missing.headers.get("location")), /Pick your name first/);
+  const locked = await fetch(`${base}/admin/api/sponsor-codes`);
+  assert.equal(locked.status, 401);
+  const wrong = await fetch(`${base}/admin/api/sponsor-codes`, { headers: { "x-admin-code": "nope" } });
+  assert.equal(wrong.status, 401);
+  await app.db.run("UPDATE sponsors SET code_hash = ?, code_enc = ? WHERE slug = ?", ["00", "old-dashed-code", "renderatl"]);
+  await ensureAccessCodes(app.db, "test-secret-test-secret", "J@s0n-Admin!");
+  const codesRes = await fetch(`${base}/admin/api/sponsor-codes`, { headers: { "x-admin-code": "J@s0n-Admin!" } });
+  assert.equal(codesRes.status, 200);
+  const codesBody = await codesRes.json();
+  assert.equal(codesBody.sponsors.length, 9);
+  for (const sponsor of codesBody.sponsors) {
+    assert.match(sponsor.code, /^[abcdefghjkmnpqrstuvwxyz23456789]{8}$/);
+  }
+  assert.equal(JSON.stringify(codesBody).includes("J@s0n-Admin!"), false);
+  await app.db.run("UPDATE sponsors SET url = ? WHERE slug = ?", ["https://example.com/kept", "coder"]);
+  await ensureWebsites(app.db);
+  const kept = await app.db.get("SELECT url FROM sponsors WHERE slug = ?", ["coder"]);
+  const laravelUrl = await app.db.get("SELECT url FROM sponsors WHERE slug = ?", ["laravel"]);
+  const lukeUrl = await app.db.get("SELECT url FROM sponsors WHERE slug = ?", ["luke"]);
+  assert.equal(kept.url, "https://example.com/kept");
+  assert.equal(laravelUrl.url, "https://laravel.com");
+  assert.equal(lukeUrl.url, "");
   const typed = await fetch(`${base}/admin/login`, {
     method: "POST",
     headers: {
@@ -42,10 +65,31 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
   });
   assert.equal(typed.headers.get("location"), "/admin");
   assert.match(typed.headers.get("set-cookie"), /Secure/);
-  const desk = await fetch(`${base}/admin`, { headers: { cookie: typed.headers.getSetCookie()[0].split(";")[0] } });
+  const cookie = typed.headers.getSetCookie()[0].split(";")[0];
+  const desk = await fetch(`${base}/admin`, { headers: { cookie } });
   const deskText = await desk.text();
   assert.match(deskText, /Every/);
+  assert.match(deskText, /Copy code/);
+  assert.match(deskText, /Copy invite message/);
   assert.doesNotMatch(deskText, /Admin code/);
+  const cookieOnly = await fetch(`${base}/admin/api/sponsor-codes`, { headers: { cookie } });
+  assert.equal(cookieOnly.status, 401);
+  const laravelCode = codesBody.sponsors.find((sponsor) => sponsor.slug === "laravel").code;
+  const signedIn = await fetch(`${base}/portal/login`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: `code=${laravelCode}&s=laravel`,
+    redirect: "manual",
+  });
+  assert.equal(signedIn.headers.get("location"), "/portal?s=laravel");
+  const other = codesBody.sponsors.find((sponsor) => sponsor.slug === "unkey").code;
+  const crossed = await fetch(`${base}/portal/login`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: `code=${other}&s=laravel`,
+    redirect: "manual",
+  });
+  assert.match(decodeURIComponent(crossed.headers.get("location")), /doesn/);
 });
 
 test("form posts accept localhost aliases and reject other sites", async (t) => {
@@ -133,29 +177,17 @@ test("sponsor portal flow", async (t) => {
     return c;
   }
 
+  const codes = {};
+
   async function enterPortal(slug) {
     const c = client();
     const res = await c.fetch("/portal/login", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: "code=sponsor-test-code",
+      body: new URLSearchParams({ code: codes[slug], s: slug }).toString(),
     });
     assert.equal(res.status, 303, res.text);
-    assert.equal(res.headers.get("location"), "/portal");
-    const pick = await c.fetch("/portal");
-    assert.match(pick.text, /name="slug" value="laravel"/);
-    assert.match(pick.text, /Luke \/ LevelUp/);
-    assert.match(pick.text, /CodeRabbit/);
-    assert.match(pick.text, /Torc/);
-    assert.match(pick.text, /RenderATL/);
-    assert.doesNotMatch(pick.text, /New MacBook Pro/);
-    assert.doesNotMatch(pick.text, /Book 1 hour/);
-    const claim = await c.fetch("/portal/claim", {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ slug }).toString(),
-    });
-    assert.equal(claim.status, 303, claim.text);
+    assert.equal(res.headers.get("location"), `/portal?s=${slug}`);
     return c;
   }
 
@@ -165,22 +197,53 @@ test("sponsor portal flow", async (t) => {
 
   const home = await client().fetch("/");
   assert.equal(home.status, 200);
-  assert.match(home.text, /4 spots/);
-  assert.match(home.text, /30-minute block/);
-  assert.match(home.text, /1-hour block/);
-  assert.match(home.text, /href="\/portal"/);
+  assert.match(home.text, /Friday, December 18, 2026/);
+  assert.match(home.text, /2:00–8:00 PM ET/);
+  assert.match(home.text, /Multistream/);
+  assert.match(home.text, /freeCodeCamp/);
+  assert.match(home.text, /\$10,000/);
+  assert.match(home.text, /\$4,000<\/b> of \$10,000 raised/);
+  assert.match(home.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
+  assert.match(home.text, />Donate</);
+  assert.match(home.text, /Platinum[\s\S]*Laravel[\s\S]*Unkey/);
+  assert.match(home.text, /@LukeCFPLevelUp/);
+  assert.match(home.text, /Coder/);
+  assert.match(home.text, /Kunal/);
+  assert.match(home.text, /Tighten/);
+  assert.match(home.text, /CodeRabbit/);
+  assert.match(home.text, /Torc/);
+  assert.match(home.text, /Christmasaire 2\.0/);
+  assert.match(home.text, /Coming soon/);
+  assert.match(home.text, /Name That Christmas Movie/);
+  assert.match(home.text, /Holiday Price is Right/);
+  assert.match(home.text, /Family Feud/);
+  assert.match(home.text, /Ugly Sweater \+ Donation Dares/);
+  assert.match(home.text, /Call Santa finale/);
+  assert.match(home.text, /Santavel/);
+  assert.match(home.text, /https:\/\/x\.com\/TasonJorres/);
+  assert.match(home.text, /https:\/\/www\.linkedin\.com\/in\/thejasontorres/);
+  assert.match(home.text, /href="\/portal">Sponsor login/);
+  assert.match(home.text, /src="\/logos\/laravel-wordmark\.png"/);
+  assert.match(home.text, /src="\/logos\/unkey\.svg"/);
+  assert.match(home.text, /src="\/logos\/coder\.png"/);
+  assert.match(home.text, /src="\/logos\/tighten-mark\.png"/);
+  assert.match(home.text, /src="\/logos\/coderabbit\.png"/);
+  assert.match(home.text, /src="\/logos\/randstad\.png"/);
+  assert.match(home.text, /href="https:\/\/laravel\.com"/);
+  assert.match(home.text, /href="https:\/\/unkey\.com"/);
+  assert.match(home.text, /href="https:\/\/coder\.com"/);
+  assert.match(home.text, /href="https:\/\/tighten\.com"/);
+  assert.match(home.text, /href="https:\/\/coderabbit\.ai"/);
+  assert.match(home.text, /href="https:\/\/torc\.dev"/);
+  assert.match(home.text, /href="https:\/\/x\.com\/LukeCFPLevelUp"/);
+  assert.match(home.text, /href="https:\/\/x\.com\/kunalstwt"/);
+  assert.match(home.text, /class="badge">Luke</);
+  assert.match(home.text, /class="badge">Kunal</);
+  assert.doesNotMatch(home.text, /<img[^>]+luke/i);
   assert.match(home.text, /JetBrains\+Mono/);
   assert.doesNotMatch(home.text, /Fraunces|Oswald/);
-  assert.match(home.text, /\$4,000<\/b> of \$10,000 raised/);
-  assert.match(home.text, /freeCodeCamp/);
-  assert.match(home.text, /Sponsor with cash/);
-  assert.match(home.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
-  assert.match(home.text, /MacBook Pro/);
-  assert.match(home.text, /RenderATL VIP ticket/);
-  assert.match(home.text, /Keychron keyboards/);
-  assert.match(home.text, /aria-valuenow="4000"/);
-  assert.doesNotMatch(home.text, /\$200\+ prize/);
-  assert.doesNotMatch(home.text, /any physical prize/);
+  assert.doesNotMatch(home.text, /hostjt|\/displayurl|\/vote/);
+  assert.doesNotMatch(home.text, /href="\/admin/);
 
   const health = await client().fetch("/health");
   assert.equal(health.status, 200);
@@ -191,10 +254,17 @@ test("sponsor portal flow", async (t) => {
   assert.equal(health.text.includes("admin-test-code"), false);
   assert.equal(health.text.includes("sponsor-test-code"), false);
 
+  const door = await client().fetch("/portal");
+  assert.match(door.text, /href="\/portal\?s=laravel"/);
+  assert.match(door.text, /Luke \/ LevelUp/);
+  assert.match(door.text, /RenderATL/);
+  assert.doesNotMatch(door.text, /New MacBook Pro/);
+  assert.doesNotMatch(door.text, /name="code"/);
+
   const bad = await client().fetch("/portal/login", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: "code=not-a-real-code",
+    body: "code=not-a-real-code&s=laravel",
   });
   assert.equal(bad.status, 303);
   assert.match(bad.headers.get("location"), /doesn/);
@@ -212,7 +282,7 @@ test("sponsor portal flow", async (t) => {
   const adminOnPortal = await client().fetch("/portal/login", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: "code=admin-test-code",
+    body: "code=admin-test-code&s=laravel",
   });
   assert.match(adminOnPortal.headers.get("location"), /doesn/);
 
@@ -233,6 +303,21 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /\/portal\?s=laravel/);
   assert.match(desk.text, /\/portal\?s=luke/);
   assert.match(desk.text, /\/portal\?s=coderabbit/);
+  assert.match(desk.text, /Copy code/);
+  assert.match(desk.text, /Copy invite message/);
+  assert.match(desk.text, /Access code: /);
+  assert.match(desk.text, /Logo: present · public\/logos\/laravel-wordmark\.png/);
+  assert.match(desk.text, /Logo: missing · none in the database/);
+  assert.match(desk.text, /server\/seed-logos\/tighten-wordmark\.png/);
+  assert.match(desk.text, /2 in the database/);
+  assert.match(desk.text, /Website: <a href="https:\/\/laravel\.com"/);
+  assert.match(desk.text, /id="sponsor-luke"[\s\S]*?Website: blank/);
+  const codeFile = await client().fetch("/admin/api/sponsor-codes", { headers: { "x-admin-code": "admin-test-code" } });
+  assert.equal(codeFile.status, 200);
+  for (const sponsor of JSON.parse(codeFile.text).sponsors) codes[sponsor.slug] = sponsor.code;
+  assert.match(codes.laravel, /^[abcdefghjkmnpqrstuvwxyz23456789]{8}$/);
+  const sessionOnly = await admin.fetch("/admin/api/sponsor-codes");
+  assert.equal(sessionOnly.status, 401);
 
   const direct = client();
   const directLogin = await direct.fetch("/portal/login", {
@@ -247,8 +332,21 @@ test("sponsor portal flow", async (t) => {
   assert.doesNotMatch(directPage.text, /NuPhy/);
   await direct.fetch("/portal/logout", { method: "POST" });
 
+  const crossed = await client().fetch("/portal/login", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ code: codes.unkey, s: "laravel" }).toString(),
+  });
+  assert.match(crossed.headers.get("location"), /doesn/);
+
   const laravel = await enterPortal("laravel");
   const laravelHome = await laravel.fetch("/portal");
+  assert.match(laravelHome.text, /Website/);
+  assert.match(laravelHome.text, /value="https:\/\/laravel\.com"/);
+  const peek = await laravel.fetch("/portal?s=unkey");
+  assert.match(peek.text, /Enter the access code Jason sent Unkey/);
+  assert.doesNotMatch(peek.text, /Book 1 hour/);
+  assert.doesNotMatch(peek.text, /NuPhy/);
   assert.match(laravelHome.text, /Book 1 hour/);
   assert.match(laravelHome.text, /JetBrains\+Mono/);
   assert.doesNotMatch(laravelHome.text, /All leads CSV|NuPhy/);

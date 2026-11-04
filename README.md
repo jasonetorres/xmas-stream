@@ -1,6 +1,6 @@
 # xmas-stream
 
-Landing page and sponsor portal for Jason Torres' Christmas Birthday Livestream (Friday, Dec 18, 2026, 2:00–8:00 PM ET). The public page lives in `public/`. Sponsors book time and send assets at `/portal` with `SPONSOR_CODE`, then their own name. Jason runs the show from `/admin` with `ADMIN_CODE`.
+Landing page and sponsor portal for Jason Torres' Christmas Birthday Livestream (Friday, Dec 18, 2026, 2:00–8:00 PM ET). The public page lives in `public/`. Each sponsor opens `/portal?s=<slug>` with their own access code. Jason runs the show from `/admin` with `ADMIN_CODE`.
 
 ## How this deploys
 
@@ -21,7 +21,7 @@ Set these in the Unkey environment (production and preview are separate). Mark t
 | `DATABASE_URL` | Production | Postgres connection string, for example `postgres://user:pass@host:5432/xmas?sslmode=require`. This is what makes bookings and logos survive a deploy. |
 | `SESSION_SECRET` | With `DATABASE_URL` | At least 16 characters. Signs the login cookie and encrypts invite codes. Changing it logs everyone out and makes old links unreadable until you generate new ones. |
 | `ADMIN_CODE` | Production | Jason's login for `/admin`. Any characters. The server trims spaces and one pair of wrapping quotes. Not the sponsor code. |
-| `SPONSOR_CODE` | Production | Shared sponsor login for `/portal`. Any characters, different from `ADMIN_CODE`. |
+| `SPONSOR_CODE` | No | Optional fallback while sponsors switch to their own codes. Any characters, different from `ADMIN_CODE`. Each sponsor’s real code is random, stored hashed in the database, and shown on the admin desk. |
 | `APP_BASE_URL` | No | Public origin for copied invite links, such as `https://jetdemo-xmas-stream-jetbrain.unkey.app`. When unset, links use the request host. |
 | `DATA_DIR` | No | SQLite directory when `DATABASE_URL` is unset. Defaults to `/tmp/xmas-stream`. |
 | `PLATINUM_SPOTS` | No | Default `3`. |
@@ -40,7 +40,16 @@ npm test
 ADMIN_CODE=local-admin-code SPONSOR_CODE=local-sponsor-code SESSION_SECRET=local-session-secret npm start
 ```
 
-Open [http://localhost:8080](http://localhost:8080), [http://localhost:8080/portal](http://localhost:8080/portal), and [http://localhost:8080/admin](http://localhost:8080/admin). Sponsors use `local-sponsor-code`, then their name. Jason uses `local-admin-code`.
+Open [http://localhost:8080](http://localhost:8080), [http://localhost:8080/portal](http://localhost:8080/portal), and [http://localhost:8080/admin](http://localhost:8080/admin). Sponsors pick their name, then enter the access code from the admin desk (or `local-sponsor-code` while that fallback is set). Jason uses `local-admin-code`.
+
+To print every current sponsor code once, from a machine that should see them:
+
+```bash
+curl -s https://jetdemo-xmas-stream-jetbrain.unkey.app/admin/api/sponsor-codes \
+  -H "x-admin-code: YOUR_ADMIN_CODE"
+```
+
+The header is the only way in. A wrong or missing code returns 401. An admin browser session is not enough. The JSON is `{ "sponsors": [{ "slug", "name", "code" }] }`. `/health` still reports only whether the env codes are set.
 
 Docker, same contract Unkey uses:
 
@@ -53,10 +62,10 @@ docker run --rm -p 8080:8080 -e ADMIN_CODE=local-admin-code -e SPONSOR_CODE=loca
 
 The grid is every half hour from 2:00 PM to 8:00 PM ET. Platinum books 1 hour (two blocks). Gold books 30 minutes. A block that overlaps someone else is refused. Jason can override from the admin desk, which clears the other booking. Silver and Community don't book time. They still send assets.
 
-Assets are due Friday, Nov 20, 2026. Everyone sends a logo, one URL, talking points, an X handle, and a credit line. Platinum, Gold, and prize sponsors also send prize details and shipping. Silver and Community are cash for freeCodeCamp, so their form stops there. The desk shows how many of those fields are in.
+Assets are due Friday, Nov 20, 2026. Everyone sends a logo, a website, talking points, an X handle, and a credit line. Logo files and the websites on file are listed in `docs/sponsors.md`. Platinum, Gold, and prize sponsors also send prize details and shipping. Silver and Community are cash for freeCodeCamp, so their form stops there. The desk shows how many of those fields are in.
 
 Seeded sponsors: Laravel and Unkey (Platinum, one Platinum spot left open), Coder, Luke (@LukeCFPLevelUp, no earlier than 2:00 PM ET), Kunal (@kunalstwt), and Tighten (Gold), CodeRabbit and Torc (Silver), and RenderATL (prize sponsor, tier not set). Tighten's mark and wordmark are already on file. A missing seed sponsor is added on startup. Existing rows are left alone.
 
-## The public fundraiser
+## The public page
 
-`server/campaign.js` is the only file for the public numbers. Set `raised` (it starts at `4000`) and `goal`. Add a locked prize by appending to `prizes`. Put the live campaign link in `tiltifyUrl`. The homepage reads that file on each request. The primary button is "Sponsor with cash" and it goes to https://tilt.fyi/9va4uz7GEn.
+`/` is the stream hub: Friday, December 18, 2026, 2:00–8:00 PM ET, the sponsor lineup, and one game per hour. `server/campaign.js` is the only file for the public numbers. Set `raised` (it starts at `4000`) and `goal`. The donate button uses `tiltifyUrl` (https://tilt.fyi/9va4uz7GEn). Sponsor login is a small link to `/portal`. `/admin` is not linked from the public page.

@@ -1,3 +1,5 @@
+import { showcaseHtml } from "./brands.js";
+
 /**
  * The one place Jason edits the public fundraiser.
  * Change `raised` when more cash lands. Add a prize by appending to `prizes`.
@@ -36,7 +38,7 @@ function prizeCard(prize) {
   return `<article class="prize"><b>${esc(prize.item)}${esc(count)}</b><span>${esc(prize.from)}${esc(note)}</span></article>`;
 }
 
-export function applyHome(html) {
+export function applyHome(html, sponsors = []) {
   const raised = campaign.raised;
   const goal = campaign.goal;
   const percent = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
@@ -47,5 +49,6 @@ export function applyHome(html) {
     .replaceAll("__RAISED_RAW__", String(Math.round(raised)))
     .replaceAll("__GOAL_RAW__", String(Math.round(goal)))
     .replaceAll("__TILTIFY__", esc(campaign.tiltifyUrl))
-    .replaceAll("__PRIZES__", prizes.map(prizeCard).join(""));
+    .replaceAll("__PRIZES__", prizes.map(prizeCard).join(""))
+    .replaceAll("__SHOWCASE__", showcaseHtml(sponsors));
 }
