@@ -1,13 +1,13 @@
 /**
  * The one place Jason edits the public fundraiser.
  * Change `raised` when more cash lands. Add a prize by appending to `prizes`.
- * Paste the live Tiltify campaign URL into `tiltifyUrl` when that page exists.
+ * Donate buttons use `tiltifyUrl`.
  */
 export const campaign = {
   cause: "freeCodeCamp",
   goal: 10000,
   raised: 4000,
-  tiltifyUrl: "https://tiltify.com",
+  tiltifyUrl: "https://tilt.fyi/9va4uz7GEn",
 };
 
 export const prizes = [

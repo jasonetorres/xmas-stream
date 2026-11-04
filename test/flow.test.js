@@ -100,6 +100,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /\$4,000<\/b> of \$10,000 raised/);
   assert.match(home.text, /freeCodeCamp/);
   assert.match(home.text, /Sponsor with cash/);
+  assert.match(home.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
   assert.match(home.text, /MacBook Pro/);
   assert.match(home.text, /RenderATL VIP ticket/);
   assert.match(home.text, /Keychron keyboards/);
