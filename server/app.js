@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { clearCookie, codeHash, generateCode, normalizeCode, readSession, safeEqualHex, sessionCookie, signSession } from "./auth.js";
+import { canonicalCode, clearCookie, codesEqual, generateCode, readSession, sessionCookie, signSession } from "./auth.js";
 import { openDatabase } from "./db.js";
 import {
   AppError,
@@ -62,23 +62,24 @@ function loadOrCreate(file, create) {
   }
 }
 
-function resolveCode(env, { key, file, databaseUrl, memory, dir }) {
-  let code = env[key] || "";
+function resolveCode(env, { key, file, memory, dir }) {
+  const provided = env[key];
+  let code = provided == null ? "" : canonicalCode(provided);
   let generated = "";
-  if (databaseUrl) {
-    if (!code) throw new ConfigError(`${key} is required when DATABASE_URL is set. It is read from the environment and is not stored in the app.`);
-  } else if (!memory) {
+  if (code) {
+    return { code, generated };
+  }
+  if (!memory && provided == null) {
     if (!code) {
       const loaded = loadOrCreate(path.join(dir, file), generateCode);
       code = loaded.value;
       if (loaded.created) generated = loaded.value;
     }
-  } else if (!code) {
+  } else if (provided == null) {
     code = generateCode();
     generated = code;
   }
-  if (normalizeCode(code).length < 8) throw new ConfigError(`${key} needs at least 8 letters or numbers.`);
-  return { code, generated };
+  return { code: canonicalCode(code), generated };
 }
 
 function resolveSecrets(env) {
@@ -94,9 +95,9 @@ function resolveSecrets(env) {
     sessionSecret = generateCode() + generateCode();
   }
   if (sessionSecret.length < 16) throw new ConfigError("SESSION_SECRET needs at least 16 characters.");
-  const admin = resolveCode(env, { key: "ADMIN_CODE", file: "admin-code", databaseUrl, memory, dir });
-  const sponsor = resolveCode(env, { key: "SPONSOR_CODE", file: "sponsor-code", databaseUrl, memory, dir });
-  if (normalizeCode(admin.code) === normalizeCode(sponsor.code)) {
+  const admin = resolveCode(env, { key: "ADMIN_CODE", file: "admin-code", memory, dir });
+  const sponsor = resolveCode(env, { key: "SPONSOR_CODE", file: "sponsor-code", memory, dir });
+  if (admin.code && sponsor.code && admin.code === sponsor.code) {
     throw new ConfigError("ADMIN_CODE and SPONSOR_CODE have to be different.");
   }
   return {
@@ -132,7 +133,13 @@ export async function createApp(env = {}) {
   async function handle(req, res) {
     const url = new URL(req.url || "/", "http://localhost");
     try {
-      if (req.method === "GET" && url.pathname === "/health") return text(res, 200, "ok\n");
+      if (req.method === "GET" && url.pathname === "/health") {
+        return json(res, 200, {
+          ok: true,
+          adminCodeSet: Boolean(config.adminCode),
+          sponsorCodeSet: Boolean(config.sponsorCode),
+        });
+      }
       if (req.method !== "GET" && req.method !== "POST") return text(res, 405, "Method not allowed\n");
       if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
         await routeAdmin(req, res, url, db, config);
@@ -256,9 +263,8 @@ async function routePortal(req, res, url, db, config) {
 }
 
 function codeMatches(secret, provided, expected) {
-  const given = codeHash(secret, normalizeCode(provided) || " ");
-  const want = codeHash(secret, expected);
-  return safeEqualHex(given, want);
+  if (!canonicalCode(expected)) return false;
+  return codesEqual(secret, provided, expected);
 }
 
 function requestedSlug(url) {
@@ -270,6 +276,9 @@ async function loginSponsor(req, res, db, config, code, slug) {
   if (tooMany()) {
     await sleep(250);
     return redirect(res, `/portal?error=${encodeURIComponent("Too many tries. Wait 15 minutes and use the code Jason sent.")}`);
+  }
+  if (!config.sponsorCode) {
+    return redirect(res, `/portal?error=${encodeURIComponent("SPONSOR_CODE is not set on this server. Add it in the Unkey environment and redeploy.")}`);
   }
   const ok = codeMatches(config.sessionSecret, code, config.sponsorCode);
   const admin = codeMatches(config.sessionSecret, code, config.adminCode);
@@ -291,6 +300,9 @@ async function loginAdmin(req, res, db, config, code) {
   if (tooMany()) {
     await sleep(250);
     return redirect(res, `/admin?error=${encodeURIComponent("Too many tries. Wait 15 minutes.")}`);
+  }
+  if (!config.adminCode) {
+    return redirect(res, `/admin?error=${encodeURIComponent("ADMIN_CODE is not set on this server. Add it in the Unkey environment and redeploy.")}`);
   }
   const ok = codeMatches(config.sessionSecret, code, config.adminCode);
   const sponsor = codeMatches(config.sessionSecret, code, config.sponsorCode);
@@ -623,6 +635,13 @@ function html(res, status, body) {
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("X-Frame-Options", "DENY");
   res.end(body);
+}
+
+function json(res, status, body) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+  res.end(JSON.stringify(body));
 }
 
 function text(res, status, body) {

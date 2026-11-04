@@ -9,6 +9,22 @@ export function normalizeCode(value) {
     .slice(0, 80);
 }
 
+/** Trim and drop one pair of wrapping quotes. Every other character stays. */
+export function canonicalCode(value) {
+  let text = String(value ?? "").trim();
+  if (text.length >= 2) {
+    const quote = text[0];
+    if ((quote === '"' || quote === "'") && text.endsWith(quote)) text = text.slice(1, -1).trim();
+  }
+  return text;
+}
+
+export function codesEqual(secret, provided, expected) {
+  const a = crypto.createHmac("sha256", secret).update(canonicalCode(provided)).digest();
+  const b = crypto.createHmac("sha256", secret).update(canonicalCode(expected)).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
 export function generateCode() {
   const chars = [];
   for (let i = 0; i < 16; i++) chars.push(ALPHABET[crypto.randomInt(ALPHABET.length)]);
