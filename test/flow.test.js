@@ -6,6 +6,18 @@ import { createApp } from "../server/app.js";
 import { confirmLuke, confirmRenderAtl, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
 import { formatRange } from "../server/time.js";
 
+function assertSponsorCards(html) {
+  const cards = [...html.matchAll(/<a class="brand" href="([^"]+)">([\s\S]*?)<\/a>/g)];
+  assert.ok(cards.length >= 9, `expected a card per sponsor, got ${cards.length}`);
+  for (const [, href, body] of cards) {
+    assert.match(href, /^https:\/\//);
+    assert.match(body, /<img |class="badge"/);
+    assert.match(body, /<span>[^<]+<\/span>/);
+    assert.match(body, /<small>[^<]+<\/small>/);
+    assert.doesNotMatch(body, /Guest:|Lucas Casarez|stock compensation/);
+  }
+}
+
 test("admin code keeps symbols, quotes, and spaces, and health hides the values", async (t) => {
   const app = await createApp({
     SESSION_SECRET: "test-secret-test-secret",
@@ -229,7 +241,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
   assert.match(home.text, />Donate</);
   assert.match(home.text, /Platinum[\s\S]*Laravel[\s\S]*Unkey/);
-  assert.match(home.text, /@LukeCFPLevelUp/);
+  assert.doesNotMatch(home.text, /@LukeCFPLevelUp/);
   assert.match(home.text, /Coder/);
   assert.match(home.text, /Kunal/);
   assert.match(home.text, /Tighten/);
@@ -259,14 +271,14 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /href="https:\/\/tighten\.com"/);
   assert.match(home.text, /href="https:\/\/coderabbit\.ai"/);
   assert.match(home.text, /href="https:\/\/torc\.dev"/);
-  assert.match(home.text, /href="https:\/\/x\.com\/LukeCFPLevelUp"/);
   assert.match(home.text, /href="https:\/\/x\.com\/kunalstwt"/);
   assert.match(home.text, /class="badge">Level Up Financial Planning</);
   assert.match(home.text, /href="https:\/\/www\.levelupfinancialplanning\.com\/"/);
-  assert.match(home.text, /Lucas Casarez, CFP®/);
-  assert.match(home.text, /stock compensation/);
   assert.match(home.text, /Apple Watch Series 12 \(GPS \+ Cellular\) 42mm/);
+  assert.match(home.text, /New MacBook Pro/);
   assert.match(home.text, /class="badge">Kunal</);
+  assert.doesNotMatch(home.text, /Lucas Casarez|stock compensation|Guest:/);
+  assertSponsorCards(home.text);
   assert.doesNotMatch(home.text, /<img[^>]+luke/i);
   assert.match(home.text, /JetBrains\+Mono/);
   assert.doesNotMatch(home.text, /Fraunces|Oswald/);
@@ -295,8 +307,9 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Nov 30/);
   assert.match(pitch.text, /Dec 22/);
   assert.match(pitch.text, /id="tier-platinum"[\s\S]*1 spot open · 2 of 3[\s\S]*Laravel[\s\S]*Unkey/);
-  assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Kunal[\s\S]*Level Up Financial Planning[\s\S]*Tighten/);
-  assert.match(pitch.text, /id="level-up"[\s\S]*levelupfinancialplanning\.com[\s\S]*Lucas Casarez, CFP®[\s\S]*@LukeCFPLevelUp[\s\S]*stock compensation[\s\S]*Apple Watch Series 12/);
+  assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Kunal[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12[\s\S]*Tighten/);
+  assert.doesNotMatch(pitch.text, /Lucas Casarez|stock compensation|Guest:/);
+  assertSponsorCards(pitch.text);
   assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*src="\/logos\/renderatl-mark-dark\.svg"[\s\S]*All-access RenderATL ticket[\s\S]*Torc/);
   assert.match(pitch.text, /id="tier-community"[\s\S]*Open · No timed block/);
   assert.match(pitch.text, /MacBook Pro/);

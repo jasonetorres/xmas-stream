@@ -1,4 +1,4 @@
-import { brandFor } from "./brands.js";
+import { sponsorCard } from "./brands.js";
 import { tierOpenings } from "./domain.js";
 
 function esc(value) {
@@ -35,31 +35,9 @@ const COPY = {
   },
 };
 
-function lukeProfile(roster) {
-  const sponsor = roster.find((item) => item.slug === "luke");
-  if (!sponsor) return "";
-  const handle = sponsor.x_handle ? `<a href="https://x.com/${esc(sponsor.x_handle)}">@${esc(sponsor.x_handle)}</a>` : "";
-  return `<div class="profile" id="level-up">
-    <span class="badge">${esc(sponsor.name)}</span>
-    ${sponsor.url ? `<p><a href="${esc(sponsor.url)}">${esc(sponsor.url)}</a></p>` : ""}
-    ${sponsor.contact_name ? `<p>Guest: ${esc(sponsor.contact_name)}${handle ? ` · ${handle}` : ""}</p>` : ""}
-    ${sponsor.talking_points ? `<p>${esc(sponsor.talking_points)}</p>` : ""}
-    ${sponsor.prize_details ? `<p>Prize: ${esc(sponsor.prize_details)}</p>` : ""}
-  </div>`;
-}
-
 function rosterList(roster) {
   if (!roster.length) return `<li class="quiet">No one at this level yet.</li>`;
-  return roster
-    .map((sponsor) => {
-      const brand = brandFor(sponsor.slug);
-      const logo = sponsor.slug === "renderatl" && brand.hub ? `<img src="${esc(brand.hub)}" alt="">` : "";
-      const handle = sponsor.x_handle ? `<small>@${esc(sponsor.x_handle)}</small>` : "";
-      const prize = sponsor.slug === "renderatl" && sponsor.prize_details ? `<small>${esc(sponsor.prize_details)}</small>` : "";
-      const klass = logo ? ` class="with-logo"` : "";
-      return `<li${klass}>${logo}<span>${esc(sponsor.name)}</span>${handle}${prize}</li>`;
-    })
-    .join("");
+  return roster.map((sponsor) => sponsorCard(sponsor)).join("");
 }
 
 export function tiersHtml(sponsors, caps) {
@@ -73,7 +51,6 @@ export function tiersHtml(sponsors, caps) {
         <p>${copy.text}</p>
         ${copy.extra}
         <ul class="roster">${rosterList(row.roster)}</ul>
-        ${row.id === "gold" ? lukeProfile(row.roster) : ""}
       </article>`;
     })
     .join("");
