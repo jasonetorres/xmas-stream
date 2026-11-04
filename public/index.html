@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#17110d">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,500..900,0..100;1,9..144,500..900,0..100&family=Oswald:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap">
 <style>
 :root {
   --ground: #17110d;
@@ -22,15 +22,15 @@
   --muted: #cdbf98;
   --gold: #f2b33d;
   --red: #c8322b;
-  --display: "Fraunces", Georgia, serif;
-  --label: "Oswald", "Arial Narrow", Impact, sans-serif;
+  --display: "JetBrains Mono", ui-monospace, monospace;
+  --label: "JetBrains Mono", ui-monospace, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0; background: var(--ground); color: var(--cream);
-  font-family: var(--display); font-size: 18px; line-height: 1.55;
+  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 16px; line-height: 1.55;
   background-image: radial-gradient(ellipse at 50% -10%, #3a2a1d 0%, var(--ground) 60%);
   background-repeat: no-repeat;
 }
@@ -39,12 +39,12 @@ body {
 a { color: var(--gold); }
 a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 .label { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.16em; font-weight: 600; }
-h1, h2, h3 { margin: 0; font-variation-settings: "SOFT" 100, "opsz" 144; text-wrap: balance; }
+h1, h2, h3 { margin: 0; font-weight: 700; text-wrap: balance; }
 
 /* masthead */
 .mast { padding-block: 20px 14px; border-bottom: 4px double var(--line); }
 .mast .wrap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; }
-.mast-name { font-weight: 900; font-style: italic; font-size: 1.7rem; letter-spacing: -0.02em; font-variation-settings: "SOFT" 100, "opsz" 144; }
+.mast-name { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.03em; }
 .mast-meta { font-size: 0.82rem; color: var(--muted); }
 .mast-meta b { color: var(--gold); font-weight: 600; }
 .mast-portal { color: var(--cream); text-decoration: none; font-size: 0.82rem; }
@@ -65,7 +65,7 @@ h1, h2, h3 { margin: 0; font-variation-settings: "SOFT" 100, "opsz" 144; text-wr
 .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr); gap: 56px; align-items: center; }
 .hero-copy { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 .kicker { color: var(--gold); font-size: 1rem; }
-h1 { font-size: clamp(2.6rem, 6.6vw, 5rem); line-height: 0.95; font-weight: 900; letter-spacing: -0.02em; }
+h1 { font-size: clamp(1.8rem, 4.4vw, 3rem); line-height: 1.15; font-weight: 700; letter-spacing: -0.03em; }
 h1 em { font-style: italic; color: var(--gold); }
 .lede { font-size: 1.15rem; color: var(--muted); max-width: 52ch; margin: 0; }
 .goal { display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; padding: 10px 16px; background: var(--red); color: #fff6e0; transform: rotate(-1.5deg); box-shadow: 0 10px 22px rgba(0,0,0,0.4); }

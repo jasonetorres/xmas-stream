@@ -20,6 +20,11 @@ export function durationFor(tier) {
   return 0;
 }
 
+export function pickerLabel(sponsor) {
+  if (sponsor.slug === "luke") return "Luke / LevelUp";
+  return sponsor.name;
+}
+
 export function tierLabel(tier) {
   if (tier === "prize") return "Prize sponsor";
   return tier.charAt(0).toUpperCase() + tier.slice(1);

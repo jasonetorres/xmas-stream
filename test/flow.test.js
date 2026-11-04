@@ -90,7 +90,7 @@ test("sponsor portal flow", async (t) => {
     return c;
   }
 
-  async function enterPortal(name) {
+  async function enterPortal(slug) {
     const c = client();
     const res = await c.fetch("/portal/login", {
       method: "POST",
@@ -99,10 +99,18 @@ test("sponsor portal flow", async (t) => {
     });
     assert.equal(res.status, 303, res.text);
     assert.equal(res.headers.get("location"), "/portal");
+    const pick = await c.fetch("/portal");
+    assert.match(pick.text, /name="slug" value="laravel"/);
+    assert.match(pick.text, /Luke \/ LevelUp/);
+    assert.match(pick.text, /CodeRabbit/);
+    assert.match(pick.text, /Torc/);
+    assert.match(pick.text, /RenderATL/);
+    assert.doesNotMatch(pick.text, /New MacBook Pro/);
+    assert.doesNotMatch(pick.text, /Book 1 hour/);
     const claim = await c.fetch("/portal/claim", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ name }).toString(),
+      body: new URLSearchParams({ slug }).toString(),
     });
     assert.equal(claim.status, 303, claim.text);
     return c;
@@ -118,6 +126,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /30-minute block/);
   assert.match(home.text, /1-hour block/);
   assert.match(home.text, /href="\/portal"/);
+  assert.match(home.text, /JetBrains\+Mono/);
+  assert.doesNotMatch(home.text, /Fraunces|Oswald/);
   assert.match(home.text, /\$4,000<\/b> of \$10,000 raised/);
   assert.match(home.text, /freeCodeCamp/);
   assert.match(home.text, /Sponsor with cash/);
@@ -172,8 +182,24 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /Work Louder keyboard/);
   assert.match(desk.text, /Amazon gift cards/);
   assert.match(desk.text, /id="sponsor-tighten"[\s\S]*\/portal\/logos\//);
+  assert.match(desk.text, /\/portal\?s=laravel/);
+  assert.match(desk.text, /\/portal\?s=luke/);
+  assert.match(desk.text, /\/portal\?s=coderabbit/);
 
-  const laravel = await enterPortal("Laravel");
+  const direct = client();
+  const directLogin = await direct.fetch("/portal/login", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: "code=sponsor-test-code&s=laravel",
+  });
+  assert.equal(directLogin.status, 303);
+  const directPage = await direct.fetch("/portal");
+  assert.match(directPage.text, /<h1>Laravel</);
+  assert.doesNotMatch(directPage.text, /Who’s/);
+  assert.doesNotMatch(directPage.text, /NuPhy/);
+  await direct.fetch("/portal/logout", { method: "POST" });
+
+  const laravel = await enterPortal("laravel");
   const laravelHome = await laravel.fetch("/portal");
   assert.match(laravelHome.text, /Book 1 hour/);
   assert.match(laravelHome.text, /JetBrains\+Mono/);
@@ -191,7 +217,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(laravelBooked.text, /Amina/);
   assert.match(laravelBooked.text, /Gift Drop/);
 
-  const unkey = await enterPortal("Unkey");
+  const unkey = await enterPortal("unkey");
   const overlap = await unkey.fetch("/portal/booking", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -211,7 +237,7 @@ test("sponsor portal flow", async (t) => {
   });
   assert.match((await follow(unkey, unkeyBooked)).text, /4:00–5:00 PM ET/);
 
-  const coder = await enterPortal("Coder");
+  const coder = await enterPortal("coder");
   const coderPage = await coder.fetch("/portal");
   assert.match(coderPage.text, /Book 30 minutes/);
   const coderBooked = await coder.fetch("/portal/booking", {
@@ -221,7 +247,7 @@ test("sponsor portal flow", async (t) => {
   });
   assert.match((await follow(coder, coderBooked)).text, /3:00–3:30 PM ET/);
 
-  const rabbit = await enterPortal("CodeRabbit");
+  const rabbit = await enterPortal("coderabbit");
   const rabbitTry = await rabbit.fetch("/portal/booking", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -248,7 +274,7 @@ test("sponsor portal flow", async (t) => {
     }).toString(),
   });
   assert.equal(lukeEdited.status, 303);
-  const luke = await enterPortal("Luke");
+  const luke = await enterPortal("luke");
   const tooEarly = await luke.fetch("/portal/booking", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },

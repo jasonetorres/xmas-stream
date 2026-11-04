@@ -218,7 +218,7 @@ async function routePortal(req, res, url, db, config) {
   if (url.pathname === "/portal/login" && req.method === "GET") return redirect(res, "/portal");
   if (url.pathname === "/portal/login" && req.method === "POST") {
     const fields = await readForm(req);
-    return loginSponsor(req, res, db, config, fields.code || "");
+    return loginSponsor(req, res, db, config, fields.code || "", fields.s || "");
   }
   if (url.pathname === "/portal/logout" && req.method === "POST") return finishLogout(req, res, "/portal");
   if (url.pathname === "/portal/claim" && req.method === "POST") {
@@ -238,11 +238,16 @@ async function routePortal(req, res, url, db, config) {
   if (req.method !== "GET") throw new AppError("That page isn’t here.", 404);
 
   if (url.pathname === "/portal") {
-    if (!session || session.role !== "sponsor") return html(res, 200, renderLogin({ flash: flashFrom(url) }));
-    if (!session.sponsor) return html(res, 200, renderClaim({ flash: flashFrom(url) }));
+    const slug = requestedSlug(url);
+    if (!session || session.role !== "sponsor") return html(res, 200, renderLogin({ flash: flashFrom(url), slug }));
     const sponsors = await listSponsors(db, config.sessionSecret);
+    const requested = slug ? sponsors.find((item) => item.slug === slug) : null;
+    if (requested && session.sponsor?.id !== requested.id) {
+      return startSession(req, res, { v: 1, role: "sponsor", sid: requested.id, exp: expiry() }, "/portal", config);
+    }
+    if (!session.sponsor) return html(res, 200, renderClaim({ flash: flashFrom(url), sponsors }));
     const sponsor = sponsors.find((item) => item.id === session.sponsor.id);
-    if (!sponsor) return html(res, 200, renderLogin({ flash: { saved: "", error: "That sponsor login is no longer active." } }));
+    if (!sponsor) return html(res, 200, renderClaim({ flash: flashFrom(url), sponsors }));
     sponsor.rows = scheduleRows(sponsor, sponsors);
     return html(res, 200, renderSponsor({ sponsor, flash: flashFrom(url) }));
   }
@@ -256,7 +261,12 @@ function codeMatches(secret, provided, expected) {
   return safeEqualHex(given, want);
 }
 
-async function loginSponsor(req, res, db, config, code) {
+function requestedSlug(url) {
+  const slug = String(url.searchParams.get("s") || "").trim().toLowerCase();
+  return /^[a-z0-9-]{1,40}$/.test(slug) ? slug : "";
+}
+
+async function loginSponsor(req, res, db, config, code, slug) {
   if (tooMany()) {
     await sleep(250);
     return redirect(res, `/portal?error=${encodeURIComponent("Too many tries. Wait 15 minutes and use the code Jason sent.")}`);
@@ -266,9 +276,15 @@ async function loginSponsor(req, res, db, config, code) {
   if (!ok || admin) {
     markFailure();
     await sleep(250);
-    return redirect(res, `/portal?error=${encodeURIComponent("That code doesn’t open the sponsor portal.")}`);
+    const back = requestedSlug({ searchParams: new URLSearchParams(slug ? `s=${slug}` : "") });
+    return redirect(res, `/portal?error=${encodeURIComponent("That code doesn’t open the sponsor portal.")}${back ? `&s=${encodeURIComponent(back)}` : ""}`);
   }
-  return startSession(req, res, { v: 1, role: "sponsor", exp: expiry() }, "/portal", config);
+  const clean = requestedSlug({ searchParams: new URLSearchParams(slug ? `s=${slug}` : "") });
+  const sponsors = clean ? await listSponsors(db, config.sessionSecret) : [];
+  const match = sponsors.find((item) => item.slug === clean);
+  const payload = { v: 1, role: "sponsor", exp: expiry() };
+  if (match) payload.sid = match.id;
+  return startSession(req, res, payload, "/portal", config);
 }
 
 async function loginAdmin(req, res, db, config, code) {
@@ -289,10 +305,10 @@ async function loginAdmin(req, res, db, config, code) {
 async function claimSponsor(req, res, db, config, session) {
   if (!session || session.role !== "sponsor") throw new AppError("Enter the sponsor code first.", 401);
   const fields = await readForm(req);
-  const name = String(fields.name || "").trim().toLowerCase();
+  const slug = String(fields.slug || "").trim().toLowerCase();
   const sponsors = await listSponsors(db, config.sessionSecret);
-  const match = sponsors.find((item) => item.name.toLowerCase() === name || item.slug === name);
-  if (!match) throw new AppError("That name isn’t on the sponsor list.");
+  const match = sponsors.find((item) => item.slug === slug);
+  if (!match) throw new AppError("Pick your name from the list.");
   return startSession(req, res, { v: 1, role: "sponsor", sid: match.id, exp: expiry() }, "/portal", config);
 }
 

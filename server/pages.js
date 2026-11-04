@@ -1,4 +1,4 @@
-import { cashOnly, durationFor, segmentSummary, spotLines, tierLabel } from "./domain.js";
+import { cashOnly, durationFor, pickerLabel, segmentSummary, spotLines, tierLabel } from "./domain.js";
 import { ASSETS_DUE, STREAM_DAY, STREAM_END, STREAM_START, WINDOW_LABEL, formatClock, formatRange, gridStarts } from "./time.js";
 
 const SAVED = {
@@ -34,18 +34,18 @@ function shell({ title, body, wide, section = "sponsor" }) {
 <title>${esc(title)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,500..900,0..100;1,9..144,500..900,0..100&family=JetBrains+Mono:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap">
 <style>
 :root {
   --ground: #17110d; --panel: #221a14; --line: rgba(245, 230, 184, 0.22);
   --cream: #f5e6b8; --muted: #cdbf98; --gold: #f2b33d; --red: #c8322b;
-  --display: "Fraunces", Georgia, serif; --label: "JetBrains Mono", ui-monospace, monospace;
+  --display: "JetBrains Mono", ui-monospace, monospace; --label: "JetBrains Mono", ui-monospace, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0; background: var(--ground); color: var(--cream);
-  font-family: var(--display); font-size: 18px; line-height: 1.5;
+  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 16px; line-height: 1.5;
   background-image: radial-gradient(ellipse at 50% -10%, #3a2a1d 0%, var(--ground) 55%);
   background-repeat: no-repeat; min-height: 100vh;
 }
@@ -54,14 +54,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .gutter { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
 .wrap { max-width: ${wide ? "1040px" : "880px"}; margin: 0 auto; }
 .label { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; font-size: 0.82rem; }
-h1, h2, h3 { margin: 0; font-variation-settings: "SOFT" 100, "opsz" 144; text-wrap: balance; }
+h1, h2, h3 { margin: 0; font-weight: 700; text-wrap: balance; }
 .mast { padding-block: 18px 12px; border-bottom: 4px double var(--line); }
 .mast .wrap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 18px; }
 .mast-name { font-weight: 900; font-style: italic; font-size: 1.5rem; text-decoration: none; color: var(--cream); }
 .mast-meta { color: var(--muted); font-size: 0.82rem; }
 main { padding-block: 32px 64px; }
 .kicker { color: var(--gold); font-size: 0.95rem; }
-h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 0.98; font-weight: 900; letter-spacing: -0.02em; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.15; font-weight: 700; letter-spacing: -0.03em; }
 h1 em { font-style: italic; color: var(--gold); }
 .lede { color: var(--muted); max-width: 62ch; }
 .panel { background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 20px; }
@@ -107,7 +107,15 @@ fieldset { border: 2px solid var(--line); border-radius: 14px; margin: 0; paddin
 .logo-tile { background: var(--cream); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .logo-tile img { display: block; max-height: 56px; max-width: 200px; width: auto; height: auto; object-fit: contain; }
 .card { display: flex; flex-direction: column; gap: 12px; }
-.card h2 { font-size: 1.7rem; }
+.card h2 { font-size: 1.35rem; }
+.picks { display: flex; flex-direction: column; gap: 10px; }
+.pick {
+  display: flex; align-items: center; width: 100%; min-height: 52px; padding: 12px 16px;
+  border-radius: 12px; border: 2px solid var(--line); background: #140f0c; color: var(--cream);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.pick:hover, .pick:focus-visible { border-color: var(--gold); }
+.pick b { font-weight: 700; }
 .tier { font-family: var(--label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-size: 0.85rem; }
 .split { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
 .miss { margin: 0; padding-left: 18px; color: var(--muted); }
@@ -156,13 +164,14 @@ function banners({ saved, error }) {
   return `${error ? `<div class="banner bad" role="alert">${esc(error)}</div>` : ""}${saved ? `<div class="banner ok" role="status">${esc(saved)}</div>` : ""}`;
 }
 
-export function renderLogin({ flash }) {
+export function renderLogin({ flash, slug = "" }) {
   const body = `
 ${banners(flash)}
 <p class="kicker label">Private · sponsors only</p>
 <h1>Sponsor <em>portal</em></h1>
 <p class="lede">Book your block on ${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}, and send the assets Jason needs by ${esc(ASSETS_DUE)}. Use the shared sponsor code he sent you.</p>
 <form class="panel stack" method="post" action="/portal/login">
+  ${slug ? `<input type="hidden" name="s" value="${esc(slug)}">` : ""}
   <label class="field"><span>Sponsor code</span>
     <input class="code" name="code" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" required autofocus>
   </label>
@@ -171,17 +180,20 @@ ${banners(flash)}
   return shell({ title: "Sponsor portal · Jason’s Christmas Birthday Stream", body });
 }
 
-export function renderClaim({ flash }) {
+export function renderClaim({ flash, sponsors }) {
+  const picks = sponsors
+    .map(
+      (sponsor) =>
+        `<button class="pick" type="submit" name="slug" value="${esc(sponsor.slug)}"><b>${esc(pickerLabel(sponsor))}</b></button>`
+    )
+    .join("");
   const body = `
 ${banners(flash)}
 <p class="kicker label">Your page only</p>
 <h1>Who’s <em>signing in</em></h1>
-<p class="lede">Type your sponsor name. This page will show your block, your tier, and your assets. Nothing for the other sponsors.</p>
-<form class="panel stack" method="post" action="/portal/claim">
-  <label class="field"><span>Sponsor name</span>
-    <input name="name" autocomplete="organization" required autofocus>
-  </label>
-  <button class="btn btn-gold" type="submit">Continue</button>
+<p class="lede">Pick your name. After that, this page shows your block, your tier, and your assets.</p>
+<form class="picks" method="post" action="/portal/claim">
+  ${picks}
 </form>
 <form method="post" action="/portal/logout"><button class="btn btn-ghost btn-tiny" type="submit">Log out</button></form>`;
   return shell({ title: "Sponsor portal · Jason’s Christmas Birthday Stream", body });
@@ -377,6 +389,7 @@ function adminCard(sponsor, base) {
   const extra = segmentSummary(booking);
   const by = booking && booking.set_by === "admin" ? " Jason set this." : "";
   const report = sponsor.assets;
+  const link = `${base}/portal?s=${encodeURIComponent(sponsor.slug)}`;
   const duration = durationFor(sponsor.tier);
   let bookForm = `<p class="quiet">No stream block at the ${esc(tierLabel(sponsor.tier))} tier. Assets only.</p>`;
   if (duration) {
@@ -425,7 +438,9 @@ function adminCard(sponsor, base) {
       <button class="btn btn-ghost btn-tiny" type="submit">Add lead</button>
     </form>
     ${sponsor.logos.length ? `<div class="logos">${sponsor.logos.map((logo) => `<div class="logo-tile"><img src="/portal/logos/${logo.id}" alt=""></div>`).join("")}</div>` : ""}
-    <p class="quiet">They sign in at /portal with the shared sponsor code, then the name ${esc(sponsor.name)}.</p>
+    <label class="field link-label"><span>Direct link</span><input id="link-${esc(sponsor.slug)}" readonly value="${esc(link)}"></label>
+    <button class="btn btn-ghost btn-tiny" type="button" data-copy="link-${esc(sponsor.slug)}">Copy link</button>
+    <p class="quiet">Opens the code form with ${esc(pickerLabel(sponsor))} already chosen.</p>
     <details>
       <summary>Override booking</summary>
       <div class="stack" style="padding-top:12px">${bookForm}</div>
