@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 import { codeHash, decryptCode, encryptCode, generateCode } from "./auth.js";
 import { STREAM_END, STREAM_START, formatClock, formatRange, gridStarts } from "./time.js";
 
-const TIERS = ["platinum", "gold", "silver", "community"];
-const TIER_RANK = { platinum: 0, gold: 1, silver: 2, community: 3 };
+const TIERS = ["platinum", "gold", "prize", "silver", "community"];
+const TIER_RANK = { platinum: 0, gold: 1, prize: 2, silver: 3, community: 4 };
 
 export class AppError extends Error {
   constructor(message, status = 400) {
@@ -21,22 +21,36 @@ export function durationFor(tier) {
 }
 
 export function tierLabel(tier) {
+  if (tier === "prize") return "Prize sponsor";
   return tier.charAt(0).toUpperCase() + tier.slice(1);
 }
 
-const ASSET_CHECKS = [
-  ["Logo", (s) => s.logoCount > 0],
-  ["One URL", (s) => Boolean(s.url)],
-  ["Talking points", (s) => Boolean(s.talking_points)],
-  ["Prize or cash details", (s) => Boolean(s.prize_details)],
-  ["Shipping and fulfillment", (s) => Boolean(s.shipping)],
-  ["X handle", (s) => Boolean(s.x_handle)],
-  ["Credit line", (s) => Boolean(s.credit)],
-];
+export function cashOnly(tier) {
+  return tier === "silver" || tier === "community";
+}
+
+function assetChecks(sponsor) {
+  const checks = [
+    ["Logo", (s) => s.logoCount > 0],
+    ["One URL", (s) => Boolean(s.url)],
+    ["Talking points", (s) => Boolean(s.talking_points)],
+  ];
+  if (!cashOnly(sponsor.tier)) {
+    checks.push(
+      ["Prize details", (s) => Boolean(s.prize_details)],
+      ["Shipping and fulfillment", (s) => Boolean(s.shipping)]
+    );
+  }
+  checks.push(
+    ["X handle", (s) => Boolean(s.x_handle)],
+    ["Credit line", (s) => Boolean(s.credit)]
+  );
+  return checks;
+}
 
 export function assetReport(sponsor) {
-  const missing = ASSET_CHECKS.filter(([, ok]) => !ok(sponsor)).map(([label]) => label);
-  const total = ASSET_CHECKS.length;
+  const missing = assetChecks(sponsor).filter(([, ok]) => !ok(sponsor)).map(([label]) => label);
+  const total = assetChecks(sponsor).length;
   const done = total - missing.length;
   return { done, total, missing, complete: missing.length === 0 };
 }
@@ -54,6 +68,7 @@ export function spotLines(sponsors, caps) {
     lines: [line("Platinum", "platinum", caps.platinum), line("Gold", "gold", caps.gold)],
     silver: count("silver"),
     community: count("community"),
+    prize: count("prize"),
   };
 }
 
@@ -247,7 +262,12 @@ export function scheduleRows(sponsor, sponsors) {
 
 function assertBookable(sponsor, start, actor) {
   const duration = durationFor(sponsor.tier);
-  if (!duration) throw new AppError(`${tierLabel(sponsor.tier)} sponsors don’t book a stream block. Send assets instead.`);
+  if (!duration) {
+    const why = sponsor.tier === "prize"
+      ? "Prize sponsors are already on the lineup"
+      : `${tierLabel(sponsor.tier)} is a cash gift for freeCodeCamp`;
+    throw new AppError(`${why}, so there’s no stream block to book.`);
+  }
   if (!Number.isInteger(start) || start % 30 !== 0) throw new AppError("Pick a block from the schedule.");
   if (start < STREAM_START || start + duration > STREAM_END) throw new AppError("That block sits outside 2:00–8:00 PM ET.");
   if (sponsor.not_before != null && start < sponsor.not_before) {
@@ -301,21 +321,31 @@ export async function releaseBooking(db, sponsorId) {
 }
 
 export async function saveAssets(db, sponsorId, fields, files) {
+  const current = await db.get("SELECT tier FROM sponsors WHERE id = ?", [sponsorId]);
+  if (!current) throw new AppError("That sponsor is gone.");
   const url = cleanUrl(fields.url);
   const talking = cleanBlock(fields.talking_points, 5000, "Talking points");
-  const prize = cleanBlock(fields.prize_details, 2000, "Prize or cash details");
-  const shipping = cleanBlock(fields.shipping, 2000, "Shipping and fulfillment");
   const handle = cleanHandle(fields.x_handle);
   const credit = cleanLine(fields.credit, 200, "Credit line");
+  const cash = cashOnly(current.tier);
+  const prize = cash ? null : cleanBlock(fields.prize_details, 2000, "Prize details");
+  const shipping = cash ? null : cleanBlock(fields.shipping, 2000, "Shipping and fulfillment");
   const logos = (files || []).filter((file) => file?.bytes?.length);
   if (logos.length > 2) throw new AppError("Upload up to two logos, a mark and a wordmark.");
   const inspected = logos.map((f) => inspectLogo(f.filename, f.bytes));
   const ts = nowIso();
   await db.tx(async () => {
-    await db.run(
-      `UPDATE sponsors SET url = ?, talking_points = ?, prize_details = ?, shipping = ?, x_handle = ?, credit = ?, assets_updated_at = ? WHERE id = ?`,
-      [url, talking, prize, shipping, handle, credit, ts, sponsorId]
-    );
+    if (cash) {
+      await db.run(
+        `UPDATE sponsors SET url = ?, talking_points = ?, x_handle = ?, credit = ?, assets_updated_at = ? WHERE id = ?`,
+        [url, talking, handle, credit, ts, sponsorId]
+      );
+    } else {
+      await db.run(
+        `UPDATE sponsors SET url = ?, talking_points = ?, prize_details = ?, shipping = ?, x_handle = ?, credit = ?, assets_updated_at = ? WHERE id = ?`,
+        [url, talking, prize, shipping, handle, credit, ts, sponsorId]
+      );
+    }
     if (inspected.length) {
       await db.run("DELETE FROM logos WHERE sponsor_id = ?", [sponsorId]);
       for (const logo of inspected) {
@@ -436,15 +466,18 @@ const SEED = [
   { slug: "tighten", name: "Tighten", tier: "gold", contact_name: "Matt", prize_details: "Nintendo Switch 2", logos: ["mark", "wordmark"] },
   { slug: "coderabbit", name: "CodeRabbit", tier: "silver", prize_details: "Work Louder keyboard" },
   { slug: "torc", name: "Torc", tier: "silver", prize_details: "Two $100 Amazon gift cards" },
+  { slug: "renderatl", name: "RenderATL", tier: "prize", prize_details: "RenderATL VIP ticket. Travel TBD." },
 ];
 
 export async function seedIfEmpty(db, secret, adminCode) {
-  const row = await db.get("SELECT COUNT(*) AS n FROM sponsors");
-  if (Number(row?.n || 0) > 0) return false;
   const logoDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "seed-logos");
   const ts = nowIso();
+  let added = false;
   await db.tx(async () => {
     for (const item of SEED) {
+      const existing = await db.get("SELECT id FROM sponsors WHERE slug = ?", [item.slug]);
+      if (existing) continue;
+      added = true;
       const issued = issueCode(secret, adminCode);
       const inserted = await db.get(
         `INSERT INTO sponsors (slug, name, tier, contact_name, x_handle, prize_details, not_before, code_hash, code_enc, created_at)
@@ -475,7 +508,7 @@ export async function seedIfEmpty(db, secret, adminCode) {
       }
     }
   });
-  return true;
+  return added;
 }
 
 export function optionStarts(tier) {

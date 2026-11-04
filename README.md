@@ -54,6 +54,10 @@ docker run --rm -p 8080:8080 -e ADMIN_CODE=local-admin-code -e SESSION_SECRET=lo
 
 The grid is every half hour from 2:00 PM to 8:00 PM ET. Platinum books 1 hour (two blocks). Gold books 30 minutes. A block that overlaps someone else is refused. Jason can override from the admin desk, which clears the other booking. Silver and Community don't book time. They still send assets.
 
-Assets are due Friday, Nov 20, 2026: a logo (up to two files), one URL, talking points, prize or cash details, shipping and fulfillment, an X handle, and the credit line. The desk shows that as a count out of 7.
+Assets are due Friday, Nov 20, 2026. Everyone sends a logo, one URL, talking points, an X handle, and a credit line. Platinum, Gold, and prize sponsors also send prize details and shipping. Silver and Community are cash for freeCodeCamp, so their form stops there. The desk shows how many of those fields are in.
 
-Seeded sponsors: Laravel and Unkey (Platinum, one Platinum spot left open), Coder, Luke (@LukeCFPLevelUp, no earlier than 2:00 PM ET), Kunal (@kunalstwt), and Tighten (Gold), CodeRabbit and Torc (Silver). Tighten's mark and wordmark are already on file. An empty database is seeded once. A database that already has sponsors is left alone.
+Seeded sponsors: Laravel and Unkey (Platinum, one Platinum spot left open), Coder, Luke (@LukeCFPLevelUp, no earlier than 2:00 PM ET), Kunal (@kunalstwt), and Tighten (Gold), CodeRabbit and Torc (Silver), and RenderATL (prize sponsor, tier not set). Tighten's mark and wordmark are already on file. A missing seed sponsor is added on startup. Existing rows are left alone.
+
+## The public fundraiser
+
+`server/campaign.js` is the only file for the public numbers. Set `raised` (it starts at `4000`) and `goal`. Add a locked prize by appending to `prizes`. Put the live campaign link in `tiltifyUrl`. The homepage reads that file on each request. The primary button is "Sponsor with cash" and it goes to Tiltify.

@@ -97,6 +97,15 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /30-minute block/);
   assert.match(home.text, /1-hour block/);
   assert.match(home.text, /href="\/portal"/);
+  assert.match(home.text, /\$4,000<\/b> of \$10,000 raised/);
+  assert.match(home.text, /freeCodeCamp/);
+  assert.match(home.text, /Sponsor with cash/);
+  assert.match(home.text, /MacBook Pro/);
+  assert.match(home.text, /RenderATL VIP ticket/);
+  assert.match(home.text, /Keychron keyboards/);
+  assert.match(home.text, /aria-valuenow="4000"/);
+  assert.doesNotMatch(home.text, /\$200\+ prize/);
+  assert.doesNotMatch(home.text, /any physical prize/);
 
   const health = await client().fetch("/health");
   assert.equal(health.status, 200);
@@ -118,6 +127,8 @@ test("sponsor portal flow", async (t) => {
   const desk = await admin.fetch("/portal/admin");
   assert.equal(desk.status, 200);
   assert.match(desk.text, /1 Platinum spot is still open/);
+  assert.match(desk.text, /RenderATL/);
+  assert.match(desk.text, /Prize sponsor/);
   assert.match(desk.text, /Gold is full \(4 of 4\)/);
   assert.match(desk.text, /Temporary storage/);
   assert.match(desk.text, /New MacBook Pro/);
@@ -183,8 +194,12 @@ test("sponsor portal flow", async (t) => {
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ action: "book", start: String(18 * 60) }).toString(),
   });
-  assert.match((await follow(rabbit, rabbitTry)).text, /don’t book a stream block/);
-  assert.match((await rabbit.fetch("/portal")).text, /No time block/);
+  assert.match((await follow(rabbit, rabbitTry)).text, /no stream block to book/);
+  const rabbitHome = await rabbit.fetch("/portal");
+  assert.match(rabbitHome.text, /Cash gift/);
+  assert.match(rabbitHome.text, /freeCodeCamp/);
+  assert.doesNotMatch(rabbitHome.text, /name="prize_details"/);
+  assert.doesNotMatch(rabbitHome.text, /name="shipping"/);
 
   const lukeEdited = await admin.fetch("/portal/admin/sponsor", {
     method: "POST",

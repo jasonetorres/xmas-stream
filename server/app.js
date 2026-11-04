@@ -21,6 +21,7 @@ import {
   updateSponsor,
 } from "./domain.js";
 import { boundaryFrom, parseMultipart } from "./multipart.js";
+import { applyHome } from "./campaign.js";
 import { flashFrom, renderAdmin, renderDenied, renderLogin, renderSponsor } from "./pages.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -549,5 +550,7 @@ async function serveStatic(res, pathname, publicDir) {
   res.setHeader("Content-Type", types[ext] || "application/octet-stream");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=3600");
-  res.end(await fs.promises.readFile(file));
+  const body = await fs.promises.readFile(file);
+  if (path.basename(file) === "index.html") return res.end(applyHome(body.toString("utf8")));
+  res.end(body);
 }

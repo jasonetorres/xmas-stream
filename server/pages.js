@@ -1,4 +1,4 @@
-import { durationFor, segmentSummary, spotLines, tierLabel } from "./domain.js";
+import { cashOnly, durationFor, segmentSummary, spotLines, tierLabel } from "./domain.js";
 import { ASSETS_DUE, STREAM_DAY, STREAM_END, STREAM_START, WINDOW_LABEL, formatClock, formatRange, gridStarts } from "./time.js";
 
 const SAVED = {
@@ -209,10 +209,10 @@ function assetBlock(sponsor) {
       <p class="hint">PNG, JPG, WEBP, GIF, or a plain SVG. Up to two files, 1.5 MB each. A mark and a wordmark are perfect. Leave this empty to keep what’s already on file.</p>
       <label class="field"><span>One URL</span><input name="url" type="url" inputmode="url" value="${esc(sponsor.url)}" placeholder="https://"></label>
       <label class="field"><span>Talking points</span><textarea name="talking_points" maxlength="5000">${esc(sponsor.talking_points)}</textarea></label>
-      <div class="grid-2">
-        <label class="field"><span>Prize or cash details</span><textarea name="prize_details">${esc(sponsor.prize_details)}</textarea></label>
-        <label class="field"><span>Shipping and fulfillment</span><textarea name="shipping" placeholder="Where it ships from, who fulfills it, or “cash only, nothing to ship.”">${esc(sponsor.shipping)}</textarea></label>
-      </div>
+      ${cashOnly(sponsor.tier) ? "" : `<div class="grid-2">
+        <label class="field"><span>Prize details</span><textarea name="prize_details">${esc(sponsor.prize_details)}</textarea></label>
+        <label class="field"><span>Shipping and fulfillment</span><textarea name="shipping" placeholder="Where it ships from, and who gets it to the winner.">${esc(sponsor.shipping)}</textarea></label>
+      </div>`}
       <div class="grid-2">
         <label class="field"><span>X handle</span><input name="x_handle" value="${esc(sponsor.x_handle)}" placeholder="without the @" maxlength="15"></label>
         <label class="field"><span>How should we credit you?</span><input name="credit" value="${esc(sponsor.credit)}" maxlength="200" placeholder="Name on the lower third and the thank-you wall"></label>
@@ -225,7 +225,12 @@ function assetBlock(sponsor) {
 function bookingBlock(sponsor) {
   const duration = durationFor(sponsor.tier);
   if (!duration) {
-    return `<section class="panel stack"><h2>No time block</h2><p class="quiet">${esc(tierLabel(sponsor.tier))} sponsors don’t book a slot. Send your logo and logistics below and Jason will thank you on the wall.</p></section>`;
+    const prizeSeat = sponsor.tier === "prize";
+    const heading = prizeSeat ? "Your prize" : "Cash gift";
+    const copy = prizeSeat
+      ? "Your giveaway is already on the lineup. Send the logo, the link, and how it gets to the winner."
+      : "This gift is cash for freeCodeCamp. Send your logo, link, talking points, X handle, and the credit line.";
+    return `<section class="panel stack"><h2>${heading}</h2><p class="quiet">${copy}</p></section>`;
   }
   const rows = sponsor.rows
     .map((row) => {
@@ -279,7 +284,7 @@ export function renderSponsor({ sponsor, flash }) {
 ${banners(flash)}
 <p class="kicker label">${esc(tierLabel(sponsor.tier))} sponsor</p>
 <div class="split"><h1>${esc(who)}</h1><form method="post" action="/portal/logout"><button class="btn btn-ghost btn-tiny" type="submit">Log out</button></form></div>
-<p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. Raising $10,000. Platinum holds a 1-hour block. Gold holds 30 minutes. Overlaps are refused.</p>
+<p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. Raising cash for freeCodeCamp. Platinum holds a 1-hour block. Gold holds 30 minutes. Overlaps are refused.</p>
 <div class="stamp label"><span>Assets due</span><b>${esc(ASSETS_DUE)}</b></div>
 ${bookingBlock(sponsor)}
 ${assetBlock(sponsor)}`;
@@ -295,8 +300,9 @@ function earliestOptions(selected) {
 }
 
 const HINTS = {
-  torc: "On the public logo wall this is Randstad, powered by Torc.",
+  torc: "On the public logo wall this is Randstad, powered by Torc. The gift cards are already on the prize lineup.",
   tighten: "CEO Matt. The mark and the wordmark are already on file.",
+  renderatl: "Tier isn’t set yet. The VIP ticket is on the prize lineup. Travel is TBD.",
 };
 
 function adminCard(sponsor, base) {
@@ -359,7 +365,7 @@ function adminCard(sponsor, base) {
         <div class="grid-2">
           <label class="field"><span>Name</span><input name="name" value="${esc(sponsor.name)}" required maxlength="80"></label>
           <label class="field"><span>Tier</span><select name="tier">
-            ${["platinum", "gold", "silver", "community"].map((tier) => `<option value="${tier}"${tier === sponsor.tier ? " selected" : ""}>${esc(tierLabel(tier))}</option>`).join("")}
+            ${["platinum", "gold", "prize", "silver", "community"].map((tier) => `<option value="${tier}"${tier === sponsor.tier ? " selected" : ""}>${esc(tierLabel(tier))}</option>`).join("")}
           </select></label>
           <label class="field"><span>Contact</span><input name="contact_name" value="${esc(sponsor.contact_name)}" maxlength="80"></label>
           <label class="field"><span>X handle</span><input name="x_handle" value="${esc(sponsor.x_handle)}" maxlength="15"></label>
@@ -389,7 +395,7 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
   </div>
   <form method="post" action="/portal/logout"><button class="btn btn-ghost btn-tiny" type="submit">Log out</button></form>
 </div>
-<p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Silver: ${spots.silver}. Community: ${spots.community}.</p>
+<p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Prize sponsors: ${spots.prize}. Silver: ${spots.silver}. Community: ${spots.community}.</p>
 <details class="panel" open>
   <summary>Add a sponsor</summary>
   <form class="stack" style="padding-top:14px" method="post" action="/portal/admin/sponsors">
@@ -398,8 +404,9 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
       <label class="field"><span>Tier</span><select name="tier">
         <option value="platinum">Platinum · 1 hour</option>
         <option value="gold" selected>Gold · 30 minutes</option>
-        <option value="silver">Silver · assets only</option>
-        <option value="community">Community · assets only</option>
+        <option value="prize">Prize sponsor · tier TBD</option>
+        <option value="silver">Silver · cash</option>
+        <option value="community">Community · cash</option>
       </select></label>
       <label class="field"><span>Contact</span><input name="contact_name" maxlength="80"></label>
       <label class="field"><span>X handle</span><input name="x_handle" maxlength="15" placeholder="without the @"></label>
