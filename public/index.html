@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jason’s Christmas Birthday Stream</title>
-<meta name="description" content="Six hours of holiday games, chats with tech folks, and a giveaway every hour. Friday Dec 18, 2–8 PM ET. Raising $10,000 for a good cause.">
+<meta name="description" content="The prize lineup is locked. Friday Dec 18, 2:00–8:00 PM ET. Cash from here goes to freeCodeCamp, toward $10,000.">
 <meta property="og:title" content="Jason’s Christmas Birthday Stream">
-<meta property="og:description" content="Fri Dec 18 · 2–8 PM ET · Live on X, YouTube, LinkedIn & Twitch. Raising $10,000 for a good cause.">
+<meta property="og:description" content="Fri Dec 18 · 2:00–8:00 PM ET. The prizes are set. Cash raised goes to freeCodeCamp.">
 <meta property="og:image" content="/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#17110d">
@@ -47,6 +47,18 @@ h1, h2, h3 { margin: 0; font-variation-settings: "SOFT" 100, "opsz" 144; text-wr
 .mast-name { font-weight: 900; font-style: italic; font-size: 1.7rem; letter-spacing: -0.02em; font-variation-settings: "SOFT" 100, "opsz" 144; }
 .mast-meta { font-size: 0.82rem; color: var(--muted); }
 .mast-meta b { color: var(--gold); font-weight: 600; }
+.mast-portal { color: var(--cream); text-decoration: none; font-size: 0.82rem; }
+.mast-portal:hover { color: var(--gold); }
+.tier p.spots { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); font-size: 0.92rem; margin: 0; }
+.raise { display: flex; flex-direction: column; gap: 8px; max-width: 460px; }
+.raise-figure { margin: 0; font-size: 1.05rem; }
+.raise-figure b { font-size: 1.7rem; color: var(--gold); font-weight: 850; }
+.raise-track { height: 14px; border-radius: 999px; background: rgba(245, 230, 184, 0.12); border: 2px solid var(--line); overflow: hidden; }
+.raise-track span { display: block; height: 100%; background: var(--gold); }
+.prizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.prize { padding: 16px; border: 2px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.prize b { font-size: 1.15rem; font-weight: 800; }
+.prize span { color: var(--muted); font-size: 0.95rem; }
 
 /* hero */
 .hero { padding-block: 56px 64px; }
@@ -144,11 +156,13 @@ a.platform:hover { border-color: var(--gold); transform: translateY(-2px); }
 .copy { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid #fff6e0; background: transparent; color: #fff6e0; font-family: var(--label); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; cursor: pointer; }
 .copy:hover { background: rgba(255, 246, 224, 0.15); }
 .contact-card a { color: #fff6e0; }
+.contact-card .btn-gold { color: var(--ground); }
 
 footer { border-top: 4px double var(--line); padding-block: 22px 32px; color: var(--muted); font-size: 0.9rem; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
 
 @media (max-width: 860px) {
+  .prizes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: 44px; }
   .cover { max-width: 300px; }
   .watch, .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -158,6 +172,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   .set { gap: 56px; padding-right: 56px; }
 }
 @media (max-width: 420px) {
+  .prizes { grid-template-columns: minmax(0, 1fr); }
   .unit { min-width: 70px; }
   .unit b { font-size: 1.7rem; }
   .dates { grid-template-columns: minmax(0, 1fr); }
@@ -170,6 +185,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap">
     <span class="mast-name">Stream Weekly</span>
     <span class="mast-meta label"><b>Holiday Issue</b> · Dec. 12–18, 1987 · 75¢</span>
+    <a class="mast-portal label" href="/portal">Sponsor portal</a>
   </div>
 </header>
 
@@ -179,8 +195,12 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="hero-copy">
         <span class="kicker label">Live · Friday 12/18 · 2–8 PM ET</span>
         <h1>Jason’s Christmas <em>Birthday</em> Stream</h1>
-        <p class="lede">Six hours of holiday games, easygoing chats with tech folks, and a giveaway every single hour. No sales pitches, just good vibes for a good cause.</p>
-        <div class="goal label"><span>The goal</span><b>Raise $10,000</b></div>
+        <p class="lede">The prize lineup is locked. Six hours of holiday games, easy chats, and a giveaway every hour. Cash from here goes to freeCodeCamp.</p>
+        <div class="raise">
+          <p class="raise-figure" id="raised"><b>__RAISED__</b> of __GOAL__ raised</p>
+          <div class="raise-track" role="meter" aria-valuemin="0" aria-valuemax="__GOAL_RAW__" aria-valuenow="__RAISED_RAW__" aria-label="__RAISED__ of __GOAL__ raised for freeCodeCamp"><span style="width:__PERCENT__%"></span></div>
+          <p class="fine" style="margin:0">For freeCodeCamp. Donate on Tiltify.</p>
+        </div>
         <div>
           <div class="countdown" id="countdown" aria-label="Time until the stream starts">
             <div class="unit"><b id="cd-d">--</b><span class="label">Days</span></div>
@@ -191,7 +211,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
           <p class="live-now" id="live-now">We’re live! Come hang out.</p>
         </div>
         <div class="ctas">
-          <a class="btn btn-gold" href="#sponsor">Become a sponsor</a>
+          <a class="btn btn-gold" href="__TILTIFY__">Sponsor with cash</a>
           <a class="btn btn-ghost" href="#watch">Where to watch</a>
         </div>
       </div>
@@ -200,6 +220,14 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       </figure>
     </div>
   </div>
+
+  <section class="gutter" id="prizes" aria-labelledby="prizes-h">
+    <div class="wrap">
+      <div class="head"><span class="label">Locked in</span><h2 id="prizes-h">Prizes already on the table</h2></div>
+      <p class="lede">These are the giveaways for December 18. The lineup is set.</p>
+      <div class="prizes">__PRIZES__</div>
+    </div>
+  </section>
 
   <div class="band" aria-labelledby="band-title">
     <p class="band-title label" id="band-title">Brought to you by</p>
@@ -253,30 +281,36 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="head"><span class="label">Sponsorship levels</span><h2 id="tiers-h">Pick your level</h2></div>
       <div class="tiers">
         <article class="tier top">
-          <div class="tier-row"><h3>Platinum</h3><span class="price">$3,000 cash or a $1,500+ prize</span></div>
-          <p>You own one hour plus a named segment in it. Your logo is on screen all six hours, and I thank you at the open and the close.</p>
+          <div class="tier-row"><h3>Platinum</h3><span class="price">$3,000 cash, or a $1,500+ prize</span></div>
+          <p class="spots">3 spots · 1-hour block</p>
+          <p>Cash goes to freeCodeCamp. A prize at this level is an experience, a trip, or big-ticket gear worth $1,500 or more. You get a 1-hour block, plus a named segment inside it. Your logo is on screen all six hours, and I thank you at the open and the close.</p>
           <div class="segments">
             <div class="segment"><b>The [Your Brand] Gift Drop</b>Your guest draws that hour’s winner live.</div>
             <div class="segment"><b>The [Your Brand] Hot Seat</b>A 10-minute holiday chat with someone from your team.</div>
           </div>
         </article>
         <article class="tier">
-          <div class="tier-row"><h3>Gold</h3></div>
-          <span class="price">$1,000 cash or a $500+ prize</span>
-          <p>You own one hour, bring a guest or jump into a game, and get a live giveaway moment.</p>
+          <div class="tier-row"><h3>Gold</h3><span class="price">$1,000 cash, or a $500+ prize</span></div>
+          <p class="spots">4 spots · 30-minute block</p>
+          <p>Cash goes to freeCodeCamp. Gear starts at $500. An experience or a trip starts at $1,000. You get a 30-minute block, bring a guest or jump into a game, and get a live giveaway moment.</p>
         </article>
         <article class="tier">
           <div class="tier-row"><h3>Silver</h3></div>
-          <span class="price">$500 cash or a $200+ prize</span>
-          <p>A shoutout during the stream and a spot on the sponsor logo wall.</p>
+          <span class="price">$500 cash</span>
+          <p>Your $500 goes to freeCodeCamp. You get a shoutout during the stream and a spot on the sponsor logo wall.</p>
         </article>
         <article class="tier">
           <div class="tier-row"><h3>Community</h3></div>
-          <span class="price">$100+ cash or any physical prize</span>
-          <p>Your name on the thank-you wall.</p>
+          <span class="price">$100+ cash</span>
+          <p>Your gift goes to freeCodeCamp, and your name goes on the thank-you wall.</p>
         </article>
       </div>
-      <p class="fine">Cash and prizes can be combined, and prizes count at retail value. Prizes should be physical gear (think laptops, keyboards, headphones), not product credits or coupons. No product demos, and 2–3 minutes of sponsor talk per hour.</p>
+      <p class="fine">Platinum and Gold can pair cash with a prize, and prizes count at retail value. A Platinum prize is an experience, a trip, or big-ticket gear from $1,500. Gold gear starts at $500, and a Gold experience or trip starts at $1,000. Silver and Community are cash for freeCodeCamp. No product demos, and 2–3 minutes of sponsor talk per hour.</p>
+      <div class="ctas" style="margin-top:22px">
+        <a class="btn btn-gold" href="__TILTIFY__">Sponsor with cash</a>
+        <a class="btn btn-ghost" href="/portal">Sponsor portal</a>
+      </div>
+      <p class="fine">Platinum books a 1-hour block and Gold books a 30-minute block, first come, first served from 2:00–8:00 PM ET. Silver and Community send assets in the same portal. Jason sends each sponsor a private link.</p>
 
       <div class="walkaway">
         <h3>What you walk away with</h3>
@@ -293,9 +327,9 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="head"><span class="label">2026</span><h2 id="dates-h">Key dates</h2></div>
       <ol class="dates">
         <li><time datetime="2026-11-13">Nov 13</time><span>Claim your level</span></li>
-        <li><time datetime="2026-11-20">Nov 20</time><span>Assets due: logo, one URL, talking points, prize or cash details</span></li>
+        <li><time datetime="2026-11-20">Nov 20</time><span>Assets due in the sponsor portal: logo, one URL, talking points, X handle, and credit</span></li>
         <li><time datetime="2026-11-30">Nov 30</time><span>Sponsor promo posts start</span></li>
-        <li><time datetime="2026-12-18">Dec 18</time><span>We’re live, 2–8 PM ET</span></li>
+        <li><time datetime="2026-12-18">Dec 18</time><span>We’re live, 2:00–8:00 PM ET</span></li>
         <li><time datetime="2026-12-22">Dec 22</time><span>Your recap lands</span></li>
       </ol>
     </div>
@@ -305,12 +339,13 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <div class="wrap">
       <div class="contact-card">
         <span class="label">Let’s make it happen</span>
-        <h2>Grab an hour before they’re gone</h2>
+        <h2>The prizes are locked. Let’s raise the cash.</h2>
         <div class="contact-row">
+          <a class="btn btn-gold" href="__TILTIFY__">Sponsor with cash</a>
           <span class="email" id="email">jason.torres@jetbrains.com</span>
           <button class="copy" type="button" id="copy">Copy email</button>
         </div>
-        <p style="margin: 0">Or DM <a href="https://x.com/TasonJorres" target="_blank" rel="noopener">@TasonJorres</a> on X · <a href="/sponsor-packet.pdf" download>Download the sponsor packet (PDF)</a></p>
+        <p style="margin: 0">Donate on Tiltify for freeCodeCamp. Already on the show? <a href="/portal">Open the sponsor portal</a> to book a block and send assets, or DM <a href="https://x.com/TasonJorres" target="_blank" rel="noopener">@TasonJorres</a> on X · <a href="/sponsor-packet.pdf" download>Download the sponsor packet (PDF)</a></p>
       </div>
     </div>
   </div>
@@ -319,7 +354,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 <footer class="gutter">
   <div class="wrap">
     <span>Jason Torres · Christmas Birthday Stream 2026</span>
-    <span>Six hours. One good cause.</span>
+    <span>Six hours. Cash for freeCodeCamp.</span>
   </div>
 </footer>
 

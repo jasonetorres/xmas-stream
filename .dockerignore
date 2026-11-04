@@ -1,0 +1,7 @@
+node_modules
+.git
+data
+test
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
