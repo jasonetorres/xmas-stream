@@ -222,6 +222,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /Santavel/);
   assert.match(home.text, /https:\/\/x\.com\/TasonJorres/);
   assert.match(home.text, /https:\/\/www\.linkedin\.com\/in\/thejasontorres/);
+  assert.match(home.text, /href="\/sponsor">Sponsor the stream/);
   assert.match(home.text, /href="\/portal">Sponsor login/);
   assert.match(home.text, /src="\/logos\/laravel-wordmark\.png"/);
   assert.match(home.text, /src="\/logos\/unkey\.svg"/);
@@ -244,6 +245,32 @@ test("sponsor portal flow", async (t) => {
   assert.doesNotMatch(home.text, /Fraunces|Oswald/);
   assert.doesNotMatch(home.text, /hostjt|\/displayurl|\/vote/);
   assert.doesNotMatch(home.text, /href="\/admin/);
+
+  const pitch = await client().fetch("/sponsor");
+  assert.equal(pitch.status, 200);
+  assert.match(pitch.text, /Interested\? Email jason\.torres@jetbrains\.com/);
+  assert.match(pitch.text, /mailto:jason\.torres@jetbrains\.com/);
+  assert.match(pitch.text, /Friday, December 18, 2026/);
+  assert.match(pitch.text, /2:00–8:00 PM ET/);
+  assert.match(pitch.text, /Multistream/);
+  assert.match(pitch.text, /freeCodeCamp/);
+  assert.match(pitch.text, /\$10,000/);
+  assert.match(pitch.text, /\$4,000<\/b> of \$10,000 raised/);
+  assert.match(pitch.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
+  assert.match(pitch.text, /JetBrains\+Mono/);
+  assert.match(pitch.text, /23K\+/);
+  assert.match(pitch.text, /opt-in/);
+  assert.match(pitch.text, /recap/i);
+  assert.match(pitch.text, /Nov 13/);
+  assert.match(pitch.text, /Nov 20/);
+  assert.match(pitch.text, /Nov 30/);
+  assert.match(pitch.text, /Dec 22/);
+  assert.match(pitch.text, /id="tier-platinum"[\s\S]*1 spot open · 2 of 3[\s\S]*Laravel[\s\S]*Unkey/);
+  assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Kunal[\s\S]*Luke[\s\S]*Tighten/);
+  assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*Torc/);
+  assert.match(pitch.text, /id="tier-community"[\s\S]*Open · No timed block/);
+  assert.match(pitch.text, /MacBook Pro/);
+  assert.doesNotMatch(pitch.text, /Fraunces|__YOUTUBE__|__TIERS__|href="\/admin/);
 
   const health = await client().fetch("/health");
   assert.equal(health.status, 200);
@@ -318,6 +345,26 @@ test("sponsor portal flow", async (t) => {
   assert.match(codes.laravel, /^[abcdefghjkmnpqrstuvwxyz23456789]{8}$/);
   const sessionOnly = await admin.fetch("/admin/api/sponsor-codes");
   assert.equal(sessionOnly.status, 401);
+
+  const added = await admin.fetch("/admin/sponsors", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ name: "Extra Platinum", tier: "platinum" }).toString(),
+  });
+  assert.equal(added.status, 303, added.text);
+  const filled = await admin.fetch("/sponsor");
+  assert.match(filled.text, /id="tier-platinum"[\s\S]*Full · 3 of 3[\s\S]*Extra Platinum/);
+  const filledDesk = await admin.fetch("/admin");
+  const extraId = /id="sponsor-extra-platinum"[\s\S]*?name="sponsor_id" value="(\d+)"/.exec(filledDesk.text)[1];
+  const removed = await admin.fetch("/admin/sponsor/delete", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ sponsor_id: extraId, confirm: "yes" }).toString(),
+  });
+  assert.equal(removed.status, 303, removed.text);
+  const reopened = await admin.fetch("/sponsor");
+  assert.match(reopened.text, /1 spot open · 2 of 3/);
+  assert.doesNotMatch(reopened.text, /Extra Platinum/);
 
   const direct = client();
   const directLogin = await direct.fetch("/portal/login", {

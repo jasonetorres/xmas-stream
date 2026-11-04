@@ -1,6 +1,6 @@
 # xmas-stream
 
-Landing page and sponsor portal for Jason Torres' Christmas Birthday Livestream (Friday, Dec 18, 2026, 2:00–8:00 PM ET). The public page lives in `public/`. Each sponsor opens `/portal?s=<slug>` with their own access code. Jason runs the show from `/admin` with `ADMIN_CODE`.
+Landing page and sponsor portal for Jason Torres' Christmas Birthday Livestream (Friday, Dec 18, 2026, 2:00–8:00 PM ET). The public page lives in `public/`. Companies that want to sponsor get `/sponsor`. Each sponsor opens `/portal?s=<slug>` with their own access code. Jason runs the show from `/admin` with `ADMIN_CODE`.
 
 ## How this deploys
 
@@ -68,4 +68,4 @@ Seeded sponsors: Laravel and Unkey (Platinum, one Platinum spot left open), Code
 
 ## The public page
 
-`/` is the stream hub: Friday, December 18, 2026, 2:00–8:00 PM ET, the sponsor lineup, and one game per hour. `server/campaign.js` is the only file for the public numbers. Set `raised` (it starts at `4000`) and `goal`. The donate button uses `tiltifyUrl` (https://tilt.fyi/9va4uz7GEn). Sponsor login is a small link to `/portal`. `/admin` is not linked from the public page.
+`/` is the stream hub: Friday, December 18, 2026, 2:00–8:00 PM ET, the sponsor lineup, and one game per hour. `/sponsor` is the one-pager to send a company. Openings there are counted from the database against the original caps (Platinum 3, Gold 4). Silver and Community were not capped. `server/campaign.js` is the only file for the public numbers. Set `raised` (it starts at `4000`) and `goal`. The donate button uses `tiltifyUrl` (https://tilt.fyi/9va4uz7GEn). Sponsor login is a small link to `/portal`. `/admin` is not linked from the public page.

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sponsor the stream · Jason’s Christmas Birthday Stream</title>
+<meta name="description" content="Sponsor Jason’s Christmas Birthday Stream. Friday, December 18, 2026, 2:00–8:00 PM ET. Multistream. $10,000 for freeCodeCamp.">
+<meta name="theme-color" content="#17110d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap">
+<style>
+:root {
+  --ground: #17110d;
+  --panel: #221a14;
+  --line: rgba(245, 230, 184, 0.22);
+  --cream: #f5e6b8;
+  --muted: #cdbf98;
+  --gold: #f2b33d;
+  --red: #c8322b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--cream);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 16px;
+  line-height: 1.55;
+  background-image: radial-gradient(ellipse at 50% -8%, #3a2a1d 0%, var(--ground) 58%);
+  background-repeat: no-repeat;
+}
+.gutter { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; }
+a { color: var(--gold); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.03em; text-wrap: balance; }
+.label { text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600; font-size: 0.78rem; }
+.mast { padding-block: 18px 14px; border-bottom: 4px double var(--line); }
+.mast .wrap, .mast nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+.mast .wrap { justify-content: space-between; }
+.mast-name { font-weight: 700; font-size: 1.05rem; color: var(--cream); text-decoration: none; }
+.login { color: var(--muted); text-decoration: none; font-size: 0.82rem; }
+.login:hover { color: var(--gold); }
+.hero { padding-block: 48px 12px; }
+.kicker { color: var(--gold); }
+h1 { font-size: clamp(1.7rem, 4vw, 2.6rem); line-height: 1.15; }
+h1 em { font-style: italic; color: var(--gold); }
+.lede { color: var(--muted); max-width: 62ch; margin: 14px 0 0; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
+.facts li { border: 2px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 0.86rem; }
+.raise { margin-top: 18px; max-width: 460px; }
+.raise b { color: var(--gold); font-size: 1.35rem; }
+.raise-track { height: 12px; margin-top: 8px; border-radius: 999px; background: rgba(245, 230, 184, 0.12); border: 2px solid var(--line); overflow: hidden; }
+.raise-track span { display: block; height: 100%; background: var(--gold); }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.btn {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px;
+  border-radius: 999px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em;
+  font-weight: 700; font-size: 0.86rem; font-family: inherit;
+}
+.btn-gold { background: var(--gold); color: var(--ground); }
+.btn-mail { text-transform: none; letter-spacing: 0; font-size: 0.95rem; }
+.btn-ghost { border: 2px solid var(--cream); color: var(--cream); }
+section { padding-block: 36px; }
+.head { margin-bottom: 18px; }
+.head .label { color: var(--gold); }
+h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); margin-top: 6px; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat { padding: 16px; border-radius: 12px; background: var(--panel); border: 2px solid var(--line); }
+.stat b { display: block; font-size: 1.6rem; color: var(--gold); line-height: 1.1; }
+.stat span, .audience { color: var(--muted); }
+.audience { max-width: 68ch; margin: 0; }
+.tiers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.tier { padding: 18px; border: 2px solid var(--line); border-radius: 14px; background: var(--panel); }
+.tier.top { grid-column: 1 / -1; border-color: var(--gold); }
+.tier-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
+.tier h3 { font-size: 1.25rem; }
+.price { color: var(--gold); font-size: 0.86rem; }
+.spots { margin: 10px 0; font-weight: 700; }
+.spots[data-open="full"] { color: var(--red); }
+.spots[data-open="open"] { color: var(--gold); }
+.tier p { margin: 0 0 10px; color: var(--muted); }
+.segments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+.segment { padding: 12px; border-radius: 10px; background: rgba(245, 230, 184, 0.07); color: var(--muted); }
+.segment b { display: block; color: var(--cream); }
+.roster { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.roster li { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+.roster small { display: block; color: var(--muted); font-size: 0.75rem; }
+.quiet { color: var(--muted); }
+.fine { color: var(--muted); max-width: 75ch; }
+.prizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.prize { padding: 14px; border: 2px solid var(--line); border-radius: 14px; background: var(--panel); }
+.prize b { display: block; }
+.prize span { color: var(--muted); font-size: 0.9rem; }
+.walkaway { margin-top: 22px; padding: 22px; border: 2px solid var(--gold); border-radius: 16px; background: rgba(242, 179, 61, 0.07); }
+.walkaway h3 { font-size: 1.3rem; margin-bottom: 8px; }
+.walkaway ul { margin: 0; padding-left: 18px; }
+.dates { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.dates li { padding: 14px; border-top: 4px solid var(--gold); background: var(--panel); border-radius: 0 0 10px 10px; }
+.dates time { display: block; color: var(--gold); font-weight: 700; }
+.dates span { color: var(--muted); }
+.contact { padding-block: 28px 64px; }
+.contact-card { padding: 28px; border-radius: 18px; background: var(--red); color: #fff6e0; }
+.contact-card h2 { color: #fff6e0; font-size: clamp(1.3rem, 3vw, 1.8rem); }
+.contact-card a { color: #fff6e0; }
+.email { font-size: 1.15rem; font-weight: 700; }
+footer { border-top: 4px double var(--line); padding-block: 22px 32px; color: var(--muted); font-size: 0.88rem; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
+@media (max-width: 800px) {
+  .stats, .tiers, .prizes, .segments, .dates { grid-template-columns: minmax(0, 1fr); }
+  .tier.top { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="mast gutter">
+  <div class="wrap">
+    <a class="mast-name" href="/">Jason’s Christmas Birthday Stream</a>
+    <nav>
+      <a class="login" href="/sponsor">Sponsor the stream</a>
+      <a class="login" href="/portal">Sponsor login</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero gutter">
+    <div class="wrap">
+      <p class="kicker label">Friday, December 18, 2026 · 2:00–8:00 PM ET</p>
+      <h1>Sponsor the <em>stream</em></h1>
+      <p class="lede">Six hours, multistreamed, with a giveaway every hour. The prize lineup is locked. Cash from here goes to freeCodeCamp. The goal is $10,000.</p>
+      <ul class="facts">
+        <li>2:00–8:00 PM ET</li>
+        <li>Multistream</li>
+        <li>freeCodeCamp</li>
+      </ul>
+      <div class="raise">
+        <p><b>__RAISED__</b> of __GOAL__ raised for freeCodeCamp</p>
+        <div class="raise-track" role="meter" aria-valuemin="0" aria-valuemax="__GOAL_RAW__" aria-valuenow="__RAISED_RAW__" aria-label="__RAISED__ of __GOAL__ raised for freeCodeCamp"><span style="width:__PERCENT__%"></span></div>
+      </div>
+      <div class="ctas">
+        <a class="btn btn-gold btn-mail" href="mailto:jason.torres@jetbrains.com">Interested? Email jason.torres@jetbrains.com</a>
+        <a class="btn btn-ghost" href="__TILTIFY__">Donate on Tiltify</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="gutter" id="audience" aria-labelledby="audience-h">
+    <div class="wrap">
+      <div class="head">
+        <p class="label">Why sponsor</p>
+        <h2 id="audience-h">Who’s watching</h2>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>23K+</b><span>combined followers</span></div>
+        <div class="stat"><b>17.4K</b><span>on LinkedIn</span></div>
+        <div class="stat"><b>5.3K</b><span>on X</span></div>
+        <div class="stat"><b>~20K</b><span>views across platforms at last year’s stream</span></div>
+      </div>
+      <p class="audience"><b>Frontend developers, mostly junior to mid-level, plus a strong DevRel crowd.</b> The people choosing tools now and championing them on their teams next. The show is multistreamed, including X and LinkedIn.</p>
+    </div>
+  </section>
+
+  <section class="gutter" id="levels" aria-labelledby="levels-h">
+    <div class="wrap">
+      <div class="head">
+        <p class="label">Live from the roster</p>
+        <h2 id="levels-h">Pick your level</h2>
+      </div>
+      <div class="tiers">__TIERS__</div>
+      <p class="fine">Platinum and Gold can pair cash with a prize, and prizes count at retail value. A Platinum prize is an experience, a trip, or big-ticket gear from $1,500. Gold gear starts at $500, and a Gold experience or trip starts at $1,000. Silver and Community are cash for freeCodeCamp. No product demos, and 2–3 minutes of sponsor talk per hour. Platinum books a 1-hour block and Gold books a 30-minute block, first come, first served from 2:00–8:00 PM ET.</p>
+    </div>
+  </section>
+
+  <section class="gutter" id="prizes" aria-labelledby="prizes-h">
+    <div class="wrap">
+      <div class="head">
+        <p class="label">Locked in</p>
+        <h2 id="prizes-h">Prizes already on the table</h2>
+      </div>
+      <div class="prizes">__PRIZES__</div>
+    </div>
+  </section>
+
+  <section class="gutter" aria-labelledby="walk-h">
+    <div class="wrap">
+      <div class="walkaway">
+        <h3 id="walk-h">What you walk away with</h3>
+        <ul>
+          <li><b>A recap within a week:</b> viewers per platform, giveaway entry count, and timestamps of every one of your mentions. Recaps land December 22.</li>
+          <li><b>A CSV of only the people who opted in to hear from you.</b> Each sponsor gets its own opt-in checkbox on the entry form, so every lead chose you.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="gutter" aria-labelledby="dates-h">
+    <div class="wrap">
+      <div class="head">
+        <p class="label">2026</p>
+        <h2 id="dates-h">Key dates</h2>
+      </div>
+      <ol class="dates">
+        <li><time datetime="2026-11-13">Nov 13</time><span>Claim your level</span></li>
+        <li><time datetime="2026-11-20">Nov 20</time><span>Assets due: logo, website, talking points, X handle, and credit</span></li>
+        <li><time datetime="2026-11-30">Nov 30</time><span>Sponsor promo posts start</span></li>
+        <li><time datetime="2026-12-18">Dec 18</time><span>We’re live, 2:00–8:00 PM ET</span></li>
+        <li><time datetime="2026-12-22">Dec 22</time><span>Your recap lands</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="contact gutter">
+    <div class="wrap">
+      <div class="contact-card">
+        <p class="label">The next step</p>
+        <h2>Interested? Email jason.torres@jetbrains.com</h2>
+        <p class="email"><a href="mailto:jason.torres@jetbrains.com">jason.torres@jetbrains.com</a></p>
+        <p>Or donate on <a href="__TILTIFY__">Tiltify</a>. Already on the show? <a href="/portal">Sponsor login</a> is where you book a block and send assets.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="gutter">
+  <div class="wrap">
+    <span>Jason Torres · December 18, 2026</span>
+    <span>2:00–8:00 PM ET · freeCodeCamp · $10,000</span>
+  </div>
+</footer>
+</body>
+</html>
