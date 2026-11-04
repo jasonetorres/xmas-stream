@@ -24,7 +24,7 @@ function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-function shell({ title, body, wide }) {
+function shell({ title, body, wide, section = "sponsor" }) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -34,12 +34,12 @@ function shell({ title, body, wide }) {
 <title>${esc(title)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,500..900,0..100;1,9..144,500..900,0..100&family=Oswald:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,500..900,0..100;1,9..144,500..900,0..100&family=JetBrains+Mono:wght@400..700&display=swap">
 <style>
 :root {
   --ground: #17110d; --panel: #221a14; --line: rgba(245, 230, 184, 0.22);
   --cream: #f5e6b8; --muted: #cdbf98; --gold: #f2b33d; --red: #c8322b;
-  --display: "Fraunces", Georgia, serif; --label: "Oswald", "Arial Narrow", Impact, sans-serif;
+  --display: "Fraunces", Georgia, serif; --label: "JetBrains Mono", ui-monospace, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -53,7 +53,7 @@ a { color: var(--gold); }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 .gutter { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
 .wrap { max-width: ${wide ? "1040px" : "880px"}; margin: 0 auto; }
-.label { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600; }
+.label { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; font-size: 0.82rem; }
 h1, h2, h3 { margin: 0; font-variation-settings: "SOFT" 100, "opsz" 144; text-wrap: balance; }
 .mast { padding-block: 18px 12px; border-bottom: 4px double var(--line); }
 .mast .wrap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 18px; }
@@ -128,7 +128,7 @@ summary { cursor: pointer; color: var(--gold); font-family: var(--label); letter
 <header class="mast gutter"><div class="wrap">
   <a class="mast-name" href="/">Stream Weekly</a>
   <span class="mast-meta label">${esc(STREAM_DAY)} · ${esc(WINDOW_LABEL)}</span>
-  <a class="label" href="/portal" style="color:var(--cream);text-decoration:none;font-size:0.82rem">Sponsor portal</a>
+  ${section === "admin" ? `<span class="label" style="color:var(--gold)">Admin</span>` : `<a class="label" href="/portal" style="color:var(--cream);text-decoration:none">Sponsor portal</a>`}
 </div></header>
 <main class="gutter"><div class="wrap stack">
 ${body}
@@ -161,9 +161,9 @@ export function renderLogin({ flash }) {
 ${banners(flash)}
 <p class="kicker label">Private · sponsors only</p>
 <h1>Sponsor <em>portal</em></h1>
-<p class="lede">Book your block on ${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}, and send the assets Jason needs by ${esc(ASSETS_DUE)}. Open the private link he sent you, or paste the code from it.</p>
+<p class="lede">Book your block on ${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}, and send the assets Jason needs by ${esc(ASSETS_DUE)}. Use the shared sponsor code he sent you.</p>
 <form class="panel stack" method="post" action="/portal/login">
-  <label class="field"><span>Invite code</span>
+  <label class="field"><span>Sponsor code</span>
     <input class="code" name="code" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" required autofocus>
   </label>
   <button class="btn btn-gold" type="submit">Enter</button>
@@ -171,12 +171,43 @@ ${banners(flash)}
   return shell({ title: "Sponsor portal · Jason’s Christmas Birthday Stream", body });
 }
 
+export function renderClaim({ flash }) {
+  const body = `
+${banners(flash)}
+<p class="kicker label">Your page only</p>
+<h1>Who’s <em>signing in</em></h1>
+<p class="lede">Type your sponsor name. This page will show your block, your tier, and your assets. Nothing for the other sponsors.</p>
+<form class="panel stack" method="post" action="/portal/claim">
+  <label class="field"><span>Sponsor name</span>
+    <input name="name" autocomplete="organization" required autofocus>
+  </label>
+  <button class="btn btn-gold" type="submit">Continue</button>
+</form>
+<form method="post" action="/portal/logout"><button class="btn btn-ghost btn-tiny" type="submit">Log out</button></form>`;
+  return shell({ title: "Sponsor portal · Jason’s Christmas Birthday Stream", body });
+}
+
+export function renderAdminLogin({ flash }) {
+  const body = `
+${banners(flash)}
+<p class="kicker label">Private · Jason only</p>
+<h1>Admin <em>desk</em></h1>
+<p class="lede">Sponsors, bookings, assets, and opt-in leads. This page takes your admin code, not a sponsor link.</p>
+<form class="panel stack" method="post" action="/admin/login">
+  <label class="field"><span>Admin code</span>
+    <input class="code" name="code" autocomplete="current-password" autocapitalize="off" spellcheck="false" required autofocus>
+  </label>
+  <button class="btn btn-gold" type="submit">Enter</button>
+</form>`;
+  return shell({ title: "Admin · Christmas Birthday Stream", body, section: "admin" });
+}
+
 export function renderDenied() {
   const body = `
 <h1>That’s Jason’s <em>desk</em></h1>
-<p class="lede">Sponsor logins land on your own page. The admin desk needs Jason’s code.</p>
+<p class="lede">A sponsor login can’t open the admin desk. Your page is the sponsor portal.</p>
 <p><a class="btn btn-gold" href="/portal">Back to your page</a></p>`;
-  return shell({ title: "Admin · Sponsor portal", body });
+  return shell({ title: "Admin · Christmas Birthday Stream", body, section: "admin" });
 }
 
 function assetBlock(sponsor) {
@@ -238,8 +269,7 @@ function bookingBlock(sponsor) {
       if (row.selectable) {
         detail = `<label class="pick"><input type="radio" name="start" value="${row.start}" ${row.current ? "checked" : ""}><span><b>${esc(row.range)}</b>${row.current ? " · your block" : row.own ? " · move here" : " · open"}</span></label>`;
       } else if (row.covering && !row.own) {
-        const extra = segmentSummary(row.covering);
-        detail = `<span><b>${esc(row.covering.name)}</b> · ${esc(formatRange(row.covering.start_min, row.covering.end_min))}${extra ? ` · ${esc(extra)}` : ""}</span>`;
+        detail = `<span>Taken</span>`;
       } else if (row.reason) {
         detail = `<span>${esc(row.reason)}</span>`;
       } else if (row.own) {
@@ -278,14 +308,50 @@ function bookingBlock(sponsor) {
   </section>`;
 }
 
+const BENEFITS = {
+  platinum: [
+    "A 1-hour block on Friday, Dec 18, 2:00–8:00 PM ET.",
+    "Gift Drop, Hot Seat, or both, and a guest name.",
+    "Your logo on screen all six hours, plus a thank-you at the open and the close.",
+    "$3,000 cash for freeCodeCamp, or a $1,500+ experience, trip, or big-ticket prize.",
+  ],
+  gold: [
+    "A 30-minute block on Friday, Dec 18, 2:00–8:00 PM ET.",
+    "Bring a guest or jump into a game, and a live giveaway moment.",
+    "$1,000 cash for freeCodeCamp, or a prize. Gear starts at $500. An experience or a trip starts at $1,000.",
+  ],
+  silver: ["$500 cash for freeCodeCamp.", "A shoutout on the stream and a spot on the logo wall."],
+  community: ["$100 or more in cash for freeCodeCamp.", "Your name on the thank-you wall."],
+  prize: ["Your giveaway is already on the lineup.", "Send the logo and how it reaches the winner."],
+};
+
+const KEY_DATES = [
+  ["Friday, Nov 20, 2026", "Assets due"],
+  ["Monday, Nov 30, 2026", "Sponsor promo posts start"],
+  ["Friday, Dec 18, 2026", "We’re live, 2:00–8:00 PM ET"],
+  ["Tuesday, Dec 22, 2026", "Your recap lands"],
+];
+
+function benefitsBlock(tier) {
+  const items = (BENEFITS[tier] || []).map((item) => `<li>${esc(item)}</li>`).join("");
+  const dates = KEY_DATES.map(([when, what]) => `<li><b>${esc(when)}</b> ${esc(what)}</li>`).join("");
+  return `<section class="panel stack">
+    <h2>Your tier</h2>
+    <ul class="miss">${items}</ul>
+    <h2>Key dates</h2>
+    <ul class="miss">${dates}</ul>
+  </section>`;
+}
+
 export function renderSponsor({ sponsor, flash }) {
   const who = sponsor.contact_name ? `${sponsor.name} · ${sponsor.contact_name}` : sponsor.name;
   const body = `
 ${banners(flash)}
-<p class="kicker label">${esc(tierLabel(sponsor.tier))} sponsor</p>
+<p class="kicker label">${esc(tierLabel(sponsor.tier))}</p>
 <div class="split"><h1>${esc(who)}</h1><form method="post" action="/portal/logout"><button class="btn btn-ghost btn-tiny" type="submit">Log out</button></form></div>
-<p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. Raising cash for freeCodeCamp. Platinum holds a 1-hour block. Gold holds 30 minutes. Overlaps are refused.</p>
+<p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. Your page has your block, your assets, and your dates.</p>
 <div class="stamp label"><span>Assets due</span><b>${esc(ASSETS_DUE)}</b></div>
+${benefitsBlock(sponsor.tier)}
 ${bookingBlock(sponsor)}
 ${assetBlock(sponsor)}`;
   return shell({ title: `${sponsor.name} · Sponsor portal`, body });
@@ -311,7 +377,6 @@ function adminCard(sponsor, base) {
   const extra = segmentSummary(booking);
   const by = booking && booking.set_by === "admin" ? " Jason set this." : "";
   const report = sponsor.assets;
-  const link = sponsor.inviteCode ? `${base}/portal/i/${sponsor.inviteCode}` : "";
   const duration = durationFor(sponsor.tier);
   let bookForm = `<p class="quiet">No stream block at the ${esc(tierLabel(sponsor.tier))} tier. Assets only.</p>`;
   if (duration) {
@@ -326,7 +391,7 @@ function adminCard(sponsor, base) {
            <label class="check"><input type="checkbox" name="hot_seat" ${Number(booking?.hot_seat) ? "checked" : ""}> Hot Seat</label>
            <label class="field"><span>Guest</span><input name="guest_name" value="${esc(booking?.guest_name || "")}" maxlength="80"></label>`
         : "";
-    bookForm = `<form class="stack" method="post" action="/portal/admin/booking">
+    bookForm = `<form class="stack" method="post" action="/admin/booking">
       <input type="hidden" name="sponsor_id" value="${sponsor.id}">
       <label class="field"><span>Block</span><select name="start">${options}</select></label>
       ${segments}
@@ -346,21 +411,28 @@ function adminCard(sponsor, base) {
     ${early}
     ${hint}
     <p class="quiet">${sponsor.contact_name ? `${esc(sponsor.contact_name)} · ` : ""}${esc(sponsor.prize_details || "No prize noted yet")}</p>
-    <p><b>${report.complete ? "Complete" : `${report.done}/${report.total}`}</b>${report.missing.length ? ` · still needs ${esc(report.missing.join(", "))}` : " · assets are in"}</p>
+    <p><b>${report.complete ? "Complete" : `${report.done}/${report.total}`}</b>${report.missing.length ? ` · still needs ${esc(report.missing.join(", "))}` : " · assets are in"} · ${sponsor.leadCount || 0} leads</p>
+    <div class="row">
+      <a class="btn btn-ghost btn-tiny" href="/admin/leads/${sponsor.id}.csv">Leads CSV</a>
+    </div>
+    <form class="stack" method="post" action="/admin/leads">
+      <input type="hidden" name="sponsor_id" value="${sponsor.id}">
+      <div class="grid-2">
+        <label class="field"><span>Opt-in name</span><input name="lead_name" maxlength="120"></label>
+        <label class="field"><span>Email</span><input name="lead_email" type="email" maxlength="200"></label>
+      </div>
+      <label class="field"><span>Platform</span><input name="lead_platform" maxlength="40" placeholder="X, YouTube, LinkedIn, or Twitch"></label>
+      <button class="btn btn-ghost btn-tiny" type="submit">Add lead</button>
+    </form>
     ${sponsor.logos.length ? `<div class="logos">${sponsor.logos.map((logo) => `<div class="logo-tile"><img src="/portal/logos/${logo.id}" alt=""></div>`).join("")}</div>` : ""}
-    ${link ? `<label class="field link-label"><span>Private link</span><input id="link-${esc(sponsor.slug)}" readonly value="${esc(link)}"></label>
-      <div class="row">
-        <button class="btn btn-ghost btn-tiny" type="button" data-copy="link-${esc(sponsor.slug)}">Copy link</button>
-        <form method="post" action="/portal/admin/invite"><input type="hidden" name="sponsor_id" value="${sponsor.id}"><button class="btn btn-ghost btn-tiny" type="submit">New link</button></form>
-      </div>` : `<p class="quiet">This link can’t be shown. Generate a new one.</p>
-      <form method="post" action="/portal/admin/invite"><input type="hidden" name="sponsor_id" value="${sponsor.id}"><button class="btn btn-ghost btn-tiny" type="submit">New link</button></form>`}
+    <p class="quiet">They sign in at /portal with the shared sponsor code, then the name ${esc(sponsor.name)}.</p>
     <details>
       <summary>Override booking</summary>
       <div class="stack" style="padding-top:12px">${bookForm}</div>
     </details>
     <details>
       <summary>Edit sponsor</summary>
-      <form class="stack" style="padding-top:12px" method="post" action="/portal/admin/sponsor">
+      <form class="stack" style="padding-top:12px" method="post" action="/admin/sponsor">
         <input type="hidden" name="sponsor_id" value="${sponsor.id}">
         <div class="grid-2">
           <label class="field"><span>Name</span><input name="name" value="${esc(sponsor.name)}" required maxlength="80"></label>
@@ -374,7 +446,7 @@ function adminCard(sponsor, base) {
         <label class="field"><span>Earliest start</span><select name="not_before">${earliestOptions(sponsor.not_before)}</select></label>
         <button class="btn btn-ghost btn-tiny" type="submit">Save sponsor</button>
       </form>
-      <form class="stack" method="post" action="/portal/admin/sponsor/delete" style="margin-top:12px">
+      <form class="stack" method="post" action="/admin/sponsor/delete" style="margin-top:12px">
         <input type="hidden" name="sponsor_id" value="${sponsor.id}">
         <label class="check"><input type="checkbox" name="confirm" value="yes" required> Remove ${esc(sponsor.name)} and their booking</label>
         <button class="btn btn-ghost btn-tiny" type="submit">Remove sponsor</button>
@@ -393,12 +465,13 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
     <p class="kicker label">Jason’s desk</p>
     <h1>Every <em>sponsor</em></h1>
   </div>
-  <form method="post" action="/portal/logout"><button class="btn btn-ghost btn-tiny" type="submit">Log out</button></form>
+  <form method="post" action="/admin/logout"><button class="btn btn-ghost btn-tiny" type="submit">Log out</button></form>
 </div>
 <p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Prize sponsors: ${spots.prize}. Silver: ${spots.silver}. Community: ${spots.community}.</p>
+<p><a class="btn btn-ghost btn-tiny" href="/admin/leads.csv">All leads CSV</a></p>
 <details class="panel" open>
   <summary>Add a sponsor</summary>
-  <form class="stack" style="padding-top:14px" method="post" action="/portal/admin/sponsors">
+  <form class="stack" style="padding-top:14px" method="post" action="/admin/sponsors">
     <div class="grid-2">
       <label class="field"><span>Name</span><input name="name" required maxlength="80" placeholder="Company or person"></label>
       <label class="field"><span>Tier</span><select name="tier">
@@ -417,5 +490,5 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
   </form>
 </details>
 ${sponsors.map((sponsor) => adminCard(sponsor, base)).join("")}`;
-  return shell({ title: "Admin · Sponsor portal", body, wide: true });
+  return shell({ title: "Admin · Christmas Birthday Stream", body, wide: true, section: "admin" });
 }

@@ -46,8 +46,17 @@ function schema(dialect) {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     )`,
+    `CREATE TABLE IF NOT EXISTS leads (
+      id ${pk},
+      sponsor_id INTEGER NOT NULL REFERENCES sponsors(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      platform TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL
+    )`,
     "CREATE INDEX IF NOT EXISTS bookings_range ON bookings (start_min, end_min)",
     "CREATE INDEX IF NOT EXISTS logos_sponsor ON logos (sponsor_id)",
+    "CREATE INDEX IF NOT EXISTS leads_sponsor ON leads (sponsor_id)",
   ];
 }
 

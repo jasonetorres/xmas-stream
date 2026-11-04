@@ -186,6 +186,8 @@ function assertPlainSvg(buf) {
 async function attach(db, rows, { secret, withCodes }) {
   const bookings = await db.all("SELECT * FROM bookings");
   const logos = await db.all("SELECT id, sponsor_id, filename, mime FROM logos ORDER BY id");
+  const leadRows = await db.all("SELECT sponsor_id, COUNT(*) AS n FROM leads GROUP BY sponsor_id");
+  const leadCount = new Map(leadRows.map((row) => [Number(row.sponsor_id), Number(row.n || 0)]));
   const byBooking = new Map(bookings.map((b) => [Number(b.sponsor_id), {
     ...b,
     id: Number(b.id),
@@ -205,6 +207,7 @@ async function attach(db, rows, { secret, withCodes }) {
         booking: byBooking.get(Number(row.id)) || null,
         logos: mine.map((l) => ({ id: Number(l.id), filename: l.filename, mime: l.mime })),
         logoCount: mine.length,
+        leadCount: leadCount.get(Number(row.id)) || 0,
       };
       if (withCodes) view.inviteCode = decryptCode(secret, row.code_enc);
       delete view.code_enc;
@@ -241,7 +244,7 @@ export function scheduleRows(sponsor, sponsors) {
       else if (sponsor.not_before != null && start < sponsor.not_before) reason = `Before ${formatClock(sponsor.not_before)} ET`;
       else {
         const hit = bookings.find((b) => b.sponsor_id !== sponsor.id && b.start_min < end && start < b.end_min);
-        if (hit) reason = `Overlaps ${hit.name}`;
+        if (hit) reason = "Taken";
         else selectable = true;
       }
     }
@@ -298,6 +301,7 @@ export async function book(db, { sponsor, start, giftDrop, hotSeat, guestName, f
       [sponsor.id, end, start]
     );
     if (conflicts.length && !(force && actor === "admin")) {
+      if (actor !== "admin") throw new AppError("That block is already taken. Pick an open block.");
       const who = conflicts.map((c) => `${c.name} (${formatRange(c.start_min, c.end_min)})`).join(" and ");
       throw new AppError(`That block overlaps ${who}. Pick an open block.`);
     }
@@ -368,7 +372,54 @@ export async function removeLogo(db, sponsorId, logoId) {
 }
 
 export async function getLogo(db, id) {
-  return db.get("SELECT id, mime, bytes, filename FROM logos WHERE id = ?", [id]);
+  return db.get("SELECT id, sponsor_id, mime, bytes, filename FROM logos WHERE id = ?", [id]);
+}
+
+export function leadsCsv(rows, { includeSponsor = false } = {}) {
+  const header = includeSponsor
+    ? "sponsor,name,email,platform,opted_in_at"
+    : "name,email,platform,opted_in_at";
+  const lines = [header];
+  for (const row of rows) {
+    const cells = [];
+    if (includeSponsor) cells.push(row.sponsor_name || "");
+    cells.push(row.name || "", row.email || "", row.platform || "", row.created_at || "");
+    lines.push(cells.map(csvCell).join(","));
+  }
+  return `${lines.join("\r\n")}\r\n`;
+}
+
+function csvCell(value) {
+  const text = String(value ?? "");
+  if (/[",\r\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+export async function listLeads(db, sponsorId) {
+  if (sponsorId) {
+    return db.all(
+      "SELECT name, email, platform, created_at FROM leads WHERE sponsor_id = ? ORDER BY id",
+      [sponsorId]
+    );
+  }
+  return db.all(
+    `SELECT s.name AS sponsor_name, l.name, l.email, l.platform, l.created_at
+     FROM leads l JOIN sponsors s ON s.id = l.sponsor_id ORDER BY l.id`
+  );
+}
+
+export async function addLead(db, sponsorId, input) {
+  const sponsor = await db.get("SELECT id FROM sponsors WHERE id = ?", [sponsorId]);
+  if (!sponsor) throw new AppError("That sponsor is gone.");
+  const name = cleanLine(input.lead_name, 120, "Lead name");
+  const email = cleanLine(input.lead_email, 200, "Lead email");
+  const platform = cleanLine(input.lead_platform, 40, "Platform");
+  if (!name) throw new AppError("A lead needs a name.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError("That email doesn’t look right.");
+  await db.run(
+    "INSERT INTO leads (sponsor_id, name, email, platform, created_at) VALUES (?, ?, ?, ?, ?)",
+    [sponsorId, name, email, platform, nowIso()]
+  );
 }
 
 function sponsorFields(input) {

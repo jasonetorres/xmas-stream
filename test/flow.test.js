@@ -9,6 +9,7 @@ test("form posts accept localhost aliases and reject other sites", async (t) => 
   const app = await createApp({
     SESSION_SECRET: "test-secret-test-secret",
     ADMIN_CODE: "admin-test-code",
+    SPONSOR_CODE: "sponsor-test-code",
     SQLITE_PATH: ":memory:",
   });
   const server = http.createServer((req, res) => app.handle(req, res));
@@ -18,16 +19,16 @@ test("form posts accept localhost aliases and reject other sites", async (t) => 
     server.close();
     await app.close();
   });
-  const login = await fetch(`http://127.0.0.1:${port}/portal/login`, {
+  const login = await fetch(`http://127.0.0.1:${port}/admin/login`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded", origin: `http://localhost:${port}` },
     body: "code=admin-test-code",
     redirect: "manual",
   });
   assert.equal(login.status, 303);
-  assert.equal(login.headers.get("location"), "/portal/admin");
+  assert.equal(login.headers.get("location"), "/admin");
   const cookie = login.headers.getSetCookie()[0].split(";")[0];
-  const foreign = await fetch(`http://127.0.0.1:${port}/portal/admin/sponsors`, {
+  const foreign = await fetch(`http://127.0.0.1:${port}/admin/sponsors`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded", origin: "https://evil.example", cookie },
     body: "name=Nope&tier=community",
@@ -48,6 +49,7 @@ test("sponsor portal flow", async (t) => {
   const app = await createApp({
     SESSION_SECRET: "test-secret-test-secret",
     ADMIN_CODE: "admin-test-code",
+    SPONSOR_CODE: "sponsor-test-code",
     SQLITE_PATH: ":memory:",
   });
   const server = http.createServer((req, res) => app.handle(req, res));
@@ -76,14 +78,33 @@ test("sponsor portal flow", async (t) => {
     };
   }
 
-  async function login(code) {
+  async function loginAdmin() {
+    const c = client();
+    const res = await c.fetch("/admin/login", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: "code=admin-test-code",
+    });
+    assert.equal(res.status, 303, res.text);
+    assert.equal(res.headers.get("location"), "/admin");
+    return c;
+  }
+
+  async function enterPortal(name) {
     const c = client();
     const res = await c.fetch("/portal/login", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ code }).toString(),
+      body: "code=sponsor-test-code",
     });
     assert.equal(res.status, 303, res.text);
+    assert.equal(res.headers.get("location"), "/portal");
+    const claim = await c.fetch("/portal/claim", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ name }).toString(),
+    });
+    assert.equal(claim.status, 303, claim.text);
     return c;
   }
 
@@ -124,8 +145,21 @@ test("sponsor portal flow", async (t) => {
   assert.equal(sneaky.status, 404);
   assert.doesNotMatch(sneaky.text, /xmas-stream/);
 
-  const admin = await login("admin-test-code");
-  const desk = await admin.fetch("/portal/admin");
+  const sponsorOnAdmin = await client().fetch("/admin/login", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: "code=sponsor-test-code",
+  });
+  assert.match(sponsorOnAdmin.headers.get("location"), /doesn/);
+  const adminOnPortal = await client().fetch("/portal/login", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: "code=admin-test-code",
+  });
+  assert.match(adminOnPortal.headers.get("location"), /doesn/);
+
+  const admin = await loginAdmin();
+  const desk = await admin.fetch("/admin");
   assert.equal(desk.status, 200);
   assert.match(desk.text, /1 Platinum spot is still open/);
   assert.match(desk.text, /RenderATL/);
@@ -139,15 +173,11 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /Amazon gift cards/);
   assert.match(desk.text, /id="sponsor-tighten"[\s\S]*\/portal\/logos\//);
 
-  function linkFor(html, slug) {
-    const match = html.match(new RegExp(`id="link-${slug}"[^>]*value="([^"]+)"`));
-    assert.ok(match, `missing link for ${slug}`);
-    return match[1];
-  }
-
-  const laravel = await login(new URL(linkFor(desk.text, "laravel")).pathname.split("/").pop());
+  const laravel = await enterPortal("Laravel");
   const laravelHome = await laravel.fetch("/portal");
   assert.match(laravelHome.text, /Book 1 hour/);
+  assert.match(laravelHome.text, /JetBrains\+Mono/);
+  assert.doesNotMatch(laravelHome.text, /All leads CSV|NuPhy/);
   assert.match(laravelHome.text, /Gift Drop/);
 
   const booked = await laravel.fetch("/portal/booking", {
@@ -161,15 +191,17 @@ test("sponsor portal flow", async (t) => {
   assert.match(laravelBooked.text, /Amina/);
   assert.match(laravelBooked.text, /Gift Drop/);
 
-  const unkey = await login(new URL(linkFor(desk.text, "unkey")).pathname.split("/").pop());
+  const unkey = await enterPortal("Unkey");
   const overlap = await unkey.fetch("/portal/booking", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ action: "book", start: String(14 * 60 + 30) }).toString(),
   });
   const overlapPage = await follow(unkey, overlap);
-  assert.match(overlapPage.text, /overlaps Laravel/);
-  assert.match(overlapPage.text, /2:00–3:00 PM ET/);
+  assert.match(overlapPage.text, /already taken/);
+  assert.match(overlapPage.text, />Taken</);
+  assert.doesNotMatch(overlapPage.text, /Laravel/);
+  assert.doesNotMatch(overlapPage.text, /Amina/);
   assert.doesNotMatch(overlapPage.text, /You’re on 2:30/);
 
   const unkeyBooked = await unkey.fetch("/portal/booking", {
@@ -179,7 +211,7 @@ test("sponsor portal flow", async (t) => {
   });
   assert.match((await follow(unkey, unkeyBooked)).text, /4:00–5:00 PM ET/);
 
-  const coder = await login(new URL(linkFor(desk.text, "coder")).pathname.split("/").pop());
+  const coder = await enterPortal("Coder");
   const coderPage = await coder.fetch("/portal");
   assert.match(coderPage.text, /Book 30 minutes/);
   const coderBooked = await coder.fetch("/portal/booking", {
@@ -189,7 +221,7 @@ test("sponsor portal flow", async (t) => {
   });
   assert.match((await follow(coder, coderBooked)).text, /3:00–3:30 PM ET/);
 
-  const rabbit = await login(new URL(linkFor(desk.text, "coderabbit")).pathname.split("/").pop());
+  const rabbit = await enterPortal("CodeRabbit");
   const rabbitTry = await rabbit.fetch("/portal/booking", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -202,7 +234,7 @@ test("sponsor portal flow", async (t) => {
   assert.doesNotMatch(rabbitHome.text, /name="prize_details"/);
   assert.doesNotMatch(rabbitHome.text, /name="shipping"/);
 
-  const lukeEdited = await admin.fetch("/portal/admin/sponsor", {
+  const lukeEdited = await admin.fetch("/admin/sponsor", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -216,7 +248,7 @@ test("sponsor portal flow", async (t) => {
     }).toString(),
   });
   assert.equal(lukeEdited.status, 303);
-  const luke = await login(new URL(linkFor(desk.text, "luke")).pathname.split("/").pop());
+  const luke = await enterPortal("Luke");
   const tooEarly = await luke.fetch("/portal/booking", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -251,12 +283,24 @@ test("sponsor portal flow", async (t) => {
   const stranger = await client().fetch(logoPath);
   assert.equal(stranger.status, 401);
 
-  const denied = await laravel.fetch("/portal/admin");
+  const denied = await laravel.fetch("/admin");
   assert.equal(denied.status, 403);
+  assert.doesNotMatch(denied.text, /Private link|All leads CSV|Gold is full/);
+  const blocked = await laravel.fetch("/admin/booking", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: "sponsor_id=2&start=840&force=yes",
+  });
+  assert.match(decodeURIComponent(blocked.headers.get("location") || ""), /Jason/);
+  const leads = await laravel.fetch("/admin/leads.csv");
+  assert.equal(leads.status, 401);
+  const adminLeads = await admin.fetch("/admin/leads.csv");
+  assert.equal(adminLeads.status, 200);
+  assert.match(adminLeads.text, /^sponsor,name,email,platform,opted_in_at/);
 
-  const freshDesk = await admin.fetch("/portal/admin");
+  const freshDesk = await admin.fetch("/admin");
   const kunalId = /id="sponsor-kunal"[\s\S]*?name="sponsor_id" value="(\d+)"/.exec(freshDesk.text)[1];
-  const forced = await admin.fetch("/portal/admin/booking", {
+  const forced = await admin.fetch("/admin/booking", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ sponsor_id: kunalId, start: String(14 * 60), force: "yes" }).toString(),
