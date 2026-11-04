@@ -44,4 +44,8 @@ server.listen(port, "0.0.0.0", () => {
     console.log(`Admin code for Jason: ${app.generatedAdminCode}`);
     console.log("Set ADMIN_CODE to choose your own and keep it out of the logs.");
   }
+  if (app.generatedSponsorCode) {
+    console.log(`Sponsor code: ${app.generatedSponsorCode}`);
+    console.log("Set SPONSOR_CODE to choose your own and keep it out of the logs.");
+  }
 });

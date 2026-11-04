@@ -1,6 +1,6 @@
 # xmas-stream
 
-Landing page and sponsor portal for Jason Torres' Christmas Birthday Livestream (Friday, Dec 18, 2026, 2:00–8:00 PM ET). The public page lives in `public/`. Sponsors book time and send assets at `/portal`. Jason runs the show from `/portal/admin`.
+Landing page and sponsor portal for Jason Torres' Christmas Birthday Livestream (Friday, Dec 18, 2026, 2:00–8:00 PM ET). The public page lives in `public/`. Sponsors book time and send assets at `/portal` with `SPONSOR_CODE`, then their own name. Jason runs the show from `/admin` with `ADMIN_CODE`.
 
 ## How this deploys
 
@@ -20,16 +20,15 @@ Set these in the Unkey environment (production and preview are separate). Mark t
 | --- | --- | --- |
 | `DATABASE_URL` | Production | Postgres connection string, for example `postgres://user:pass@host:5432/xmas?sslmode=require`. This is what makes bookings and logos survive a deploy. |
 | `SESSION_SECRET` | With `DATABASE_URL` | At least 16 characters. Signs the login cookie and encrypts invite codes. Changing it logs everyone out and makes old links unreadable until you generate new ones. |
-| `ADMIN_CODE` | With `DATABASE_URL` | Jason's login. Letters and numbers, at least 8. Dashes and case don't matter. |
+| `ADMIN_CODE` | With `DATABASE_URL` | Jason's login for `/admin`. Letters and numbers, at least 8. Dashes and case don't matter. Not a sponsor code. |
+| `SPONSOR_CODE` | With `DATABASE_URL` | Shared sponsor login for `/portal`. Different from `ADMIN_CODE`. Read from the environment only. |
 | `APP_BASE_URL` | No | Public origin for copied invite links, such as `https://jetdemo-xmas-stream-jetbrain.unkey.app`. When unset, links use the request host. |
 | `DATA_DIR` | No | SQLite directory when `DATABASE_URL` is unset. Defaults to `/tmp/xmas-stream`. |
 | `PLATINUM_SPOTS` | No | Default `3`. |
 | `GOLD_SPOTS` | No | Default `4`. |
 | `PORT` | Injected | Unkey sets this. Local default is 8080. |
 
-On a preview with none of the secrets set, the process writes an admin code into the log once: `Admin code for Jason: ...`. Set `ADMIN_CODE` yourself so it is not in the logs. Sponsor links are not printed. Open the admin desk and copy each one. Treat a link like a password. "New link" on a sponsor's card retires the old one.
-
-Invite codes are stored as an HMAC. The admin desk can show them because a second copy is encrypted with `SESSION_SECRET`.
+On a preview with none of the secrets set, the process prints `ADMIN_CODE` and `SPONSOR_CODE` once when it has to create them. Set both yourself so they stay out of the logs. They are different codes. A sponsor code does not open `/admin`.
 
 Keep production at one replica unless `DATABASE_URL` is set. With Postgres, more than one replica is fine. Booking writes take a transaction lock so two sponsors can't grab the same block.
 
@@ -38,16 +37,16 @@ Keep production at one replica unless `DATABASE_URL` is set. With Postgres, more
 ```bash
 npm install
 npm test
-ADMIN_CODE=local-admin-code SESSION_SECRET=local-session-secret npm start
+ADMIN_CODE=local-admin-code SPONSOR_CODE=local-sponsor-code SESSION_SECRET=local-session-secret npm start
 ```
 
-Open [http://localhost:8080](http://localhost:8080) and [http://localhost:8080/portal](http://localhost:8080/portal). Log in with `local-admin-code`, then copy a sponsor link from the desk.
+Open [http://localhost:8080](http://localhost:8080), [http://localhost:8080/portal](http://localhost:8080/portal), and [http://localhost:8080/admin](http://localhost:8080/admin). Sponsors use `local-sponsor-code`, then their name. Jason uses `local-admin-code`.
 
 Docker, same contract Unkey uses:
 
 ```bash
 docker build -t xmas-stream .
-docker run --rm -p 8080:8080 -e ADMIN_CODE=local-admin-code -e SESSION_SECRET=local-session-secret xmas-stream
+docker run --rm -p 8080:8080 -e ADMIN_CODE=local-admin-code -e SPONSOR_CODE=local-sponsor-code -e SESSION_SECRET=local-session-secret xmas-stream
 ```
 
 ## Portal rules

@@ -5,11 +5,14 @@ import { clearCookie, codeHash, generateCode, normalizeCode, readSession, safeEq
 import { openDatabase } from "./db.js";
 import {
   AppError,
+  addLead,
   addSponsor,
   book,
   deleteSponsor,
   getLogo,
   getSponsor,
+  leadsCsv,
+  listLeads,
   listSponsors,
   parseStart,
   regenerateInvite,
@@ -22,7 +25,7 @@ import {
 } from "./domain.js";
 import { boundaryFrom, parseMultipart } from "./multipart.js";
 import { applyHome } from "./campaign.js";
-import { flashFrom, renderAdmin, renderDenied, renderLogin, renderSponsor } from "./pages.js";
+import { flashFrom, renderAdmin, renderAdminLogin, renderClaim, renderDenied, renderLogin, renderSponsor } from "./pages.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const failures = [];
@@ -59,33 +62,51 @@ function loadOrCreate(file, create) {
   }
 }
 
+function resolveCode(env, { key, file, databaseUrl, memory, dir }) {
+  let code = env[key] || "";
+  let generated = "";
+  if (databaseUrl) {
+    if (!code) throw new ConfigError(`${key} is required when DATABASE_URL is set. It is read from the environment and is not stored in the app.`);
+  } else if (!memory) {
+    if (!code) {
+      const loaded = loadOrCreate(path.join(dir, file), generateCode);
+      code = loaded.value;
+      if (loaded.created) generated = loaded.value;
+    }
+  } else if (!code) {
+    code = generateCode();
+    generated = code;
+  }
+  if (normalizeCode(code).length < 8) throw new ConfigError(`${key} needs at least 8 letters or numbers.`);
+  return { code, generated };
+}
+
 function resolveSecrets(env) {
   const databaseUrl = env.DATABASE_URL || "";
   const memory = env.SQLITE_PATH === ":memory:";
+  const dir = env.DATA_DIR || "/tmp/xmas-stream";
   let sessionSecret = env.SESSION_SECRET || "";
-  let adminCode = env.ADMIN_CODE || "";
-  let generatedAdminCode = "";
   if (databaseUrl) {
     if (!sessionSecret) throw new ConfigError("SESSION_SECRET is required when DATABASE_URL is set. Unkey disk does not survive a restart, so the signing key has to live in the environment.");
-    if (!adminCode) throw new ConfigError("ADMIN_CODE is required when DATABASE_URL is set. That is Jason’s login.");
-  } else if (!memory) {
-    const dir = env.DATA_DIR || "/tmp/xmas-stream";
-    if (!sessionSecret) sessionSecret = loadOrCreate(path.join(dir, "session-secret"), () => generateCode() + generateCode()).value;
-    if (!adminCode) {
-      const loaded = loadOrCreate(path.join(dir, "admin-code"), generateCode);
-      adminCode = loaded.value;
-      if (loaded.created) generatedAdminCode = loaded.value;
-    }
-  } else {
-    if (!sessionSecret) sessionSecret = generateCode() + generateCode();
-    if (!adminCode) {
-      adminCode = generateCode();
-      generatedAdminCode = adminCode;
-    }
+  } else if (!memory && !sessionSecret) {
+    sessionSecret = loadOrCreate(path.join(dir, "session-secret"), () => generateCode() + generateCode()).value;
+  } else if (!sessionSecret) {
+    sessionSecret = generateCode() + generateCode();
   }
   if (sessionSecret.length < 16) throw new ConfigError("SESSION_SECRET needs at least 16 characters.");
-  if (normalizeCode(adminCode).length < 8) throw new ConfigError("ADMIN_CODE needs at least 8 letters or numbers.");
-  return { sessionSecret, adminCode, generatedAdminCode, databaseUrl };
+  const admin = resolveCode(env, { key: "ADMIN_CODE", file: "admin-code", databaseUrl, memory, dir });
+  const sponsor = resolveCode(env, { key: "SPONSOR_CODE", file: "sponsor-code", databaseUrl, memory, dir });
+  if (normalizeCode(admin.code) === normalizeCode(sponsor.code)) {
+    throw new ConfigError("ADMIN_CODE and SPONSOR_CODE have to be different.");
+  }
+  return {
+    sessionSecret,
+    adminCode: admin.code,
+    sponsorCode: sponsor.code,
+    generatedAdminCode: admin.generated,
+    generatedSponsorCode: sponsor.generated,
+    databaseUrl,
+  };
 }
 
 export async function createApp(env = {}) {
@@ -113,6 +134,10 @@ export async function createApp(env = {}) {
     try {
       if (req.method === "GET" && url.pathname === "/health") return text(res, 200, "ok\n");
       if (req.method !== "GET" && req.method !== "POST") return text(res, 405, "Method not allowed\n");
+      if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
+        await routeAdmin(req, res, url, db, config);
+        return;
+      }
       if (url.pathname === "/portal" || url.pathname.startsWith("/portal/")) {
         await routePortal(req, res, url, db, config);
         return;
@@ -123,10 +148,11 @@ export async function createApp(env = {}) {
       if (err instanceof AppError || err.status) {
         const message = err instanceof AppError ? err.message : "That didn’t work.";
         if (req.method === "POST") {
-          const target = url.pathname.startsWith("/portal/admin") ? "/portal/admin" : "/portal";
+          const target = url.pathname === "/admin" || url.pathname.startsWith("/admin/") ? "/admin" : "/portal";
           return redirect(res, `${target}?error=${encodeURIComponent(message)}`);
         }
-        return html(res, err.status || 400, renderLogin({ flash: { saved: "", error: message } }));
+        const page = url.pathname === "/admin" || url.pathname.startsWith("/admin/") ? renderAdminLogin : renderLogin;
+        return html(res, err.status || 400, page({ flash: { saved: "", error: message } }));
       }
       console.error(err);
       html(res, 500, renderLogin({ flash: { saved: "", error: "Something went wrong on the server." } }));
@@ -138,28 +164,66 @@ export async function createApp(env = {}) {
     config,
     db,
     generatedAdminCode: secrets.generatedAdminCode,
+    generatedSponsorCode: secrets.generatedSponsorCode,
     async close() {
       await db.close();
     },
   };
 }
 
-async function routePortal(req, res, url, db, config) {
+async function routeAdmin(req, res, url, db, config) {
   if (req.method === "POST") assertSameOrigin(req);
-  const magic = url.pathname.match(/^\/portal\/i\/([A-Za-z0-9-]+)$/);
-  if (magic && req.method === "GET") return loginWithCode(req, res, db, config, magic[1]);
+  if (url.pathname === "/admin/login" && req.method === "GET") return redirect(res, "/admin");
+  if (url.pathname === "/admin/login" && req.method === "POST") {
+    const fields = await readForm(req);
+    return loginAdmin(req, res, db, config, fields.code || "");
+  }
+  if (url.pathname === "/admin/logout" && req.method === "POST") return finishLogout(req, res, "/admin");
+
+  const session = await currentSession(req, db, config);
+  const leadFile = url.pathname.match(/^\/admin\/leads\/(\d+)\.csv$/);
+  if ((url.pathname === "/admin/leads.csv" || leadFile) && req.method === "GET") {
+    return sendLeads(res, db, session, leadFile ? Number(leadFile[1]) : null);
+  }
+  if (url.pathname === "/admin/leads" && req.method === "POST") return postLead(req, res, db, session);
+  if (url.pathname === "/admin/sponsors" && req.method === "POST") return postAddSponsor(req, res, db, config, session);
+  if (url.pathname === "/admin/booking" && req.method === "POST") return postAdminBooking(req, res, db, session);
+  if (url.pathname === "/admin/invite" && req.method === "POST") return postInvite(req, res, db, config, session);
+  if (url.pathname === "/admin/sponsor" && req.method === "POST") return postEditSponsor(req, res, db, config, session);
+  if (url.pathname === "/admin/sponsor/delete" && req.method === "POST") return postDeleteSponsor(req, res, db, session);
+  if (req.method !== "GET") throw new AppError("That page isn’t here.", 404);
+  if (url.pathname !== "/admin") throw new AppError("That page isn’t here.", 404);
+  if (!session) return html(res, 200, renderAdminLogin({ flash: flashFrom(url) }));
+  if (session.role !== "admin") return html(res, 403, renderDenied());
+  const sponsors = await listSponsors(db, config.sessionSecret, { withCodes: true });
+  return html(
+    res,
+    200,
+    renderAdmin({
+      sponsors,
+      caps: config.caps,
+      flash: flashFrom(url),
+      base: baseUrl(req, config),
+      ephemeral: config.ephemeral,
+    })
+  );
+}
+
+async function routePortal(req, res, url, db, config) {
+  if (url.pathname === "/portal/admin" || url.pathname.startsWith("/portal/admin/")) {
+    throw new AppError("That page isn’t here.", 404);
+  }
+  if (req.method === "POST") assertSameOrigin(req);
+  if (/^\/portal\/i\/[A-Za-z0-9-]+$/.test(url.pathname) && req.method === "GET") return redirect(res, "/portal");
   if (url.pathname === "/portal/login" && req.method === "GET") return redirect(res, "/portal");
   if (url.pathname === "/portal/login" && req.method === "POST") {
     const fields = await readForm(req);
-    return loginWithCode(req, res, db, config, fields.code || "");
+    return loginSponsor(req, res, db, config, fields.code || "");
   }
-  if (url.pathname === "/portal/logout" && req.method === "POST") {
-    res.statusCode = 303;
-    res.setHeader("Location", "/portal");
-    res.setHeader("Cache-Control", "no-store");
-    res.setHeader("Set-Cookie", clearCookie({ secure: isHttps(req) }));
-    res.end();
-    return;
+  if (url.pathname === "/portal/logout" && req.method === "POST") return finishLogout(req, res, "/portal");
+  if (url.pathname === "/portal/claim" && req.method === "POST") {
+    const session = await currentSession(req, db, config);
+    return claimSponsor(req, res, db, config, session);
   }
 
   const logoMatch = url.pathname.match(/^\/portal\/logos\/(\d+)$/);
@@ -170,34 +234,12 @@ async function routePortal(req, res, url, db, config) {
   if (url.pathname === "/portal/booking" && req.method === "POST") return postBooking(req, res, db, session);
   if (url.pathname === "/portal/assets" && req.method === "POST") return postAssets(req, res, db, session);
   if (url.pathname === "/portal/logos/remove" && req.method === "POST") return postRemoveLogo(req, res, db, session);
-  if (url.pathname === "/portal/admin/sponsors" && req.method === "POST") return postAddSponsor(req, res, db, config, session);
-  if (url.pathname === "/portal/admin/booking" && req.method === "POST") return postAdminBooking(req, res, db, session);
-  if (url.pathname === "/portal/admin/invite" && req.method === "POST") return postInvite(req, res, db, config, session);
-  if (url.pathname === "/portal/admin/sponsor" && req.method === "POST") return postEditSponsor(req, res, db, config, session);
-  if (url.pathname === "/portal/admin/sponsor/delete" && req.method === "POST") return postDeleteSponsor(req, res, db, session);
 
   if (req.method !== "GET") throw new AppError("That page isn’t here.", 404);
 
-  if (url.pathname === "/portal/admin") {
-    if (!session) return html(res, 200, renderLogin({ flash: flashFrom(url) }));
-    if (session.role !== "admin") return html(res, 403, renderDenied());
-    const sponsors = await listSponsors(db, config.sessionSecret, { withCodes: true });
-    return html(
-      res,
-      200,
-      renderAdmin({
-        sponsors,
-        caps: config.caps,
-        flash: flashFrom(url),
-        base: baseUrl(req, config),
-        ephemeral: config.ephemeral,
-      })
-    );
-  }
-
   if (url.pathname === "/portal") {
-    if (!session) return html(res, 200, renderLogin({ flash: flashFrom(url) }));
-    if (session.role === "admin") return redirect(res, "/portal/admin");
+    if (!session || session.role !== "sponsor") return html(res, 200, renderLogin({ flash: flashFrom(url) }));
+    if (!session.sponsor) return html(res, 200, renderClaim({ flash: flashFrom(url) }));
     const sponsors = await listSponsors(db, config.sessionSecret);
     const sponsor = sponsors.find((item) => item.id === session.sponsor.id);
     if (!sponsor) return html(res, 200, renderLogin({ flash: { saved: "", error: "That sponsor login is no longer active." } }));
@@ -208,37 +250,74 @@ async function routePortal(req, res, url, db, config) {
   throw new AppError("That page isn’t here.", 404);
 }
 
-async function loginWithCode(req, res, db, config, code) {
+function codeMatches(secret, provided, expected) {
+  const given = codeHash(secret, normalizeCode(provided) || " ");
+  const want = codeHash(secret, expected);
+  return safeEqualHex(given, want);
+}
+
+async function loginSponsor(req, res, db, config, code) {
   if (tooMany()) {
     await sleep(250);
-    return redirect(res, `/portal?error=${encodeURIComponent("Too many tries. Wait 15 minutes and use the link Jason sent.")}`);
+    return redirect(res, `/portal?error=${encodeURIComponent("Too many tries. Wait 15 minutes and use the code Jason sent.")}`);
   }
-  const norm = normalizeCode(code);
-  const hash = norm ? codeHash(config.sessionSecret, norm) : "";
-  const adminHash = codeHash(config.sessionSecret, config.adminCode);
-  const sponsor = hash ? await db.get("SELECT id FROM sponsors WHERE code_hash = ?", [hash]) : null;
-  const isAdmin = hash ? safeEqualHex(hash, adminHash) : false;
-  if (!isAdmin && !sponsor) {
+  const ok = codeMatches(config.sessionSecret, code, config.sponsorCode);
+  const admin = codeMatches(config.sessionSecret, code, config.adminCode);
+  if (!ok || admin) {
     markFailure();
     await sleep(250);
-    return redirect(res, `/portal?error=${encodeURIComponent("That code doesn’t match a sponsor.")}`);
+    return redirect(res, `/portal?error=${encodeURIComponent("That code doesn’t open the sponsor portal.")}`);
   }
-  const payload = isAdmin
-    ? { v: 1, role: "admin", exp: expiry() }
-    : { v: 1, role: "sponsor", sid: Number(sponsor.id), exp: expiry() };
+  return startSession(req, res, { v: 1, role: "sponsor", exp: expiry() }, "/portal", config);
+}
+
+async function loginAdmin(req, res, db, config, code) {
+  if (tooMany()) {
+    await sleep(250);
+    return redirect(res, `/admin?error=${encodeURIComponent("Too many tries. Wait 15 minutes.")}`);
+  }
+  const ok = codeMatches(config.sessionSecret, code, config.adminCode);
+  const sponsor = codeMatches(config.sessionSecret, code, config.sponsorCode);
+  if (!ok || sponsor) {
+    markFailure();
+    await sleep(250);
+    return redirect(res, `/admin?error=${encodeURIComponent("That code doesn’t open the admin desk.")}`);
+  }
+  return startSession(req, res, { v: 1, role: "admin", exp: expiry() }, "/admin", config);
+}
+
+async function claimSponsor(req, res, db, config, session) {
+  if (!session || session.role !== "sponsor") throw new AppError("Enter the sponsor code first.", 401);
+  const fields = await readForm(req);
+  const name = String(fields.name || "").trim().toLowerCase();
+  const sponsors = await listSponsors(db, config.sessionSecret);
+  const match = sponsors.find((item) => item.name.toLowerCase() === name || item.slug === name);
+  if (!match) throw new AppError("That name isn’t on the sponsor list.");
+  return startSession(req, res, { v: 1, role: "sponsor", sid: match.id, exp: expiry() }, "/portal", config);
+}
+
+function startSession(req, res, payload, location, config) {
   const token = signSession(config.sessionSecret, payload);
   res.statusCode = 303;
-  res.setHeader("Location", isAdmin ? "/portal/admin" : "/portal");
+  res.setHeader("Location", location);
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("Set-Cookie", sessionCookie(token, { secure: isHttps(req) }));
   res.end();
 }
 
+function finishLogout(req, res, location) {
+  res.statusCode = 303;
+  res.setHeader("Location", location);
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Set-Cookie", clearCookie({ secure: isHttps(req) }));
+  res.end();
+}
+
 async function postBooking(req, res, db, session) {
-  if (!session || session.role !== "sponsor") throw new AppError("Log in as a sponsor first.", 401);
+  if (!session?.sponsor) throw new AppError("Enter the sponsor code and your name first.", 401);
   const fields = await readForm(req);
-  const sponsor = await getSponsor(db, session.sponsor.id);
+  const sponsor = session.sponsor;
   if (!sponsor) throw new AppError("That sponsor login is no longer active.", 401);
   if (fields.action === "release") {
     await releaseBooking(db, sponsor.id);
@@ -259,14 +338,14 @@ async function postBooking(req, res, db, session) {
 }
 
 async function postAssets(req, res, db, session) {
-  if (!session || session.role !== "sponsor") throw new AppError("Log in as a sponsor first.", 401);
+  if (!session?.sponsor) throw new AppError("Enter the sponsor code and your name first.", 401);
   const { fields, files } = await readMultipart(req);
   await saveAssets(db, session.sponsor.id, fields, files);
   return redirect(res, "/portal?saved=assets");
 }
 
 async function postRemoveLogo(req, res, db, session) {
-  if (!session || session.role !== "sponsor") throw new AppError("Log in as a sponsor first.", 401);
+  if (!session?.sponsor) throw new AppError("Enter the sponsor code and your name first.", 401);
   const fields = await readForm(req);
   const logoId = Number(fields.logo_id);
   if (!Number.isInteger(logoId)) throw new AppError("Pick a logo to remove.");
@@ -278,7 +357,7 @@ async function postAddSponsor(req, res, db, config, session) {
   requireAdmin(session);
   const fields = await readForm(req);
   await addSponsor(db, fields, config.sessionSecret, config.adminCode, config.caps);
-  return redirect(res, "/portal/admin?saved=added");
+  return redirect(res, "/admin?saved=added");
 }
 
 async function postAdminBooking(req, res, db, session) {
@@ -289,7 +368,7 @@ async function postAdminBooking(req, res, db, session) {
   const start = parseStart(fields.start);
   if (start == null) {
     await releaseBooking(db, sponsor.id);
-    return redirect(res, "/portal/admin?saved=override");
+    return redirect(res, "/admin?saved=override");
   }
   await book(db, {
     sponsor,
@@ -300,21 +379,21 @@ async function postAdminBooking(req, res, db, session) {
     force: fields.force === "yes",
     actor: "admin",
   });
-  return redirect(res, "/portal/admin?saved=override");
+  return redirect(res, "/admin?saved=override");
 }
 
 async function postInvite(req, res, db, config, session) {
   requireAdmin(session);
   const fields = await readForm(req);
   await regenerateInvite(db, Number(fields.sponsor_id), config.sessionSecret, config.adminCode);
-  return redirect(res, "/portal/admin?saved=invite");
+  return redirect(res, "/admin?saved=invite");
 }
 
 async function postEditSponsor(req, res, db, config, session) {
   requireAdmin(session);
   const fields = await readForm(req);
   await updateSponsor(db, Number(fields.sponsor_id), fields, config.caps);
-  return redirect(res, "/portal/admin?saved=edited");
+  return redirect(res, "/admin?saved=edited");
 }
 
 async function postDeleteSponsor(req, res, db, session) {
@@ -322,14 +401,15 @@ async function postDeleteSponsor(req, res, db, session) {
   const fields = await readForm(req);
   if (fields.confirm !== "yes") throw new AppError("Check the box to remove that sponsor.");
   await deleteSponsor(db, Number(fields.sponsor_id));
-  return redirect(res, "/portal/admin?saved=removed");
+  return redirect(res, "/admin?saved=removed");
 }
 
 async function sendLogo(req, res, db, config, id) {
   const session = await currentSession(req, db, config);
-  if (!session) return text(res, 401, "Log in first\n");
+  if (!session?.sponsor && session?.role !== "admin") return text(res, 401, "Log in first\n");
   const logo = await getLogo(db, id);
   if (!logo) return text(res, 404, "No logo\n");
+  if (session.role !== "admin" && Number(logo.sponsor_id) !== session.sponsor.id) return text(res, 404, "No logo\n");
   const bytes = Buffer.from(logo.bytes);
   res.statusCode = 200;
   res.setHeader("Content-Type", logo.mime);
@@ -345,13 +425,34 @@ function requireAdmin(session) {
   if (!session || session.role !== "admin") throw new AppError("Jason’s code is required for that.", 401);
 }
 
+async function postLead(req, res, db, session) {
+  requireAdmin(session);
+  const fields = await readForm(req);
+  await addLead(db, Number(fields.sponsor_id), fields);
+  return redirect(res, "/admin?saved=edited");
+}
+
+async function sendLeads(res, db, session, sponsorId) {
+  if (!session || session.role !== "admin") return text(res, 401, "Jason’s code is required for that.\n");
+  const rows = await listLeads(db, sponsorId);
+  const body = leadsCsv(rows, { includeSponsor: sponsorId == null });
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${sponsorId ? `sponsor-${sponsorId}-leads.csv` : "leads.csv"}"`);
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.end(body);
+}
+
 async function currentSession(req, db, config) {
   const token = readCookie(req, "stream_session");
   const session = readSession(config.sessionSecret, token);
   if (!session) return null;
   if (session.role === "admin") return { role: "admin" };
+  if (session.role !== "sponsor") return null;
+  if (!session.sid) return { role: "sponsor", sponsor: null };
   const sponsor = await getSponsor(db, Number(session.sid));
-  if (!sponsor) return null;
+  if (!sponsor) return { role: "sponsor", sponsor: null };
   return { role: "sponsor", sponsor };
 }
 
