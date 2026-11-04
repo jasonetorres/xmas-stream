@@ -245,6 +245,7 @@ test("sponsor portal flow", async (t) => {
   assert.doesNotMatch(home.text, /Fraunces|Oswald/);
   assert.doesNotMatch(home.text, /hostjt|\/displayurl|\/vote/);
   assert.doesNotMatch(home.text, /href="\/admin/);
+  assert.doesNotMatch(home.text, /renderatl-/);
 
   const pitch = await client().fetch("/sponsor");
   assert.equal(pitch.status, 200);
@@ -335,6 +336,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /Access code: /);
   assert.match(desk.text, /Logo: present · public\/logos\/laravel-wordmark\.png/);
   assert.match(desk.text, /Logo: missing · none in the database/);
+  assert.match(desk.text, /id="sponsor-renderatl"[\s\S]*renderatl-wordmark-dark\.svg[\s\S]*renderatl-wordmark-light\.svg[\s\S]*renderatl-mark-dark\.svg[\s\S]*renderatl-mark-light\.svg/);
   assert.match(desk.text, /server\/seed-logos\/tighten-wordmark\.png/);
   assert.match(desk.text, /2 in the database/);
   assert.match(desk.text, /Website: <a href="https:\/\/laravel\.com"/);

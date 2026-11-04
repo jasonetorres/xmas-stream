@@ -48,7 +48,13 @@ export const BRANDS = {
   },
   renderatl: {
     website: "https://renderatl.com",
-    logos: [],
+    logos: [
+      "public/logos/renderatl-wordmark-dark.svg",
+      "public/logos/renderatl-wordmark-light.svg",
+      "public/logos/renderatl-mark-dark.svg",
+      "public/logos/renderatl-mark-light.svg",
+    ],
+    hub: "/logos/renderatl-mark-dark.svg",
   },
 };
 
