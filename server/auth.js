@@ -31,6 +31,14 @@ export function generateCode() {
   return `${chars.slice(0, 4).join("")}-${chars.slice(4, 8).join("")}-${chars.slice(8, 12).join("")}-${chars.slice(12).join("")}`;
 }
 
+export function generateAccessCode() {
+  let code = "";
+  for (let i = 0; i < 8; i++) code += ALPHABET[crypto.randomInt(ALPHABET.length)];
+  return code;
+}
+
+export const ACCESS_CODE_PATTERN = /^[abcdefghjkmnpqrstuvwxyz23456789]{8}$/;
+
 export function codeHash(secret, code) {
   return crypto.createHmac("sha256", secret).update(normalizeCode(code)).digest("hex");
 }

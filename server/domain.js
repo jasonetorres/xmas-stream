@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { codeHash, decryptCode, encryptCode, generateCode } from "./auth.js";
+import { ACCESS_CODE_PATTERN, codeHash, decryptCode, encryptCode, generateAccessCode } from "./auth.js";
+import { BRANDS } from "./brands.js";
 import { STREAM_END, STREAM_START, formatClock, formatRange, gridStarts } from "./time.js";
 
 const TIERS = ["platinum", "gold", "prize", "silver", "community"];
@@ -37,7 +38,7 @@ export function cashOnly(tier) {
 function assetChecks(sponsor) {
   const checks = [
     ["Logo", (s) => s.logoCount > 0],
-    ["One URL", (s) => Boolean(s.url)],
+    ["Website", (s) => Boolean(s.url)],
     ["Talking points", (s) => Boolean(s.talking_points)],
   ];
   if (!cashOnly(sponsor.tier)) {
@@ -149,7 +150,7 @@ async function uniqueSlug(db, name) {
 function issueCode(secret, adminCode) {
   const adminHash = codeHash(secret, adminCode);
   for (let i = 0; i < 5; i++) {
-    const code = generateCode();
+    const code = generateAccessCode();
     const hash = codeHash(secret, code);
     if (hash !== adminHash) return { code, hash, enc: encryptCode(secret, code) };
   }
@@ -439,6 +440,7 @@ function sponsorFields(input) {
     x_handle: cleanHandle(input.x_handle),
     prize_details: cleanBlock(input.prize_details, 2000, "Prize or cash details"),
     not_before: parseNotBefore(input.not_before),
+    url: cleanUrl(input.url),
   };
 }
 
@@ -458,9 +460,9 @@ export async function addSponsor(db, input, secret, adminCode, caps) {
     const slug = await uniqueSlug(db, fields.name);
     const issued = issueCode(secret, adminCode);
     const row = await db.get(
-      `INSERT INTO sponsors (slug, name, tier, contact_name, x_handle, prize_details, not_before, code_hash, code_enc, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-      [slug, fields.name, fields.tier, fields.contact_name, fields.x_handle, fields.prize_details, fields.not_before, issued.hash, issued.enc, ts]
+      `INSERT INTO sponsors (slug, name, tier, contact_name, x_handle, prize_details, not_before, url, code_hash, code_enc, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+      [slug, fields.name, fields.tier, fields.contact_name, fields.x_handle, fields.prize_details, fields.not_before, fields.url, issued.hash, issued.enc, ts]
     );
     return Number(row.id);
   });
@@ -477,8 +479,8 @@ export async function updateSponsor(db, id, input, caps) {
   await db.tx(async () => {
     if (fields.tier !== current.tier) await assertCapacity(db, fields.tier, caps, id);
     await db.run(
-      `UPDATE sponsors SET name = ?, tier = ?, contact_name = ?, x_handle = ?, prize_details = ?, not_before = ? WHERE id = ?`,
-      [fields.name, fields.tier, fields.contact_name, fields.x_handle, fields.prize_details, fields.not_before, id]
+      `UPDATE sponsors SET name = ?, tier = ?, contact_name = ?, x_handle = ?, prize_details = ?, not_before = ?, url = ? WHERE id = ?`,
+      [fields.name, fields.tier, fields.contact_name, fields.x_handle, fields.prize_details, fields.not_before, fields.url, id]
     );
   });
 }
@@ -487,6 +489,23 @@ export async function deleteSponsor(db, id) {
   const row = await db.get("SELECT id FROM sponsors WHERE id = ?", [id]);
   if (!row) throw new AppError("That sponsor is gone.");
   await db.run("DELETE FROM sponsors WHERE id = ?", [id]);
+}
+
+export async function ensureWebsites(db) {
+  for (const [slug, brand] of Object.entries(BRANDS)) {
+    if (!brand.website) continue;
+    await db.run("UPDATE sponsors SET url = ? WHERE slug = ? AND (url IS NULL OR url = '')", [brand.website, slug]);
+  }
+}
+
+export async function ensureAccessCodes(db, secret, adminCode) {
+  const rows = await db.all("SELECT id, code_enc FROM sponsors");
+  for (const row of rows) {
+    const plain = decryptCode(secret, row.code_enc);
+    if (ACCESS_CODE_PATTERN.test(plain)) continue;
+    const issued = issueCode(secret, adminCode);
+    await db.run("UPDATE sponsors SET code_hash = ?, code_enc = ? WHERE id = ?", [issued.hash, issued.enc, row.id]);
+  }
 }
 
 export async function regenerateInvite(db, id, secret, adminCode) {
@@ -536,8 +555,8 @@ export async function seedIfEmpty(db, secret, adminCode) {
       added = true;
       const issued = issueCode(secret, adminCode);
       const inserted = await db.get(
-        `INSERT INTO sponsors (slug, name, tier, contact_name, x_handle, prize_details, not_before, code_hash, code_enc, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+        `INSERT INTO sponsors (slug, name, tier, contact_name, x_handle, prize_details, not_before, url, code_hash, code_enc, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
         [
           item.slug,
           item.name,
@@ -546,6 +565,7 @@ export async function seedIfEmpty(db, secret, adminCode) {
           item.x_handle || "",
           item.prize_details || "",
           item.not_before ?? null,
+          BRANDS[item.slug]?.website || "",
           issued.hash,
           issued.enc,
           ts,

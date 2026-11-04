@@ -1,3 +1,4 @@
+import { logoStatusText } from "./brands.js";
 import { cashOnly, durationFor, pickerLabel, segmentSummary, spotLines, tierLabel } from "./domain.js";
 import { ASSETS_DUE, STREAM_DAY, STREAM_END, STREAM_START, WINDOW_LABEL, formatClock, formatRange, gridStarts } from "./time.js";
 
@@ -7,7 +8,7 @@ const SAVED = {
   assets: "Assets saved.",
   logo: "Logo removed.",
   added: "Sponsor added. Copy their private link and send it over.",
-  invite: "The old link no longer works. Copy the new one.",
+  invite: "The old code no longer works. Copy the new one.",
   override: "Booking updated.",
   removed: "Sponsor removed.",
   edited: "Sponsor updated.",
@@ -150,7 +151,8 @@ document.querySelectorAll("[data-copy]").forEach(function (btn) {
   btn.addEventListener("click", function () {
     var input = document.getElementById(btn.getAttribute("data-copy"));
     if (!input) return;
-    var done = function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy link"; }, 2000); };
+    var label = btn.getAttribute("data-label") || btn.textContent;
+    var done = function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = label; }, 2000); };
     if (navigator.clipboard) navigator.clipboard.writeText(input.value).then(done, function () { input.select(); done(); });
     else { input.select(); done(); }
   });
@@ -164,20 +166,37 @@ function banners({ saved, error }) {
   return `${error ? `<div class="banner bad" role="alert">${esc(error)}</div>` : ""}${saved ? `<div class="banner ok" role="status">${esc(saved)}</div>` : ""}`;
 }
 
-export function renderLogin({ flash, slug = "" }) {
+export function renderPortalDirectory({ flash, sponsors }) {
+  const picks = sponsors
+    .map(
+      (sponsor) =>
+        `<a class="pick" href="/portal?s=${esc(sponsor.slug)}"><b>${esc(pickerLabel(sponsor))}</b></a>`
+    )
+    .join("");
   const body = `
 ${banners(flash)}
 <p class="kicker label">Private · sponsors only</p>
 <h1>Sponsor <em>portal</em></h1>
-<p class="lede">Book your block on ${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}, and send the assets Jason needs by ${esc(ASSETS_DUE)}. Use the shared sponsor code he sent you.</p>
+<p class="lede">Pick your name. The next page asks for the access code Jason sent you, and then you only see your own booking and assets.</p>
+<div class="picks">${picks}</div>`;
+  return shell({ title: "Sponsor portal · Jason’s Christmas Birthday Stream", body });
+}
+
+export function renderLogin({ flash, slug = "", label = "" }) {
+  const body = `
+${banners(flash)}
+<p class="kicker label">Private · sponsors only</p>
+<h1>${label ? esc(label) : "Sponsor portal"}</h1>
+<p class="lede">${label ? `Enter the access code Jason sent ${esc(label)}. This page will only open ${esc(label)}.` : "Pick your name first, then enter the access code for that sponsor."}</p>
 <form class="panel stack" method="post" action="/portal/login">
   ${slug ? `<input type="hidden" name="s" value="${esc(slug)}">` : ""}
-  <label class="field"><span>Sponsor code</span>
+  <label class="field"><span>Access code</span>
     <input class="code" name="code" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" required autofocus>
   </label>
   <button class="btn btn-gold" type="submit">Enter</button>
-</form>`;
-  return shell({ title: "Sponsor portal · Jason’s Christmas Birthday Stream", body });
+</form>
+<p><a href="/portal">Choose a different sponsor</a></p>`;
+  return shell({ title: `${label || "Sponsor"} · Sponsor portal`, body });
 }
 
 export function renderClaim({ flash, sponsors }) {
@@ -250,7 +269,7 @@ function assetBlock(sponsor) {
         <input type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" multiple>
       </label>
       <p class="hint">PNG, JPG, WEBP, GIF, or a plain SVG. Up to two files, 1.5 MB each. A mark and a wordmark are perfect. Leave this empty to keep what’s already on file.</p>
-      <label class="field"><span>One URL</span><input name="url" type="url" inputmode="url" value="${esc(sponsor.url)}" placeholder="https://"></label>
+      <label class="field"><span>Website</span><input name="url" type="url" inputmode="url" value="${esc(sponsor.url)}" placeholder="https://"></label>
       <label class="field"><span>Talking points</span><textarea name="talking_points" maxlength="5000">${esc(sponsor.talking_points)}</textarea></label>
       ${cashOnly(sponsor.tier) ? "" : `<div class="grid-2">
         <label class="field"><span>Prize details</span><textarea name="prize_details">${esc(sponsor.prize_details)}</textarea></label>
@@ -383,6 +402,13 @@ const HINTS = {
   renderatl: "Tier isn’t set yet. The VIP ticket is on the prize lineup. Travel is TBD.",
 };
 
+function inviteMessage(sponsor, link) {
+  const label = pickerLabel(sponsor);
+  return `Hi ${label} — your page for Jason’s Christmas Birthday Stream is ${link}
+Access code: ${sponsor.inviteCode || ""}
+Friday, December 18, 2026, 2:00–8:00 PM ET. This code opens only your page, so you’ll see your own booking and assets.`;
+}
+
 function adminCard(sponsor, base) {
   const booking = sponsor.booking;
   const block = booking ? `Booked · ${formatRange(booking.start_min, booking.end_min)}` : "No block booked";
@@ -424,6 +450,8 @@ function adminCard(sponsor, base) {
     ${early}
     ${hint}
     <p class="quiet">${sponsor.contact_name ? `${esc(sponsor.contact_name)} · ` : ""}${esc(sponsor.prize_details || "No prize noted yet")}</p>
+    <p class="quiet" data-logo-status="${esc(sponsor.slug)}">${esc(logoStatusText(sponsor))}</p>
+    <p class="quiet">Website: ${sponsor.url ? `<a href="${esc(sponsor.url)}">${esc(sponsor.url)}</a>` : "blank"}</p>
     <p><b>${report.complete ? "Complete" : `${report.done}/${report.total}`}</b>${report.missing.length ? ` · still needs ${esc(report.missing.join(", "))}` : " · assets are in"} · ${sponsor.leadCount || 0} leads</p>
     <div class="row">
       <a class="btn btn-ghost btn-tiny" href="/admin/leads/${sponsor.id}.csv">Leads CSV</a>
@@ -439,8 +467,18 @@ function adminCard(sponsor, base) {
     </form>
     ${sponsor.logos.length ? `<div class="logos">${sponsor.logos.map((logo) => `<div class="logo-tile"><img src="/portal/logos/${logo.id}" alt=""></div>`).join("")}</div>` : ""}
     <label class="field link-label"><span>Direct link</span><input id="link-${esc(sponsor.slug)}" readonly value="${esc(link)}"></label>
-    <button class="btn btn-ghost btn-tiny" type="button" data-copy="link-${esc(sponsor.slug)}">Copy link</button>
-    <p class="quiet">Opens the code form with ${esc(pickerLabel(sponsor))} already chosen.</p>
+    <button class="btn btn-ghost btn-tiny" type="button" data-copy="link-${esc(sponsor.slug)}" data-label="Copy link">Copy link</button>
+    <label class="field link-label"><span>Access code</span><input id="code-${esc(sponsor.slug)}" readonly value="${esc(sponsor.inviteCode || "")}" spellcheck="false"></label>
+    <div class="row">
+      <button class="btn btn-ghost btn-tiny" type="button" data-copy="code-${esc(sponsor.slug)}" data-label="Copy code">Copy code</button>
+      <form method="post" action="/admin/invite" onsubmit="return confirm('Replace this access code? The old one stops working.')">
+        <input type="hidden" name="sponsor_id" value="${sponsor.id}">
+        <button class="btn btn-ghost btn-tiny" type="submit">New code</button>
+      </form>
+      <button class="btn btn-ghost btn-tiny" type="button" data-copy="invite-${esc(sponsor.slug)}" data-label="Copy invite message">Copy invite message</button>
+    </div>
+    <textarea id="invite-${esc(sponsor.slug)}" readonly rows="5">${esc(inviteMessage(sponsor, link))}</textarea>
+    <p class="quiet">This code opens only ${esc(pickerLabel(sponsor))}. The shared sponsor code still works during the switch, when it is set.</p>
     <details>
       <summary>Override booking</summary>
       <div class="stack" style="padding-top:12px">${bookForm}</div>
@@ -456,6 +494,7 @@ function adminCard(sponsor, base) {
           </select></label>
           <label class="field"><span>Contact</span><input name="contact_name" value="${esc(sponsor.contact_name)}" maxlength="80"></label>
           <label class="field"><span>X handle</span><input name="x_handle" value="${esc(sponsor.x_handle)}" maxlength="15"></label>
+          <label class="field"><span>Website</span><input name="url" type="url" inputmode="url" value="${esc(sponsor.url)}" placeholder="https://" maxlength="500"></label>
         </div>
         <label class="field"><span>Prize or cash</span><textarea name="prize_details">${esc(sponsor.prize_details)}</textarea></label>
         <label class="field"><span>Earliest start</span><select name="not_before">${earliestOptions(sponsor.not_before)}</select></label>
@@ -498,6 +537,7 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
       </select></label>
       <label class="field"><span>Contact</span><input name="contact_name" maxlength="80"></label>
       <label class="field"><span>X handle</span><input name="x_handle" maxlength="15" placeholder="without the @"></label>
+      <label class="field"><span>Website</span><input name="url" type="url" inputmode="url" placeholder="https://" maxlength="500"></label>
     </div>
     <label class="field"><span>Prize or cash</span><textarea name="prize_details" placeholder="$1,000 cash, or the gear they’re sending"></textarea></label>
     <label class="field"><span>Earliest start</span><select name="not_before">${earliestOptions(null)}</select></label>
