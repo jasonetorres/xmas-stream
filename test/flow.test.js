@@ -5,6 +5,49 @@ import test from "node:test";
 import { createApp } from "../server/app.js";
 import { formatRange } from "../server/time.js";
 
+test("admin code keeps symbols, quotes, and spaces, and health hides the values", async (t) => {
+  const app = await createApp({
+    SESSION_SECRET: "test-secret-test-secret",
+    ADMIN_CODE: "  'J@s0n-Admin!'  ",
+    SPONSOR_CODE: "",
+    SQLITE_PATH: ":memory:",
+  });
+  const server = http.createServer((req, res) => app.handle(req, res));
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = server.address().port;
+  const base = `http://127.0.0.1:${port}`;
+  t.after(async () => {
+    server.close();
+    await app.close();
+  });
+  const health = await fetch(`${base}/health`);
+  const body = await health.json();
+  assert.deepEqual(body, { ok: true, adminCodeSet: true, sponsorCodeSet: false });
+  const missing = await fetch(`${base}/portal/login`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: "code=anything",
+    redirect: "manual",
+  });
+  assert.match(decodeURIComponent(missing.headers.get("location")), /SPONSOR_CODE is not set/);
+  const typed = await fetch(`${base}/admin/login`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      "x-forwarded-proto": "https",
+      "x-forwarded-host": "jetdemo-xmas-stream-jetbrain.unkey.app",
+    },
+    body: "code=J%40s0n-Admin%21",
+    redirect: "manual",
+  });
+  assert.equal(typed.headers.get("location"), "/admin");
+  assert.match(typed.headers.get("set-cookie"), /Secure/);
+  const desk = await fetch(`${base}/admin`, { headers: { cookie: typed.headers.getSetCookie()[0].split(";")[0] } });
+  const deskText = await desk.text();
+  assert.match(deskText, /Every/);
+  assert.doesNotMatch(deskText, /Admin code/);
+});
+
 test("form posts accept localhost aliases and reject other sites", async (t) => {
   const app = await createApp({
     SESSION_SECRET: "test-secret-test-secret",
@@ -141,7 +184,12 @@ test("sponsor portal flow", async (t) => {
 
   const health = await client().fetch("/health");
   assert.equal(health.status, 200);
-  assert.equal(health.text, "ok\n");
+  const healthBody = JSON.parse(health.text);
+  assert.equal(healthBody.ok, true);
+  assert.equal(healthBody.adminCodeSet, true);
+  assert.equal(healthBody.sponsorCodeSet, true);
+  assert.equal(health.text.includes("admin-test-code"), false);
+  assert.equal(health.text.includes("sponsor-test-code"), false);
 
   const bad = await client().fetch("/portal/login", {
     method: "POST",

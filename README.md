@@ -20,15 +20,15 @@ Set these in the Unkey environment (production and preview are separate). Mark t
 | --- | --- | --- |
 | `DATABASE_URL` | Production | Postgres connection string, for example `postgres://user:pass@host:5432/xmas?sslmode=require`. This is what makes bookings and logos survive a deploy. |
 | `SESSION_SECRET` | With `DATABASE_URL` | At least 16 characters. Signs the login cookie and encrypts invite codes. Changing it logs everyone out and makes old links unreadable until you generate new ones. |
-| `ADMIN_CODE` | With `DATABASE_URL` | Jason's login for `/admin`. Letters and numbers, at least 8. Dashes and case don't matter. Not a sponsor code. |
-| `SPONSOR_CODE` | With `DATABASE_URL` | Shared sponsor login for `/portal`. Different from `ADMIN_CODE`. Read from the environment only. |
+| `ADMIN_CODE` | Production | Jason's login for `/admin`. Any characters. The server trims spaces and one pair of wrapping quotes. Not the sponsor code. |
+| `SPONSOR_CODE` | Production | Shared sponsor login for `/portal`. Any characters, different from `ADMIN_CODE`. |
 | `APP_BASE_URL` | No | Public origin for copied invite links, such as `https://jetdemo-xmas-stream-jetbrain.unkey.app`. When unset, links use the request host. |
 | `DATA_DIR` | No | SQLite directory when `DATABASE_URL` is unset. Defaults to `/tmp/xmas-stream`. |
 | `PLATINUM_SPOTS` | No | Default `3`. |
 | `GOLD_SPOTS` | No | Default `4`. |
 | `PORT` | Injected | Unkey sets this. Local default is 8080. |
 
-On a preview with none of the secrets set, the process prints `ADMIN_CODE` and `SPONSOR_CODE` once when it has to create them. Set both yourself so they stay out of the logs. They are different codes. A sponsor code does not open `/admin`.
+`GET /health` reports `adminCodeSet` and `sponsorCodeSet` as true or false. It never includes the codes. Unkey applies environment variables on the next deployment, so after changing either code, redeploy. If a code is missing, the login page says so instead of pretending the password was wrong.
 
 Keep production at one replica unless `DATABASE_URL` is set. With Postgres, more than one replica is fine. Booking writes take a transaction lock so two sponsors can't grab the same block.
 
