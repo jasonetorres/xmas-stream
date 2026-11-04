@@ -1,3 +1,4 @@
+import { brandFor } from "./brands.js";
 import { tierOpenings } from "./domain.js";
 
 function esc(value) {
@@ -38,8 +39,12 @@ function rosterList(roster) {
   if (!roster.length) return `<li class="quiet">No one at this level yet.</li>`;
   return roster
     .map((sponsor) => {
+      const brand = brandFor(sponsor.slug);
+      const logo = sponsor.slug === "renderatl" && brand.hub ? `<img src="${esc(brand.hub)}" alt="">` : "";
       const handle = sponsor.x_handle ? `<small>@${esc(sponsor.x_handle)}</small>` : "";
-      return `<li>${esc(sponsor.name)}${handle}</li>`;
+      const prize = sponsor.slug === "renderatl" && sponsor.prize_details ? `<small>${esc(sponsor.prize_details)}</small>` : "";
+      const klass = logo ? ` class="with-logo"` : "";
+      return `<li${klass}>${logo}<span>${esc(sponsor.name)}</span>${handle}${prize}</li>`;
     })
     .join("");
 }

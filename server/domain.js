@@ -510,6 +510,16 @@ export async function deleteSponsor(db, id) {
   await db.run("DELETE FROM sponsors WHERE id = ?", [id]);
 }
 
+export async function confirmRenderAtl(db) {
+  const row = await db.get("SELECT id, tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
+  if (!row) return;
+  const tier = row.tier === "prize" ? "silver" : row.tier;
+  const current = String(row.prize_details || "");
+  const prize = !current || /VIP ticket|Travel TBD/i.test(current) ? "All-access RenderATL ticket" : current;
+  if (tier === row.tier && prize === current) return;
+  await db.run("UPDATE sponsors SET tier = ?, prize_details = ? WHERE id = ?", [tier, prize, row.id]);
+}
+
 export async function ensureWebsites(db) {
   for (const [slug, brand] of Object.entries(BRANDS)) {
     if (!brand.website) continue;
@@ -560,7 +570,7 @@ const SEED = [
   { slug: "tighten", name: "Tighten", tier: "gold", contact_name: "Matt", prize_details: "Nintendo Switch 2", logos: ["mark", "wordmark"] },
   { slug: "coderabbit", name: "CodeRabbit", tier: "silver", prize_details: "Work Louder keyboard" },
   { slug: "torc", name: "Torc", tier: "silver", prize_details: "Two $100 Amazon gift cards" },
-  { slug: "renderatl", name: "RenderATL", tier: "prize", prize_details: "RenderATL VIP ticket. Travel TBD." },
+  { slug: "renderatl", name: "RenderATL", tier: "silver", prize_details: "All-access RenderATL ticket" },
 ];
 
 export async function seedIfEmpty(db, secret, adminCode) {
