@@ -9,6 +9,7 @@ import {
   addSponsor,
   book,
   deleteSponsor,
+  confirmLuke,
   confirmRenderAtl,
   ensureAccessCodes,
   ensureWebsites,
@@ -121,6 +122,7 @@ export async function createApp(env = {}) {
   const db = await openDatabase({ databaseUrl: secrets.databaseUrl, sqlitePath });
   await db.migrate();
   await seedIfEmpty(db, secrets.sessionSecret, secrets.adminCode);
+  await confirmLuke(db);
   await confirmRenderAtl(db);
   await ensureWebsites(db);
   await ensureAccessCodes(db, secrets.sessionSecret, secrets.adminCode);

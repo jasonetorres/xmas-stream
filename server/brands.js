@@ -20,7 +20,7 @@ export const BRANDS = {
     hub: "/logos/coder.png",
   },
   luke: {
-    website: "",
+    website: "https://www.levelupfinancialplanning.com/",
     logos: [],
     x: "https://x.com/LukeCFPLevelUp",
   },
@@ -107,10 +107,16 @@ export function showcaseHtml(sponsors) {
           ? `<img src="${esc(brand.hub)}" alt="${esc(sponsor.name)}">`
           : `<span class="badge">${esc(sponsor.name)}</span>`;
         const handle = sponsor.slug === "luke" || sponsor.slug === "kunal" ? sponsor.x_handle || "" : "";
-        const prize = sponsor.slug === "renderatl" && sponsor.prize_details ? `<small>${esc(sponsor.prize_details)}</small>` : "";
-        const caption = `<span>${esc(sponsor.name)}</span>${handle ? `<small>@${esc(handle)}</small>` : ""}${prize}`;
+        const prizeText = sponsor.slug === "renderatl" || sponsor.slug === "luke" ? sponsor.prize_details : "";
+        const prize = prizeText ? `<small>${esc(prizeText)}</small>` : "";
+        const guest = sponsor.slug === "luke" && sponsor.contact_name ? `<p class="brand-note">Guest: ${esc(sponsor.contact_name)}</p>` : "";
+        const blurb = sponsor.slug === "luke" && sponsor.talking_points ? `<p class="brand-note">${esc(sponsor.talking_points)}</p>` : "";
+        const xLink = sponsor.slug === "luke" && handle ? `<a href="https://x.com/${esc(handle)}">@${esc(handle)}</a>` : "";
+        const nameLine = sponsor.slug === "luke" ? "" : `<span>${esc(sponsor.name)}</span>`;
+        const caption = `${nameLine}${sponsor.slug === "luke" ? "" : handle ? `<small>@${esc(handle)}</small>` : ""}${prize}`;
         const body = `${mark}${caption}`;
-        return `<li>${href ? `<a class="brand" href="${esc(href)}">${body}</a>` : `<div class="brand">${body}</div>`}</li>`;
+        const card = `${href ? `<a class="brand" href="${esc(href)}">${body}</a>` : `<div class="brand">${body}</div>`}${guest}${blurb}${xLink}`;
+        return `<li>${card}</li>`;
       })
       .join("");
     return `<article class="tier"><h3>${esc(group.tier)}</h3><ul>${items}</ul></article>`;

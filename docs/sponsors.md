@@ -9,7 +9,7 @@ Sites below were requested and answered over HTTPS. `unkey.com`, `coderabbit.ai`
 | Laravel | https://laravel.com | Present | `public/logos/laravel-wordmark.png` (hub). Also `public/logos/laravel-mark.png`. None in the database until someone uploads. |
 | Unkey | https://unkey.com | Present | `public/logos/unkey.svg`. None in the database until someone uploads. |
 | Coder | https://coder.com | Present | `public/logos/coder.png`. None in the database until someone uploads. |
-| Luke | Blank. X: https://x.com/LukeCFPLevelUp | Missing | No file in the repo and none in the database. The hub uses a text badge. |
+| Level Up Financial Planning | https://www.levelupfinancialplanning.com/ | Missing | Slug stays `luke`. Guest is Lucas Casarez, CFP®. X: https://x.com/LukeCFPLevelUp. No logo file, so the hub keeps a text badge. Prize: Apple Watch Series 12 (GPS + Cellular) 42mm. |
 | Kunal | Blank. X: https://x.com/kunalstwt | Missing | No file in the repo and none in the database. The hub uses a text badge. |
 | Tighten | https://tighten.com | Present | Hub: `public/logos/tighten-mark.png`. Seeded into the database from `server/seed-logos/tighten-mark.png` and `server/seed-logos/tighten-wordmark.png`. |
 | CodeRabbit | https://coderabbit.ai | Present | `public/logos/coderabbit.png`. None in the database until someone uploads. |

@@ -399,6 +399,7 @@ function earliestOptions(selected) {
 const HINTS = {
   torc: "On the public logo wall this is Randstad, powered by Torc. The gift cards are already on the prize lineup.",
   tighten: "CEO Matt. The mark and the wordmark are already on file.",
+  luke: "Confirmed Gold. No logo on file, so the public pages use a text badge.",
   renderatl: "Confirmed Silver. The giveaway is one all-access RenderATL ticket.",
 };
 
@@ -449,7 +450,8 @@ function adminCard(sponsor, base) {
     <p><b>${esc(block)}</b>${extra ? ` · ${esc(extra)}` : ""}${esc(by)}</p>
     ${early}
     ${hint}
-    <p class="quiet">${sponsor.contact_name ? `${esc(sponsor.contact_name)} · ` : ""}${esc(sponsor.prize_details || "No prize noted yet")}</p>
+    <p class="quiet">${sponsor.contact_name ? `Guest: ${esc(sponsor.contact_name)} · ` : ""}${esc(sponsor.prize_details || "No prize noted yet")}</p>
+    ${sponsor.talking_points ? `<p class="quiet">${esc(sponsor.talking_points)}</p>` : ""}
     <p class="quiet" data-logo-status="${esc(sponsor.slug)}">${esc(logoStatusText(sponsor))}</p>
     <p class="quiet">Website: ${sponsor.url ? `<a href="${esc(sponsor.url)}">${esc(sponsor.url)}</a>` : "blank"}</p>
     <p><b>${report.complete ? "Complete" : `${report.done}/${report.total}`}</b>${report.missing.length ? ` · still needs ${esc(report.missing.join(", "))}` : " · assets are in"} · ${sponsor.leadCount || 0} leads</p>
