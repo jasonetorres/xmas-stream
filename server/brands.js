@@ -25,8 +25,12 @@ export const BRANDS = {
     x: "https://x.com/LukeCFPLevelUp",
   },
   kunal: {
-    website: "",
-    logos: [],
+    website: "https://www.wemakedevs.org/",
+    logos: [
+      "public/logos/wemakedevs-wordmark-light.svg",
+      "public/logos/wemakedevs-wordmark-dark.svg",
+    ],
+    hub: "/logos/wemakedevs-wordmark-light.svg",
     x: "https://x.com/kunalstwt",
   },
   tighten: {

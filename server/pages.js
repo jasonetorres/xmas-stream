@@ -400,6 +400,7 @@ const HINTS = {
   torc: "On the public logo wall this is Randstad, powered by Torc. The gift cards are already on the prize lineup.",
   tighten: "CEO Matt. The mark and the wordmark are already on file.",
   luke: "Confirmed Gold. No logo on file, so the public pages use a text badge.",
+  kunal: "Confirmed Gold as WeMakeDevs. X stays @kunalstwt. The public pages use the white wordmark.",
   renderatl: "Confirmed Silver. The giveaway is one all-access RenderATL ticket.",
 };
 
