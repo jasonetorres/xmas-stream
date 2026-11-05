@@ -535,6 +535,20 @@ export async function confirmLuke(db) {
   );
 }
 
+const WEMAKEDEVS = {
+  name: "WeMakeDevs",
+  url: "https://www.wemakedevs.org/",
+};
+
+export async function confirmKunal(db) {
+  const row = await db.get("SELECT id, name, url FROM sponsors WHERE slug = ?", ["kunal"]);
+  if (!row) return;
+  const name = row.name === "Kunal" || !row.name ? WEMAKEDEVS.name : row.name;
+  const url = !row.url ? WEMAKEDEVS.url : row.url;
+  if (name === row.name && url === row.url) return;
+  await db.run("UPDATE sponsors SET name = ?, url = ? WHERE id = ?", [name, url, row.id]);
+}
+
 export async function confirmRenderAtl(db) {
   const row = await db.get("SELECT id, tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
   if (!row) return;
@@ -592,7 +606,7 @@ const SEED = [
     talking_points: LUKE.talking_points,
     not_before: 14 * 60,
   },
-  { slug: "kunal", name: "Kunal", tier: "gold", contact_name: "Kunal", x_handle: "kunalstwt", prize_details: "5 Keychron keyboards" },
+  { slug: "kunal", name: WEMAKEDEVS.name, tier: "gold", contact_name: "Kunal", x_handle: "kunalstwt", prize_details: "5 Keychron keyboards" },
   { slug: "tighten", name: "Tighten", tier: "gold", contact_name: "Matt", prize_details: "Nintendo Switch 2", logos: ["mark", "wordmark"] },
   { slug: "coderabbit", name: "CodeRabbit", tier: "silver", prize_details: "Work Louder keyboard" },
   { slug: "torc", name: "Torc", tier: "silver", prize_details: "Two $100 Amazon gift cards" },

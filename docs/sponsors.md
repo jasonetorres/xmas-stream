@@ -1,6 +1,6 @@
 # Sponsor logos and websites
 
-Checked November 4, 2026. There is no logo URL column. A logo is either a file in the repo or bytes in the `logos` table. The website is the `url` column. Empty websites for the companies below are filled on startup. A website someone already saved is left alone. Luke and Kunal stay blank.
+Checked November 5, 2026. There is no logo URL column. A logo is either a file in the repo or bytes in the `logos` table. The website is the `url` column. Empty websites for the companies below are filled on startup. A website someone already saved is left alone. A row still named Kunal is renamed to WeMakeDevs on startup. The slug stays `kunal`.
 
 Sites below were requested and answered over HTTPS. `unkey.com`, `coderabbit.ai`, `torc.dev`, and `renderatl.com` redirect to their `www` host. The stored link is the name that was requested.
 
@@ -10,7 +10,7 @@ Sites below were requested and answered over HTTPS. `unkey.com`, `coderabbit.ai`
 | Unkey | https://unkey.com | Present | `public/logos/unkey.svg`. None in the database until someone uploads. |
 | Coder | https://coder.com | Present | `public/logos/coder.png`. None in the database until someone uploads. |
 | Level Up Financial Planning | https://www.levelupfinancialplanning.com/ | Missing | Slug stays `luke`. Guest is Lucas Casarez, CFP®. X: https://x.com/LukeCFPLevelUp. No logo file, so the hub keeps a text badge. Prize: Apple Watch Series 12 (GPS + Cellular) 42mm. |
-| Kunal | Blank. X: https://x.com/kunalstwt | Missing | No file in the repo and none in the database. The hub uses a text badge. |
+| WeMakeDevs | https://www.wemakedevs.org/ | Present, on the hub | Slug stays `kunal`. Contact stays Kunal. X: https://x.com/kunalstwt, admin only. Prize: 5 Keychron keyboards. The hub and `/sponsor` are dark, so they use `public/logos/wemakedevs-wordmark-light.svg` (green mark, white wordmark). Light backgrounds use `public/logos/wemakedevs-wordmark-dark.svg` (green mark, dark wordmark). PNG copies sit beside the SVGs. None in the database until someone uploads. |
 | Tighten | https://tighten.com | Present | Hub: `public/logos/tighten-mark.png`. Seeded into the database from `server/seed-logos/tighten-mark.png` and `server/seed-logos/tighten-wordmark.png`. |
 | CodeRabbit | https://coderabbit.ai | Present | `public/logos/coderabbit.png`. None in the database until someone uploads. |
 | Torc | https://torc.dev | Present | `public/logos/randstad.png`. That file is the Randstad mark. The stream credits Torc. None in the database until someone uploads. |

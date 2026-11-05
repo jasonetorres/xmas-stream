@@ -64,7 +64,7 @@ The grid is every half hour from 2:00 PM to 8:00 PM ET. Platinum books 1 hour (t
 
 Assets are due Friday, Nov 20, 2026. Everyone sends a logo, a website, talking points, an X handle, and a credit line. Logo files and the websites on file are listed in `docs/sponsors.md`. Platinum, Gold, and prize sponsors also send prize details and shipping. Silver and Community are cash for freeCodeCamp, so their form stops there. The desk shows how many of those fields are in.
 
-Seeded sponsors: Laravel and Unkey (Platinum, one Platinum spot left open), Coder, Level Up Financial Planning (slug `luke`, Lucas Casarez, CFP®, @LukeCFPLevelUp, no earlier than 2:00 PM ET), Kunal (@kunalstwt), and Tighten (Gold), CodeRabbit, Torc, and RenderATL (Silver). RenderATL’s giveaway is one all-access ticket. A RenderATL row still marked prize is confirmed as Silver on startup. Tighten's mark and wordmark are already on file. A missing seed sponsor is added on startup. Existing rows are left alone.
+Seeded sponsors: Laravel and Unkey (Platinum, one Platinum spot left open), Coder, Level Up Financial Planning (slug `luke`, Lucas Casarez, CFP®, @LukeCFPLevelUp, no earlier than 2:00 PM ET), WeMakeDevs (slug `kunal`, contact Kunal, @kunalstwt), and Tighten (Gold), CodeRabbit, Torc, and RenderATL (Silver). RenderATL’s giveaway is one all-access ticket. A RenderATL row still marked prize is confirmed as Silver on startup. A Kunal row is renamed to WeMakeDevs on startup and keeps its slug. Tighten's mark and wordmark are already on file. WeMakeDevs uses the white wordmark on the dark public pages. A missing seed sponsor is added on startup. A website or name someone already saved is left alone.
 
 ## The public page
 

@@ -9,6 +9,7 @@ import {
   addSponsor,
   book,
   deleteSponsor,
+  confirmKunal,
   confirmLuke,
   confirmRenderAtl,
   ensureAccessCodes,
@@ -123,6 +124,7 @@ export async function createApp(env = {}) {
   await db.migrate();
   await seedIfEmpty(db, secrets.sessionSecret, secrets.adminCode);
   await confirmLuke(db);
+  await confirmKunal(db);
   await confirmRenderAtl(db);
   await ensureWebsites(db);
   await ensureAccessCodes(db, secrets.sessionSecret, secrets.adminCode);

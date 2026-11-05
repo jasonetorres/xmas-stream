@@ -16,7 +16,7 @@ export const prizes = [
   { item: "MacBook Pro", from: "Laravel" },
   { item: "Nintendo Switch 2", from: "Tighten" },
   { item: "All-access RenderATL ticket", from: "RenderATL" },
-  { item: "Keychron keyboards", from: "Kunal", count: 5 },
+  { item: "Keychron keyboards", from: "WeMakeDevs", count: 5 },
   { item: "NuPhy Air75 V3", from: "Unkey" },
   { item: "Work Louder keyboard", from: "CodeRabbit" },
   { item: "Amazon gift cards", from: "Torc" },

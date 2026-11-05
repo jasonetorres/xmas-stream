@@ -3,7 +3,7 @@ import fs from "node:fs";
 import http from "node:http";
 import test from "node:test";
 import { createApp } from "../server/app.js";
-import { confirmLuke, confirmRenderAtl, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
+import { confirmKunal, confirmLuke, confirmRenderAtl, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
 import { formatRange } from "../server/time.js";
 
 function assertSponsorCards(html) {
@@ -78,6 +78,21 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
   assert.equal(levelUp.x_handle, "LukeCFPLevelUp");
   assert.equal(levelUp.prize_details, "Apple Watch Series 12 (GPS + Cellular) 42mm");
   assert.match(levelUp.talking_points, /stock compensation/);
+  await app.db.run("UPDATE sponsors SET name = ?, url = ? WHERE slug = ?", ["Kunal", "", "kunal"]);
+  await confirmKunal(app.db);
+  const wemakedevs = await app.db.get("SELECT slug, name, url, contact_name, x_handle, prize_details FROM sponsors WHERE slug = ?", ["kunal"]);
+  assert.equal(wemakedevs.slug, "kunal");
+  assert.equal(wemakedevs.name, "WeMakeDevs");
+  assert.equal(wemakedevs.url, "https://www.wemakedevs.org/");
+  assert.equal(wemakedevs.contact_name, "Kunal");
+  assert.equal(wemakedevs.x_handle, "kunalstwt");
+  assert.equal(wemakedevs.prize_details, "5 Keychron keyboards");
+  await app.db.run("UPDATE sponsors SET name = ?, url = ? WHERE slug = ?", ["Custom Org", "https://example.com/kept-kunal", "kunal"]);
+  await confirmKunal(app.db);
+  const keptKunal = await app.db.get("SELECT name, url FROM sponsors WHERE slug = ?", ["kunal"]);
+  assert.equal(keptKunal.name, "Custom Org");
+  assert.equal(keptKunal.url, "https://example.com/kept-kunal");
+  await app.db.run("UPDATE sponsors SET name = ?, url = ? WHERE slug = ?", ["WeMakeDevs", "https://www.wemakedevs.org/", "kunal"]);
   await app.db.run("UPDATE sponsors SET tier = ?, prize_details = ? WHERE slug = ?", ["prize", "RenderATL VIP ticket. Travel TBD.", "renderatl"]);
   await confirmRenderAtl(app.db);
   const confirmed = await app.db.get("SELECT tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
@@ -243,7 +258,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /Platinum[\s\S]*Laravel[\s\S]*Unkey/);
   assert.doesNotMatch(home.text, /@LukeCFPLevelUp/);
   assert.match(home.text, /Coder/);
-  assert.match(home.text, /Kunal/);
+  assert.match(home.text, /WeMakeDevs/);
   assert.match(home.text, /Tighten/);
   assert.match(home.text, /CodeRabbit/);
   assert.match(home.text, /Torc/);
@@ -271,12 +286,15 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /href="https:\/\/tighten\.com"/);
   assert.match(home.text, /href="https:\/\/coderabbit\.ai"/);
   assert.match(home.text, /href="https:\/\/torc\.dev"/);
-  assert.match(home.text, /href="https:\/\/x\.com\/kunalstwt"/);
   assert.match(home.text, /class="badge">Level Up Financial Planning</);
   assert.match(home.text, /href="https:\/\/www\.levelupfinancialplanning\.com\/"/);
   assert.match(home.text, /Apple Watch Series 12 \(GPS \+ Cellular\) 42mm/);
   assert.match(home.text, /New MacBook Pro/);
-  assert.match(home.text, /class="badge">Kunal</);
+  assert.match(home.text, /src="\/logos\/wemakedevs-wordmark-light\.svg"/);
+  assert.match(home.text, /href="https:\/\/www\.wemakedevs\.org\/"/);
+  assert.match(home.text, /5 Keychron keyboards/);
+  assert.doesNotMatch(home.text, /class="badge">Kunal</);
+  assert.doesNotMatch(home.text, /kunalstwt|wemakedevs-wordmark-dark/);
   assert.doesNotMatch(home.text, /Lucas Casarez|stock compensation|Guest:/);
   assertSponsorCards(home.text);
   assert.doesNotMatch(home.text, /<img[^>]+luke/i);
@@ -307,7 +325,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Nov 30/);
   assert.match(pitch.text, /Dec 22/);
   assert.match(pitch.text, /id="tier-platinum"[\s\S]*1 spot open · 2 of 3[\s\S]*Laravel[\s\S]*Unkey/);
-  assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Kunal[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12[\s\S]*Tighten/);
+  assert.match(pitch.text, /id="tier-gold"[\s\S]*Full · 4 of 4[\s\S]*Coder[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12[\s\S]*href="https:\/\/www\.wemakedevs\.org\/"[\s\S]*src="\/logos\/wemakedevs-wordmark-light\.svg"[\s\S]*WeMakeDevs[\s\S]*5 Keychron keyboards[\s\S]*Tighten/);
+  assert.doesNotMatch(pitch.text, /kunalstwt|class="badge">Kunal</);
   assert.doesNotMatch(pitch.text, /Lucas Casarez|stock compensation|Guest:/);
   assertSponsorCards(pitch.text);
   assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*src="\/logos\/renderatl-mark-dark\.svg"[\s\S]*All-access RenderATL ticket[\s\S]*Torc/);
@@ -384,6 +403,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /2 in the database/);
   assert.match(desk.text, /Website: <a href="https:\/\/laravel\.com"/);
   assert.match(desk.text, /id="sponsor-luke"[\s\S]*Level Up Financial Planning[\s\S]*Lucas Casarez, CFP®[\s\S]*Apple Watch Series 12[\s\S]*stock compensation[\s\S]*Logo: missing[\s\S]*levelupfinancialplanning\.com/);
+  assert.match(desk.text, /id="sponsor-kunal"[\s\S]*WeMakeDevs[\s\S]*@kunalstwt[\s\S]*5 Keychron keyboards[\s\S]*wemakedevs-wordmark-light\.svg[\s\S]*https:\/\/www\.wemakedevs\.org\//);
   const codeFile = await client().fetch("/admin/api/sponsor-codes", { headers: { "x-admin-code": "admin-test-code" } });
   assert.equal(codeFile.status, 200);
   for (const sponsor of JSON.parse(codeFile.text).sponsors) codes[sponsor.slug] = sponsor.code;
@@ -572,7 +592,7 @@ test("sponsor portal flow", async (t) => {
   });
   const after = await follow(admin, forced);
   const laravelCard = after.text.slice(after.text.indexOf('id="sponsor-laravel"'), after.text.indexOf('id="sponsor-unkey"'));
-  const kunalCard = after.text.slice(after.text.indexOf('id="sponsor-kunal"'), after.text.indexOf('id="sponsor-luke"'));
+  const kunalCard = after.text.slice(after.text.indexOf('id="sponsor-kunal"'), after.text.indexOf('id="sponsor-coderabbit"'));
   assert.match(laravelCard, /No block booked/);
   assert.match(laravelCard, /Complete/);
   assert.match(kunalCard, /Booked · 2:00–2:30 PM ET/);
