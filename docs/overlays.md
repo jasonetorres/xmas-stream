@@ -20,7 +20,7 @@ That script renders every PNG with headless Chromium from the sponsors and the s
 | `/live/alerts` | New donations |
 | `/live/ticker` | Scrolling total and sponsor thank-yous |
 | `/live/up-next` | Current and next segment in Eastern Time, plus an approved guest in that hour |
-| `/guests` | 15-minute guest requests. Pending names stay off the public page. |
+| `/guests` | 12 half-hour guest slots, 2:00–8:00 PM ET. Pending names stay off the public page. |
 | `/draw/card` | Winner lower third. Admin only. Add `?name=` and `?prize=` |
 
 Add `?mode=green` for a chroma-green background. Leave it off for a transparent page.

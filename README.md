@@ -66,7 +66,7 @@ Seeded sponsors: Laravel, Unkey ($3,000 cash), and Mux (Platinum), Coder, Level 
 
 ## The public page
 
-`/guests` is the 15-minute guest schedule. Requests stay pending until Jason approves them on `/admin/guests`. No email is sent. The admin page has copyable confirmation text, a calendar file, and the StreamYard guest link.
+`/guests` is the 30-minute guest schedule, 12 slots from 2:00–8:00 PM ET. Requests stay pending until Jason approves them on `/admin/guests`. No email is sent. The admin page has copyable confirmation text, a calendar file, and the StreamYard guest link.
 
 `/overlays` is the StreamYard pack. `/enter` is the giveaway. `/draw` is the admin drawing. `/live/goal`, `/live/alerts`, `/live/ticker`, and `/live/up-next` are screen-share boards. See `docs/overlays.md`. Set `TILTIFY_TOKEN` for the live Tiltify total. Without it, the goal board uses `raised` in `server/campaign.js`.
 
