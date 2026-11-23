@@ -33,7 +33,7 @@ import {
 import { boundaryFrom, parseMultipart } from "./multipart.js";
 import { applyHome } from "./campaign.js";
 import { tiersHtml } from "./pitch.js";
-import { scheduleHtml, onAir } from "./schedule.js";
+import { SEGMENTS, scheduleHtml, onAir } from "./schedule.js";
 import { tickerText } from "./ticker.js";
 import { liveFundraiser } from "./tiltify.js";
 import { zipStore } from "./zip.js";
@@ -60,6 +60,22 @@ import {
   renderUpNext,
   renderWinnerCard,
 } from "./showpages.js";
+import {
+  addGuest,
+  blockSlot,
+  guestDuring,
+  icsFor,
+  listBlocks,
+  listGuests,
+  moveGuest,
+  requestGuest,
+  runOfShowCsv,
+  saveStreamyardLink,
+  setGuestStatus,
+  streamyardLink,
+  unblockSlot,
+} from "./guests.js";
+import { renderGuestAdmin, renderGuestConfirm, renderGuests } from "./guestpages.js";
 import { flashFrom, renderAdmin, renderAdminLogin, renderDenied, renderLogin, renderPortalDirectory, renderSponsor } from "./pages.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -247,6 +263,8 @@ async function routeAdmin(req, res, url, db, config) {
   if (url.pathname === "/admin/invite" && req.method === "POST") return postInvite(req, res, db, config, session);
   if (url.pathname === "/admin/sponsor" && req.method === "POST") return postEditSponsor(req, res, db, config, session);
   if (url.pathname === "/admin/sponsor/delete" && req.method === "POST") return postDeleteSponsor(req, res, db, session);
+  if (url.pathname === "/admin/guests/run-of-show.csv" && req.method === "GET") return sendRunOfShow(res, db, session);
+  if (url.pathname.startsWith("/admin/guests")) return routeGuestAdmin(req, res, url, db, config, session);
   if (req.method !== "GET") throw new AppError("That page isn’t here.", 404);
   if (url.pathname !== "/admin") throw new AppError("That page isn’t here.", 404);
   if (!session) return html(res, 200, renderAdminLogin({ flash: flashFrom(url) }));
@@ -331,7 +349,46 @@ async function routeShow(req, res, url, db, config) {
     return true;
   }
   if (url.pathname === "/live/up-next" && req.method === "GET") {
-    html(res, 200, renderUpNext(modeFrom(url), onAir()));
+    html(res, 200, renderUpNext(modeFrom(url), onAir(), await upNextGuest(db)));
+    return true;
+  }
+  if (url.pathname === "/guests" && req.method === "GET") {
+    const sponsors = await listSponsors(db, config.sessionSecret);
+    html(res, 200, renderGuests({
+      sponsors,
+      guests: await listGuests(db),
+      blocks: await listBlocks(db),
+      message: url.searchParams.get("saved") ? "Request received. Jason will approve it before it shows on the schedule." : "",
+      error: url.searchParams.get("error") || "",
+    }));
+    return true;
+  }
+  if (url.pathname === "/guests" && req.method === "POST") {
+    await postGuest(req, res, db, config);
+    return true;
+  }
+  const confirmIcs = url.pathname.match(/^\/guests\/c\/([a-f0-9]{32})\.ics$/);
+  if (confirmIcs && req.method === "GET") {
+    const guest = await db.get("SELECT * FROM guest_requests WHERE token = ? AND status = 'approved'", [confirmIcs[1]]);
+    if (!guest) {
+      html(res, 404, renderRules().replace("Giveaway rules", "Not found"));
+      return true;
+    }
+    const body = icsFor(guest, await streamyardLink(db));
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=\"guest-slot.ics\"");
+    res.end(body);
+    return true;
+  }
+  const confirmPage = url.pathname.match(/^\/guests\/c\/([a-f0-9]{32})$/);
+  if (confirmPage && req.method === "GET") {
+    const guest = await db.get("SELECT * FROM guest_requests WHERE token = ? AND status = 'approved'", [confirmPage[1]]);
+    if (!guest) {
+      html(res, 404, renderGuests({ sponsors: [], guests: [], blocks: [], message: "", error: "That confirmation isn’t ready yet." }));
+      return true;
+    }
+    html(res, 200, renderGuestConfirm({ guest, link: await streamyardLink(db) }));
     return true;
   }
   if (url.pathname === "/draw" || url.pathname === "/draw/card") {
@@ -339,6 +396,79 @@ async function routeShow(req, res, url, db, config) {
     return true;
   }
   return false;
+}
+
+async function upNextGuest(db) {
+  const air = onAir();
+  const guests = (await listGuests(db)).filter((guest) => guest.status === "approved");
+  const window = air.current || air.next;
+  if (!window) return "";
+  const hits = guestDuring(guests, window.start, window.end);
+  if (!hits.length) return "";
+  const guest = hits[0];
+  const handle = guest.handle ? `, @${String(guest.handle).replace(/^@/, "")}` : "";
+  return `Guest: ${guest.name}${handle}`;
+}
+
+async function postGuest(req, res, db, config) {
+  assertSameOrigin(req);
+  const ip = header(req, "x-forwarded-for").split(",")[0].trim() || req.socket?.remoteAddress || "local";
+  if (!entryAllowed(ip)) return redirect(res, "/guests?error=" + encodeURIComponent("Too many tries. Wait a few minutes."));
+  const fields = await readForm(req);
+  const sponsors = await listSponsors(db, config.sessionSecret);
+  try {
+    const saved = await requestGuest(db, fields, sponsors);
+    return redirect(res, saved.silent ? "/guests?saved=1" : "/guests?saved=1");
+  } catch (err) {
+    if (err instanceof AppError) return redirect(res, "/guests?error=" + encodeURIComponent(err.message));
+    throw err;
+  }
+}
+
+async function routeGuestAdmin(req, res, url, db, config, session) {
+  if (!session || session.role !== "admin") return html(res, 200, renderAdminLogin({ flash: { saved: "", error: "Jason’s code is required." } }));
+  const sponsors = await listSponsors(db, config.sessionSecret);
+  if (req.method === "POST") {
+    const fields = await readForm(req);
+    try {
+      if (url.pathname === "/admin/guests/approve") await setGuestStatus(db, Number(fields.id), "approved");
+      else if (url.pathname === "/admin/guests/decline") await setGuestStatus(db, Number(fields.id), "declined");
+      else if (url.pathname === "/admin/guests/move") await moveGuest(db, Number(fields.id), fields.start_min);
+      else if (url.pathname === "/admin/guests/block") await blockSlot(db, fields.start_min, fields.reason);
+      else if (url.pathname === "/admin/guests/unblock") await unblockSlot(db, fields.start_min);
+      else if (url.pathname === "/admin/guests/add") await addGuest(db, fields, sponsors);
+      else if (url.pathname === "/admin/guests/streamyard") await saveStreamyardLink(db, fields.streamyard_guest_url);
+      else throw new AppError("That page isn’t here.", 404);
+    } catch (err) {
+      if (!(err instanceof AppError)) throw err;
+      return redirect(res, "/admin/guests?error=" + encodeURIComponent(err.message));
+    }
+    return redirect(res, "/admin/guests?saved=1");
+  }
+  if (url.pathname !== "/admin/guests") throw new AppError("That page isn’t here.", 404);
+  const flash = flashFrom(url);
+  if (url.searchParams.get("saved")) flash.saved = "Saved.";
+  return html(res, 200, renderGuestAdmin({
+    guests: await listGuests(db),
+    blocks: await listBlocks(db),
+    sponsors,
+    link: await streamyardLink(db),
+    flash,
+  }));
+}
+
+async function sendRunOfShow(res, db, session) {
+  if (!session || session.role !== "admin") {
+    res.statusCode = 401;
+    res.end("Jason’s code is required.\n");
+    return;
+  }
+  const sponsors = await listSponsors(db, "");
+  const body = runOfShowCsv(await listGuests(db), await listBlocks(db), sponsors);
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=\"run-of-show.csv\"");
+  res.end(body);
 }
 
 async function overlayItems(publicDir) {

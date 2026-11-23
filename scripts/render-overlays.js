@@ -47,13 +47,14 @@ const app = await createApp({
   PUBLIC_DIR: path.join(root, "public"),
 });
 const sponsors = await listSponsors(app.db, "overlay-render-secret");
+const guests = await app.db.all("SELECT * FROM guest_requests WHERE status = 'approved' ORDER BY start_min");
 await app.close();
 
 fs.mkdirSync(tmp, { recursive: true });
 fs.mkdirSync(outDir, { recursive: true });
 const donate = await QRCode.toDataURL(campaign.tiltifyUrl, { margin: 1, width: 280, color: { dark: "#17110d", light: "#f5e6b8" } });
 const enter = await QRCode.toDataURL(`${siteUrl}/enter`, { margin: 1, width: 280, color: { dark: "#17110d", light: "#f5e6b8" } });
-const items = catalog(sponsors, path.join(root, "public"), { donate, enter });
+const items = catalog(sponsors, path.join(root, "public"), { donate, enter }, guests);
 const manifest = [];
 for (const item of items) {
   const htmlFile = path.join(tmp, item.file.replace(/\.png$/, ".html"));

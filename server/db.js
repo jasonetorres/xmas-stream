@@ -73,7 +73,32 @@ function schema(dialect) {
       display_name TEXT NOT NULL,
       drawn_at TEXT NOT NULL
     )`,
+    `CREATE TABLE IF NOT EXISTS guest_requests (
+      id ${pk},
+      start_min INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      handle TEXT NOT NULL DEFAULT '',
+      topic TEXT NOT NULL DEFAULT '',
+      headshot_url TEXT NOT NULL DEFAULT '',
+      sponsor_slug TEXT NOT NULL DEFAULT '',
+      timezone TEXT NOT NULL DEFAULT 'America/New_York',
+      status TEXT NOT NULL DEFAULT 'pending',
+      token TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS slot_blocks (
+      start_min INTEGER PRIMARY KEY,
+      reason TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )`,
     "CREATE INDEX IF NOT EXISTS bookings_range ON bookings (start_min, end_min)",
+    "CREATE INDEX IF NOT EXISTS guest_slot ON guest_requests (start_min, status)",
     "CREATE INDEX IF NOT EXISTS draws_prize ON draws (prize_slug, status)",
     "CREATE INDEX IF NOT EXISTS logos_sponsor ON logos (sponsor_id)",
     "CREATE INDEX IF NOT EXISTS leads_sponsor ON leads (sponsor_id)",
