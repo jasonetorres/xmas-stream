@@ -87,6 +87,11 @@ export function wallHtml(groups) {
   return stage(`<div style="height:720px;padding:36px 48px;text-align:center"><div style="font-size:42px;font-weight:700">Thank you, sponsors</div><div style="color:#cdbf98">Raising $10,000 for freeCodeCamp</div>${columns}</div>`, { opaque: true });
 }
 
+export function guestLowerHtml({ name, handle, time }) {
+  const who = handle ? `${name}, @${String(handle).replace(/^@/, "")}` : name;
+  return lowerHtml({ time: time || "", name: `Guest: ${who}` });
+}
+
 export function winnerTemplateHtml() {
   return stage(`<div style="position:absolute;left:40px;right:40px;bottom:58px;padding:18px 22px;background:rgba(23,17,13,.94);border-left:8px solid #f2b33d;border-radius:14px">
       <div style="color:#f2b33d;letter-spacing:.14em;text-transform:uppercase">Winner</div>
@@ -113,7 +118,7 @@ export function segmentCard(segment, sponsors, publicDir) {
   };
 }
 
-export function catalog(sponsors, publicDir, qrs) {
+export function catalog(sponsors, publicDir, qrs, guests = []) {
   const items = [
     { file: "frame.png", title: "Main frame", html: frameHtml() },
     { file: "starting-soon.png", title: "Starting Soon", html: sceneHtml({ kicker: "Friday, December 18 · 2:00 PM ET", title: "Starting soon", detail: "Six holiday games. Raising $10,000 for freeCodeCamp." }) },
@@ -145,5 +150,12 @@ export function catalog(sponsors, publicDir, qrs) {
     })),
   })).filter((group) => group.sponsors.length);
   items.push({ file: "thank-you.png", title: "Thank you sponsors", html: wallHtml(groups) });
+  for (const guest of guests.filter((item) => item.status === "approved")) {
+    items.push({
+      file: `guest-${guest.id}.png`,
+      title: `Guest · ${guest.name}`,
+      html: guestLowerHtml({ name: guest.name, handle: guest.handle, time: "" }),
+    });
+  }
   return items;
 }

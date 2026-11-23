@@ -528,7 +528,7 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
 </div>
 <p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Prize sponsors: ${spots.prize}. Silver: ${spots.silver}. Community: ${spots.community}.</p>
 <p>Giveaway entries: <b>${giveaway?.total || 0}</b>. ${(giveaway?.lines || []).map(esc).join(" · ") || "No prize entries yet."}</p>
-<p><a class="btn btn-ghost btn-tiny" href="/admin/leads.csv">All leads CSV</a> <a class="btn btn-ghost btn-tiny" href="/admin/giveaway.csv">Entrants CSV</a> <a class="btn btn-ghost btn-tiny" href="/draw">Draw a winner</a> <a class="btn btn-ghost btn-tiny" href="/overlays">Overlays</a></p>
+<p><a class="btn btn-ghost btn-tiny" href="/admin">Sponsors</a> <a class="btn btn-ghost btn-tiny" href="/admin/guests">Guests</a> <a class="btn btn-ghost btn-tiny" href="/admin/leads.csv">All leads CSV</a> <a class="btn btn-ghost btn-tiny" href="/admin/giveaway.csv">Entrants CSV</a> <a class="btn btn-ghost btn-tiny" href="/draw">Draw a winner</a> <a class="btn btn-ghost btn-tiny" href="/overlays">Overlays</a></p>
 <details class="panel" open>
   <summary>Add a sponsor</summary>
   <form class="stack" style="padding-top:14px" method="post" action="/admin/sponsors">

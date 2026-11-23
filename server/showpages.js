@@ -159,10 +159,11 @@ export function renderLiveTicker(mode, line) {
   return page("Ticker", body, { live: true, mode });
 }
 
-export function renderUpNext(mode, air) {
+export function renderUpNext(mode, air, guestNote = "") {
   const current = air.current ? `${air.current.name} · ${segmentRange(air.current)}` : air.phase === "after" ? "Thanks for watching" : "Starting soon";
   const next = air.next ? `Up next: ${air.next.name} · ${segmentRange(air.next)}` : "";
-  const body = `<div class="up"><div style="color:#f2b33d;letter-spacing:.14em;text-transform:uppercase">${air.phase === "live" ? "On now" : "Stream"}</div><div style="font-size:54px;font-weight:700;max-width:1000px">${esc(current)}</div><div style="font-size:28px;color:#cdbf98">${esc(next)}</div></div>`;
+  const guest = guestNote ? `<div style="margin-top:12px;font-size:32px;color:#f2b33d">${esc(guestNote)}</div>` : "";
+  const body = `<div class="up"><div style="color:#f2b33d;letter-spacing:.14em;text-transform:uppercase">${air.phase === "live" ? "On now" : "Stream"}</div><div style="font-size:54px;font-weight:700;max-width:1000px">${esc(current)}</div><div style="font-size:28px;color:#cdbf98">${esc(next)}</div>${guest}</div>`;
   return page("Up next", body, { live: true, mode });
 }
 
