@@ -60,39 +60,27 @@ export function assetReport(sponsor) {
   return { done, total, missing, complete: missing.length === 0 };
 }
 
-export function spotLines(sponsors, caps) {
+export function spotLines(sponsors) {
   const count = (tier) => sponsors.filter((s) => s.tier === tier).length;
-  const line = (label, tier, cap) => {
-    const n = count(tier);
-    const open = Math.max(0, cap - n);
-    if (open === 0) return `${label} is full (${n} of ${cap}).`;
-    if (open === 1) return `1 ${label} spot is still open (${n} of ${cap}).`;
-    return `${open} ${label} spots are still open (${n} of ${cap}).`;
-  };
   return {
-    lines: [line("Platinum", "platinum", caps.platinum), line("Gold", "gold", caps.gold)],
+    lines: ["Platinum and Gold are open. Platinum books 1 hour. Gold books 30 minutes."],
     silver: count("silver"),
     community: count("community"),
     prize: count("prize"),
   };
 }
 
-/** Openings for the public one-pager. A cap of 0 means the original pitch did not set a limit. */
-export function tierOpenings(sponsors, caps) {
+/** Every tier stays open. The block length is separate from how many sponsors can join. */
+export function tierOpenings(sponsors) {
   const rows = [
-    ["platinum", "Platinum", caps.platinum || 0],
-    ["gold", "Gold", caps.gold || 0],
-    ["silver", "Silver", caps.silver || 0],
-    ["community", "Community", caps.community || 0],
+    ["platinum", "Platinum"],
+    ["gold", "Gold"],
+    ["silver", "Silver"],
+    ["community", "Community"],
   ];
-  return rows.map(([id, label, cap]) => {
+  return rows.map(([id, label]) => {
     const roster = sponsors.filter((sponsor) => sponsor.tier === id);
-    const taken = roster.length;
-    const limited = cap > 0;
-    const open = limited ? Math.max(0, cap - taken) : null;
-    let status = "Open";
-    if (limited) status = open === 0 ? `Full · ${taken} of ${cap}` : `${open === 1 ? "1 spot open" : `${open} spots open`} · ${taken} of ${cap}`;
-    return { id, label, cap: limited ? cap : null, taken, open, full: limited && open === 0, status, roster };
+    return { id, label, cap: null, taken: roster.length, open: null, full: false, status: "Open", roster };
   });
 }
 
@@ -462,19 +450,10 @@ function sponsorFields(input) {
   };
 }
 
-async function assertCapacity(db, tier, caps, ignoreId) {
-  const cap = tier === "platinum" ? caps.platinum : tier === "gold" ? caps.gold : 0;
-  if (!cap) return;
-  const row = await db.get("SELECT COUNT(*) AS n FROM sponsors WHERE tier = ? AND id != ?", [tier, ignoreId || 0]);
-  const n = Number(row?.n || 0);
-  if (n >= cap) throw new AppError(`${tierLabel(tier)} is full (${cap} of ${cap}). Remove one or raise the cap.`);
-}
-
-export async function addSponsor(db, input, secret, adminCode, caps) {
+export async function addSponsor(db, input, secret, adminCode) {
   const fields = sponsorFields(input);
   const ts = nowIso();
   return db.tx(async () => {
-    await assertCapacity(db, fields.tier, caps);
     const slug = await uniqueSlug(db, fields.name);
     const issued = issueCode(secret, adminCode);
     const row = await db.get(
@@ -486,7 +465,7 @@ export async function addSponsor(db, input, secret, adminCode, caps) {
   });
 }
 
-export async function updateSponsor(db, id, input, caps) {
+export async function updateSponsor(db, id, input) {
   const fields = sponsorFields(input);
   const current = await db.get("SELECT id, tier FROM sponsors WHERE id = ?", [id]);
   if (!current) throw new AppError("That sponsor is gone.");
@@ -495,7 +474,6 @@ export async function updateSponsor(db, id, input, caps) {
     if (booking) throw new AppError("Clear their block before changing the tier.");
   }
   await db.tx(async () => {
-    if (fields.tier !== current.tier) await assertCapacity(db, fields.tier, caps, id);
     await db.run(
       `UPDATE sponsors SET name = ?, tier = ?, contact_name = ?, x_handle = ?, prize_details = ?, not_before = ?, url = ? WHERE id = ?`,
       [fields.name, fields.tier, fields.contact_name, fields.x_handle, fields.prize_details, fields.not_before, fields.url, id]
@@ -595,6 +573,14 @@ export function segmentSummary(booking) {
 const SEED = [
   { slug: "laravel", name: "Laravel", tier: "platinum", prize_details: "New MacBook Pro", logos: [] },
   { slug: "unkey", name: "Unkey", tier: "platinum", prize_details: "$3,000 cash + NuPhy Air75 V3", logos: [] },
+  {
+    slug: "mux",
+    name: "Mux",
+    tier: "platinum",
+    contact_name: "Dave Kiss",
+    x_handle: "davekiss",
+    prize_details: "Streaming gear bundle (details TBA)",
+  },
   { slug: "coder", name: "Coder", tier: "gold", prize_details: "$1,000 cash", logos: [] },
   {
     slug: "luke",
@@ -611,6 +597,14 @@ const SEED = [
   { slug: "coderabbit", name: "CodeRabbit", tier: "silver", prize_details: "Work Louder keyboard" },
   { slug: "torc", name: "Torc", tier: "silver", prize_details: "Two $100 Amazon gift cards" },
   { slug: "renderatl", name: "RenderATL", tier: "silver", prize_details: "All-access RenderATL ticket" },
+  {
+    slug: "resend",
+    name: "Resend",
+    tier: "silver",
+    contact_name: "Christina",
+    x_handle: "_christinacodes",
+    prize_details: "Cash donation",
+  },
 ];
 
 export async function seedIfEmpty(db, secret, adminCode) {

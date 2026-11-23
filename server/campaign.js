@@ -14,6 +14,7 @@ export const campaign = {
 
 export const prizes = [
   { item: "MacBook Pro", from: "Laravel" },
+  { item: "Streaming gear bundle (details TBA)", from: "Mux" },
   { item: "Nintendo Switch 2", from: "Tighten" },
   { item: "All-access RenderATL ticket", from: "RenderATL" },
   { item: "Keychron keyboards", from: "WeMakeDevs", count: 5 },

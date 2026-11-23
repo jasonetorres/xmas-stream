@@ -14,6 +14,18 @@ export const BRANDS = {
     logos: ["public/logos/unkey.svg"],
     hub: "/logos/unkey.svg",
   },
+  mux: {
+    website: "https://mux.com",
+    logos: [
+      "public/logos/mux-wordmark-white.svg",
+      "public/logos/mux-wordmark-black.svg",
+      "public/logos/mux-wordmark-medium-white.svg",
+      "public/logos/mux-wordmark-white.png",
+    ],
+    hub: "/logos/mux-wordmark-white.svg",
+    x: "https://x.com/davekiss",
+    clear: true,
+  },
   coder: {
     website: "https://coder.com",
     logos: ["public/logos/coder.png"],
@@ -60,12 +72,18 @@ export const BRANDS = {
     ],
     hub: "/logos/renderatl-mark-dark.svg",
   },
+  resend: {
+    website: "https://resend.com",
+    logos: ["public/logos/resend-wordmark-white.svg", "public/logos/resend-wordmark-black.svg"],
+    hub: "/logos/resend-wordmark-white.svg",
+    x: "https://x.com/_christinacodes",
+  },
 };
 
 const SHOWCASE = [
-  { tier: "Platinum", id: "platinum", slugs: ["laravel", "unkey"] },
+  { tier: "Platinum", id: "platinum", slugs: ["laravel", "unkey", "mux"] },
   { tier: "Gold", id: "gold", slugs: ["coder", "luke", "kunal", "tighten"] },
-  { tier: "Silver", id: "silver", slugs: ["coderabbit", "torc", "renderatl"] },
+  { tier: "Silver", id: "silver", slugs: ["coderabbit", "torc", "renderatl", "resend"] },
 ];
 
 export function brandFor(slug) {
@@ -106,7 +124,7 @@ export function sponsorCard(sponsor) {
   const brand = brandFor(sponsor.slug);
   const href = hubHref(sponsor);
   const mark = brand.hub
-    ? `<img src="${esc(brand.hub)}" alt="${esc(sponsor.name)}">`
+    ? `<img${brand.clear ? ' class="mark-clear"' : ""} src="${esc(brand.hub)}" alt="${esc(sponsor.name)}">`
     : `<span class="badge">${esc(sponsor.name)}</span>`;
   const prize = sponsor.prize_details ? `<small>${esc(sponsor.prize_details)}</small>` : `<small>Prize to be announced</small>`;
   const body = `${mark}<span>${esc(sponsor.name)}</span>${prize}`;
