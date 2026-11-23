@@ -33,7 +33,8 @@ export const BRANDS = {
   },
   luke: {
     website: "https://www.levelupfinancialplanning.com/",
-    logos: [],
+    logos: ["public/logos/levelup-white.png", "public/logos/levelup-dark.png"],
+    hub: "/logos/levelup-white.png",
     x: "https://x.com/LukeCFPLevelUp",
   },
   kunal: {
@@ -60,7 +61,7 @@ export const BRANDS = {
     website: "https://torc.dev",
     logos: ["public/logos/randstad.png"],
     hub: "/logos/randstad.png",
-    note: "The file is the Randstad mark. The stream credits Torc.",
+    note: "Jason confirmed this Randstad mark is Torc’s logo. The stream credits Torc.",
   },
   renderatl: {
     website: "https://renderatl.com",
