@@ -120,17 +120,24 @@ function showcaseRoster(sponsors, group) {
   return inTier.sort((a, b) => (rank.get(a.slug) ?? 99) - (rank.get(b.slug) ?? 99) || a.name.localeCompare(b.name));
 }
 
-/** Same four fields on every public card: name, logo or badge, website, prize. */
+function linkLabel(href) {
+  try {
+    return new URL(href).host.replace(/^www\./, "");
+  } catch {
+    return href;
+  }
+}
+
+/** Logo, name, prize, then the website link. The logo sits in its own padded slot. */
 export function sponsorCard(sponsor) {
   const brand = brandFor(sponsor.slug);
   const href = hubHref(sponsor);
   const mark = brand.hub
-    ? `<img${brand.clear ? ' class="mark-clear"' : ""} src="${esc(brand.hub)}" alt="${esc(sponsor.name)}">`
+    ? `<img src="${esc(brand.hub)}" alt="">`
     : `<span class="badge">${esc(sponsor.name)}</span>`;
-  const prize = sponsor.prize_details ? `<small>${esc(sponsor.prize_details)}</small>` : `<small>Prize to be announced</small>`;
-  const body = `${mark}<span>${esc(sponsor.name)}</span>${prize}`;
-  const card = href ? `<a class="brand" href="${esc(href)}">${body}</a>` : `<div class="brand">${body}</div>`;
-  return `<li>${card}</li>`;
+  const prize = sponsor.prize_details ? esc(sponsor.prize_details) : "Prize to be announced";
+  const link = href ? `<a class="card-link" href="${esc(href)}">${esc(linkLabel(href))}</a>` : "";
+  return `<li class="sponsor-card"><div class="logo-slot">${mark}</div><strong>${esc(sponsor.name)}</strong><small>${prize}</small>${link}</li>`;
 }
 
 export function showcaseHtml(sponsors) {
