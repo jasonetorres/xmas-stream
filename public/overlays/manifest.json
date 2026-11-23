@@ -1,0 +1,102 @@
+[
+  {
+    "file": "frame.png",
+    "title": "Main frame"
+  },
+  {
+    "file": "starting-soon.png",
+    "title": "Starting Soon"
+  },
+  {
+    "file": "brb.png",
+    "title": "Be right back"
+  },
+  {
+    "file": "ending.png",
+    "title": "Thanks for watching"
+  },
+  {
+    "file": "donate-qr.png",
+    "title": "Donate QR"
+  },
+  {
+    "file": "enter-giveaway.png",
+    "title": "Enter the giveaway"
+  },
+  {
+    "file": "winner.png",
+    "title": "Winner lower third"
+  },
+  {
+    "file": "lower-christmasaire.png",
+    "title": "Lower third · Christmasaire 2.0"
+  },
+  {
+    "file": "lower-movie.png",
+    "title": "Lower third · Name That Christmas Movie"
+  },
+  {
+    "file": "lower-price.png",
+    "title": "Lower third · Holiday Price is Right"
+  },
+  {
+    "file": "lower-feud.png",
+    "title": "Lower third · Family Feud"
+  },
+  {
+    "file": "lower-sweater.png",
+    "title": "Lower third · Ugly Sweater + Donation Dares"
+  },
+  {
+    "file": "lower-santa.png",
+    "title": "Lower third · Call Santa finale"
+  },
+  {
+    "file": "slate-laravel.png",
+    "title": "Slate · Laravel"
+  },
+  {
+    "file": "slate-mux.png",
+    "title": "Slate · Mux"
+  },
+  {
+    "file": "slate-unkey.png",
+    "title": "Slate · Unkey"
+  },
+  {
+    "file": "slate-coder.png",
+    "title": "Slate · Coder"
+  },
+  {
+    "file": "slate-luke.png",
+    "title": "Slate · Level Up Financial Planning"
+  },
+  {
+    "file": "slate-tighten.png",
+    "title": "Slate · Tighten"
+  },
+  {
+    "file": "slate-kunal.png",
+    "title": "Slate · WeMakeDevs"
+  },
+  {
+    "file": "slate-coderabbit.png",
+    "title": "Slate · CodeRabbit"
+  },
+  {
+    "file": "slate-renderatl.png",
+    "title": "Slate · RenderATL"
+  },
+  {
+    "file": "slate-resend.png",
+    "title": "Slate · Resend"
+  },
+  {
+    "file": "slate-torc.png",
+    "title": "Slate · Torc"
+  },
+  {
+    "file": "thank-you.png",
+    "title": "Thank you sponsors"
+  }
+]
