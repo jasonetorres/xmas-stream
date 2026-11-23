@@ -55,7 +55,7 @@ export function renderGuests({ sponsors, guests, blocks, message, error }) {
   }
   const flash = error ? `<p class="banner">${esc(error)}</p>` : message ? `<p class="banner">${esc(message)}</p>` : "";
   const body = `<div class="wrap"><p class="meta">Friday, Dec 18, 2026 · 2:00–8:00 PM ET</p><h1>Guest slots</h1>
-    <p>Fifteen-minute spots. A sponsor block is their branded time. You can still request a slot inside it. Requests stay pending until Jason approves them.</p>
+    <p>Half-hour spots. A sponsor block is their branded time. You can still request a slot inside it. Requests stay pending until Jason approves them.</p>
     ${flash}
     <label>Show slot times in<select id="zone">${zones}</select></label>
     <p class="meta" id="helper"></p>

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { STREAM_END, STREAM_START, formatRange } from "./time.js";
 import { AppError } from "./domain.js";
 
-export const GUEST_SLOT = 15;
+export const GUEST_SLOT = 30;
 export const STREAM_UTC = Date.parse("2026-12-18T00:00:00-05:00");
 
 export const ZONES = [
@@ -80,7 +80,7 @@ function clean(value, max) {
 export async function requestGuest(db, input, sponsors) {
   if (clean(input.company_site, 80)) return { silent: true };
   const start = Number(input.start_min);
-  if (!slotOk(start)) throw new AppError("Pick a 15-minute slot between 2:00 and 8:00 PM ET.");
+  if (!slotOk(start)) throw new AppError("Pick a 30-minute slot between 2:00 and 8:00 PM ET.");
   const blocks = await listBlocks(db);
   if (blocks.some((block) => Number(block.start_min) === start)) throw new AppError("That slot is held for the show.");
   const taken = await db.get("SELECT id FROM guest_requests WHERE start_min = ? AND status = 'approved'", [start]);
@@ -109,7 +109,7 @@ export async function requestGuest(db, input, sponsors) {
 
 export async function addGuest(db, input, sponsors) {
   const start = Number(input.start_min);
-  if (!slotOk(start)) throw new AppError("Pick a 15-minute slot.");
+  if (!slotOk(start)) throw new AppError("Pick a 30-minute slot.");
   await assertOpen(db, start, null);
   const name = clean(input.name, 80);
   const email = clean(input.email, 200).toLowerCase();
@@ -144,7 +144,7 @@ export async function setGuestStatus(db, id, status) {
 
 export async function moveGuest(db, id, start) {
   const n = Number(start);
-  if (!slotOk(n)) throw new AppError("Pick a 15-minute slot.");
+  if (!slotOk(n)) throw new AppError("Pick a 30-minute slot.");
   const row = await db.get("SELECT * FROM guest_requests WHERE id = ?", [id]);
   if (!row) throw new AppError("That request is gone.");
   await assertOpen(db, n, id);
@@ -153,7 +153,7 @@ export async function moveGuest(db, id, start) {
 
 export async function blockSlot(db, start, reason) {
   const n = Number(start);
-  if (!slotOk(n)) throw new AppError("Pick a 15-minute slot.");
+  if (!slotOk(n)) throw new AppError("Pick a 30-minute slot.");
   const taken = await db.get("SELECT id FROM guest_requests WHERE start_min = ? AND status = 'approved'", [n]);
   if (taken) throw new AppError("Move the booked guest before blocking that slot.");
   const label = clean(reason, 80) || "Held";

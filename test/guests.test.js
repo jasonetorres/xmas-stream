@@ -22,8 +22,10 @@ test("guest slots stay private until Jason approves them", async (t) => {
 
   const page = await fetch(`${base}/guests`);
   const html = await page.text();
-  assert.match(html, /2:00–2:15 PM ET/);
-  assert.match(html, /7:45–8:00 PM ET/);
+  assert.match(html, /2:00–2:30 PM ET/);
+  assert.match(html, /7:30–8:00 PM ET/);
+  assert.equal(html.match(/class="slot"/g).length, 12);
+  assert.doesNotMatch(html, /2:15|7:45/);
   assert.doesNotMatch(html, /@example\.com/);
 
   const posted = await fetch(`${base}/guests`, {
@@ -80,11 +82,11 @@ test("guest slots stay private until Jason approves them", async (t) => {
   const moved = await fetch(`${base}/admin/guests/move`, {
     method: "POST",
     headers: { ...origin, cookie },
-    body: `id=${id}&start_min=855`,
+    body: `id=${id}&start_min=870`,
     redirect: "manual",
   });
   assert.equal(moved.status, 303);
-  assert.equal(Number((await app.db.get("SELECT start_min FROM guest_requests WHERE id = ?", [id])).start_min), 855);
+  assert.equal(Number((await app.db.get("SELECT start_min FROM guest_requests WHERE id = ?", [id])).start_min), 870);
 
   await fetch(`${base}/admin/guests/decline`, {
     method: "POST",
@@ -95,5 +97,5 @@ test("guest slots stay private until Jason approves them", async (t) => {
   const after = await (await fetch(`${base}/guests`)).text();
   assert.doesNotMatch(after, /Ada Lovelace/);
 
-  assert.match(guestLowerHtml({ name: "Ada Lovelace", handle: "ada", time: "2:00–2:15 PM ET" }), /Guest: Ada Lovelace, @ada/);
+  assert.match(guestLowerHtml({ name: "Ada Lovelace", handle: "ada", time: "2:00–2:30 PM ET" }), /Guest: Ada Lovelace, @ada/);
 });
