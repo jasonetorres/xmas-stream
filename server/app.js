@@ -283,7 +283,7 @@ async function routeAdmin(req, res, url, db, config) {
       ephemeral: config.ephemeral,
       giveaway: {
         total: counts.total,
-        lines: prizes.map((prize) => `${prize.prize}: ${counts.counts.get(prize.slug) || 0}`),
+        lines: prizes.map((prize) => `${prize.prize}: ${counts.counts.get(prize.slug) || 0} in the pool`),
       },
     })
   );
@@ -323,7 +323,8 @@ async function routeShow(req, res, url, db, config) {
     return true;
   }
   if (url.pathname === "/rules" && req.method === "GET") {
-    html(res, 200, renderRules());
+    const sponsors = await listSponsors(db, config.sessionSecret);
+    html(res, 200, renderRules({ prizes: await prizeBoard(db, sponsors) }));
     return true;
   }
   if (url.pathname === "/enter" && req.method === "GET") {
@@ -522,11 +523,13 @@ async function routeDraw(req, res, url, db, config) {
       reveal = fields.redraw === "yes" ? await redrawWinner(db, fields.prize, prizes) : await drawWinner(db, fields.prize, prizes);
     } catch (err) {
       if (!(err instanceof AppError)) throw err;
-      return html(res, 200, renderDraw({ prizes, log: await drawLog(db), reveal: null, error: err.message }));
+      const counts = await entryCounts(db, prizes);
+      return html(res, 200, renderDraw({ prizes, counts: counts.counts, log: await drawLog(db), reveal: null, error: err.message }));
     }
   }
   const fresh = await prizeBoard(db, sponsors);
-  return html(res, 200, renderDraw({ prizes: fresh, log: await drawLog(db), reveal }));
+  const counts = await entryCounts(db, fresh);
+  return html(res, 200, renderDraw({ prizes: fresh, counts: counts.counts, log: await drawLog(db), reveal }));
 }
 
 async function sendGiveaway(res, db, session, prizeSlug) {

@@ -93,30 +93,51 @@ export function renderGallery({ items, ticker, lines }) {
   return page("Overlay pack", body);
 }
 
-export function renderRules() {
-  const body = `<div class="wrap"><h1>Giveaway rules</h1>
-    <p class="banner">No purchase or donation is necessary. A donation does not raise your odds.</p>
+export function renderRules({ prizes = [] } = {}) {
+  const list = prizes.length
+    ? `<ul>${prizes.map((prize) => `<li><b>${esc(prize.prize)}</b> from ${esc(prize.sponsor)}</li>`).join("")}</ul>`
+    : "<p>The prizes are the ones listed on the entry page.</p>";
+  const body = `<div class="wrap"><h1>Official rules</h1>
+    <p>These are the rules for the giveaway on Jason Torres’s Birthday + Christmas Stream. The stream benefits freeCodeCamp.</p>
     <h2>Who can enter</h2>
-    <p class="banner"><b>Jason, confirm this before the stream.</b> Placeholder, not a rule yet: age and region still need your sign-off. Do not treat this sentence as eligibility.</p>
-    <h2>How to enter</h2>
-    <p>One entry per email at <a href="/enter">/enter</a>. You can enter specific prizes or every prize that is still open. Entries close for a prize when that prize is drawn.</p>
-    <h2>How a winner is picked</h2>
-    <p>Jason draws on the admin page. The app picks one random eligible entrant with a cryptographic random number. A person who has already won is not drawn again. If a winner does not respond, Jason can re-draw that prize. The new draw is logged with a timestamp.</p>
+    <p>Legal residents of the United States.</p>
+    <p class="banner"><b>Jason, confirm this before the stream.</b> Placeholder, not a rule yet: the minimum age still needs your sign-off. Do not treat this sentence as an age limit.</p>
+    <h2>When</h2>
+    <p>Entries are open now. Each drawing closes when that prize is drawn live on Friday, December 18, 2026, from 2:00 to 8:00 PM ET.</p>
+    <h2>No purchase necessary</h2>
+    <p>No purchase or donation is necessary. Donating does not improve your odds.</p>
+    <h2>How many entries</h2>
+    <p>One entry per person. That is one entry per email, at <a href="/enter">/enter</a>.</p>
+    <h2>Which drawings</h2>
+    <p>You can enter any of the prize drawings, or all of them. Once you win one prize, you are removed from every remaining drawing. One win per person.</p>
+    <h2>How winners are picked</h2>
+    <p>Winners are picked at random and drawn live on the stream.</p>
     <h2>How to claim</h2>
-    <p>Jason contacts the winner using the email or handle on the entry. The winner replies to confirm. The prize is the one shown on the stream. Shipping details are collected after the win, not on the public entry form.</p>
-    <h2>Sponsor opt-in</h2>
-    <p>A separate checkbox asks if the entry may be shared with the sponsor of the prizes you enter. It is off unless you check it. That list is the sponsor’s opt-in lead CSV.</p>
+    <p>Winners are contacted at the email they entered.</p>
+    <p class="banner"><b>Jason, confirm this before the stream.</b> Placeholder, not a rule yet: the winner must respond within 72 hours. If there is no response, a new winner is drawn.</p>
+    <h2>Prizes</h2>
+    ${list}
+    <h2>Who sends the prize</h2>
+    <p>Sponsors provide the prizes and ship them. A prize can’t be transferred. There is no cash alternative.</p>
+    <h2>Privacy</h2>
+    <p>The email is used only to contact winners, and to share with a prize’s sponsor only if the entrant opted in.</p>
+    <h2>Platforms</h2>
+    <p>This giveaway is not affiliated with or endorsed by any platform, including X, YouTube, Twitch, or LinkedIn.</p>
+    <h2>Contact</h2>
+    <p><a href="mailto:jason.torres@jetbrains.com">jason.torres@jetbrains.com</a></p>
     <p><a href="/enter">Enter the giveaway</a></p></div>`;
-  return page("Giveaway rules", body);
+  return page("Official rules", body);
 }
 
 export function renderEnter({ prizes, message, error }) {
   const boxes = prizes.map((prize) => `<label class="prize"><input type="checkbox" name="prize" value="${esc(prize.slug)}" ${prize.closed ? "disabled" : ""}><span><b>${esc(prize.prize)}</b><span class="note">${esc(prize.sponsor)}${prize.closed ? " · drawn" : ""}</span></span></label>`).join("");
   const flash = error ? `<p class="banner">${esc(error)}</p>` : message ? `<p class="banner">${esc(message)}</p>` : "";
   const body = `<div class="wrap"><p class="note">Friday, December 18, 2026</p><h1>Enter the giveaway</h1>
+    <p class="banner">Open to US residents only.</p>
     <p class="banner">No purchase or donation is necessary. Donating does not add entries.</p>
     ${flash}
     <form method="post" action="/enter">
+      <label class="prize"><input type="checkbox" name="us" value="yes" required><span>I live in the United States</span></label>
       <label>Name<input name="name" required maxlength="80" autocomplete="name"></label>
       <label>Email<input name="email" type="email" required maxlength="200" autocomplete="email"></label>
       <label>X or other handle, optional<input name="handle" maxlength="40" placeholder="without @"></label>
@@ -130,8 +151,11 @@ export function renderEnter({ prizes, message, error }) {
   return page("Enter the giveaway", body);
 }
 
-export function renderDraw({ prizes, log, reveal, error }) {
-  const buttons = prizes.map((prize) => `<form method="post" action="/draw" style="margin:8px 0"><input type="hidden" name="prize" value="${esc(prize.slug)}"><button class="btn" type="submit">${esc(prize.prize)} · ${esc(prize.sponsor)}${prize.closed ? " · drawn" : ""}</button>${prize.closed ? `<button class="btn" name="redraw" value="yes" type="submit">Re-draw</button>` : ""}</form>`).join("");
+export function renderDraw({ prizes, counts, log, reveal, error }) {
+  const buttons = prizes.map((prize) => {
+    const pool = counts?.get?.(prize.slug) ?? 0;
+    return `<form method="post" action="/draw" style="margin:8px 0"><input type="hidden" name="prize" value="${esc(prize.slug)}"><button class="btn" type="submit">${esc(prize.prize)} · ${esc(prize.sponsor)} · ${pool} in the pool${prize.closed ? " · drawn" : ""}</button>${prize.closed ? `<button class="btn" name="redraw" value="yes" type="submit">Re-draw</button>` : ""}</form>`;
+  }).join("");
   const rows = (log || []).map((row) => `<li>${esc(row.display_name)} · ${esc(row.prize_slug)} · ${esc(row.status)} · ${esc(row.drawn_at)}</li>`).join("");
   const show = reveal ? `<section id="reveal" data-winner="${esc(reveal.display)}" data-names="${esc(JSON.stringify(reveal.decoys || []))}" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
       <div id="spin" style="font-size:64px;font-weight:700">…</div>

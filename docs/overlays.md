@@ -35,8 +35,8 @@ Create an application token in the Tiltify dashboard. The public API uses `Autho
 
 ## Giveaway
 
-`/enter` takes a name, an email, an optional handle, and the prizes to enter. One email, one entry. A later submit updates that entry. The sponsor opt-in box starts unchecked. Checked entries are added to that sponsor’s lead CSV. A hidden honeypot field and a rate limit drop obvious spam.
+`/enter` takes a name, an email, an optional handle, the prizes to enter, and a required confirmation that the person lives in the United States. One email, one entry. A later submit updates that entry. The sponsor opt-in box starts unchecked. Checked entries are added to that sponsor’s lead CSV. A hidden honeypot field and a rate limit drop obvious spam. The page, the ticker, the short banners, and the enter-giveaway overlay say the giveaway is open to US residents only.
 
-`/rules` describes the draw, the claim, and the opt-in. The age and region line is a placeholder for Jason to replace. It is not a legal rule.
+`/rules` is the plain-English official rules page. The minimum age and the 72-hour claim window are marked placeholders for Jason to confirm. They are not rules yet.
 
-`/draw` is behind the admin code. It picks with `crypto.randomInt`, logs the time, and can re-draw. A winner is out of later drawings. The reveal shows a first name and last initial, or the handle. The email stays off that screen. `/admin` shows entry counts. Entrants export from `/admin/giveaway.csv`.
+`/draw` is behind the admin code. It picks with `crypto.randomInt`, logs the time, and can re-draw. A current winner is out of every later drawing, and the pool count on `/admin` and `/draw` leaves that person out. The reveal shows a first name and last initial, or the handle. The email stays off that screen. Entrants export from `/admin/giveaway.csv`.

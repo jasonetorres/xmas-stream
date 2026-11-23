@@ -27,18 +27,29 @@ test("ticker, rules, entry, and draw stay inside the stream rules", async (t) =>
   assert.equal(ticker.includes("\n"), false);
   assert.match(ticker, /tilt\.fyi\/9va4uz7GEn/);
   assert.match(ticker, /No donation needed to enter/);
+  assert.match(ticker, /Open to US residents only/);
   assert.match(ticker, /Laravel/);
   for (const line of bannerLines()) assert.ok(line.length < 200 && !line.includes("\n"));
   assert.equal(bannerLines().some((line) => /Platinum books an hour/i.test(line)), false);
   assert.match(bannerLines().join("\n"), /\/guests/);
+  assert.match(bannerLines().join("\n"), /Open to US residents only/);
 
   const rules = await fetch(`${base}/rules`);
   const rulesText = await rules.text();
   assert.match(rulesText, /Jason, confirm this before the stream/);
   assert.match(rulesText, /No purchase or donation is necessary/);
+  assert.match(rulesText, /Legal residents of the United States/);
+  assert.match(rulesText, /minimum age still needs your sign-off/);
+  assert.match(rulesText, /72 hours/);
+  assert.match(rulesText, /jason\.torres@jetbrains\.com/);
+  assert.match(rulesText, /New MacBook Pro/);
+  assert.match(rulesText, /not affiliated with or endorsed by any platform/);
 
   const enter = await fetch(`${base}/enter`);
   const enterText = await enter.text();
+  assert.match(enterText, /Open to US residents only/);
+  assert.match(enterText, /name="us"/);
+  assert.match(enterText, /I live in the United States/);
   assert.match(enterText, /name="share"/);
   assert.doesNotMatch(enterText, /name="share"[^>]*checked/);
   assert.match(enterText, /New MacBook Pro/);
@@ -54,21 +65,38 @@ test("ticker, rules, entry, and draw stay inside the stream rules", async (t) =>
   assert.equal(bot.status, 303);
   assert.equal(await app.db.get("SELECT COUNT(*) AS n FROM entries").then((row) => Number(row.n)), 0);
 
+  const missingUs = await fetch(`${base}/enter`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", origin: base },
+    body: "name=Ada Lovelace&email=ada@example.com&prize=laravel",
+    redirect: "manual",
+  });
+  assert.equal(missingUs.status, 303);
+  assert.match(decodeURIComponent(missingUs.headers.get("location")), /United States/);
+  assert.equal(await app.db.get("SELECT COUNT(*) AS n FROM entries").then((row) => Number(row.n)), 0);
+
   const joined = await fetch(`${base}/enter`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded", origin: base },
-    body: "name=Ada Lovelace&email=ada@example.com&prize=laravel&share=yes",
+    body: "name=Ada Lovelace&email=ada@example.com&prize=laravel&share=yes&us=yes",
     redirect: "manual",
   });
   assert.equal(joined.status, 303);
   const again = await fetch(`${base}/enter`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded", origin: base },
-    body: "name=Ada Lovelace&email=ada@example.com&prize=laravel&prize=tighten",
+    body: "name=Ada Lovelace&email=ada@example.com&prize=laravel&prize=tighten&us=yes",
     redirect: "manual",
   });
   assert.equal(again.status, 303);
   assert.equal(await app.db.get("SELECT COUNT(*) AS n FROM entries").then((row) => Number(row.n)), 1);
+  const grace = await fetch(`${base}/enter`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", origin: base },
+    body: "name=Grace Hopper&email=grace@example.com&prize=tighten&us=yes",
+    redirect: "manual",
+  });
+  assert.equal(grace.status, 303);
   const lead = await app.db.get("SELECT email, platform FROM leads WHERE email = ?", ["ada@example.com"]);
   assert.equal(lead.platform, "Giveaway");
 
@@ -90,7 +118,18 @@ test("ticker, rules, entry, and draw stay inside the stream rules", async (t) =>
   assert.match(reveal, /Ada L\./);
   assert.doesNotMatch(reveal, /ada@example.com/);
   const desk = await fetch(`${base}/admin`, { headers: { cookie } });
-  assert.match(await desk.text(), /Giveaway entries/);
+  const deskText = await desk.text();
+  assert.match(deskText, /Giveaway entries/);
+  assert.match(deskText, /New MacBook Pro: 0 in the pool/);
+  assert.match(deskText, /Nintendo Switch 2: 1 in the pool/);
+  const next = await fetch(`${base}/draw`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", origin: base, cookie },
+    body: "prize=tighten",
+  });
+  const second = await next.text();
+  assert.match(second, /data-winner="Grace H\."/);
+  assert.doesNotMatch(second, /data-winner="Ada/);
 
   const goal = await fetch(`${base}/api/live/goal`);
   const goalBody = await goal.json();
