@@ -18,7 +18,7 @@ export const prizes = [
   { item: "Nintendo Switch 2", from: "Tighten" },
   { item: "All-access RenderATL ticket", from: "RenderATL" },
   { item: "Keychron keyboards", from: "WeMakeDevs", count: 5 },
-  { item: "NuPhy Air75 V3", from: "Unkey" },
+  { item: "$3,000 cash", from: "Unkey" },
   { item: "Work Louder keyboard", from: "CodeRabbit" },
   { item: "Amazon gift cards", from: "Torc" },
   { item: "Apple Watch Series 12 (GPS + Cellular) 42mm", from: "Level Up Financial Planning" },

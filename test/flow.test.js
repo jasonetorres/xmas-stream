@@ -3,18 +3,21 @@ import fs from "node:fs";
 import http from "node:http";
 import test from "node:test";
 import { createApp } from "../server/app.js";
-import { confirmKunal, confirmLuke, confirmRenderAtl, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
+import { confirmKunal, confirmLuke, confirmRenderAtl, confirmUnkey, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
 import { formatRange } from "../server/time.js";
 
 function assertSponsorCards(html) {
-  const cards = [...html.matchAll(/<a class="brand" href="([^"]+)">([\s\S]*?)<\/a>/g)];
-  assert.ok(cards.length >= 9, `expected a card per sponsor, got ${cards.length}`);
-  for (const [, href, body] of cards) {
-    assert.match(href, /^https:\/\//);
+  const cards = [...html.matchAll(/<li class="sponsor-card">([\s\S]*?)<\/li>/g)];
+  assert.ok(cards.length >= 11, `expected a card per sponsor, got ${cards.length}`);
+  for (const [, body] of cards) {
+    const logo = body.indexOf('class="logo-slot"');
+    const name = body.indexOf("<strong>");
+    const prize = body.indexOf("<small>");
+    const link = body.indexOf('class="card-link"');
+    assert.ok(logo >= 0 && name > logo && prize > name && link > prize, body);
     assert.match(body, /<img |class="badge"/);
-    assert.match(body, /<span>[^<]+<\/span>/);
-    assert.match(body, /<small>[^<]+<\/small>/);
-    assert.doesNotMatch(body, /Guest:|Lucas Casarez|stock compensation/);
+    assert.match(body, /<a class="card-link" href="https:\/\/[^"]+">/);
+    assert.doesNotMatch(body, /Guest:|Lucas Casarez|stock compensation|mark-clear/);
   }
 }
 
@@ -87,6 +90,10 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
   assert.equal(wemakedevs.contact_name, "Kunal");
   assert.equal(wemakedevs.x_handle, "kunalstwt");
   assert.equal(wemakedevs.prize_details, "5 Keychron keyboards");
+  await app.db.run("UPDATE sponsors SET prize_details = ? WHERE slug = ?", ["$3,000 cash + NuPhy Air75 V3", "unkey"]);
+  await confirmUnkey(app.db);
+  const unkeyPrize = await app.db.get("SELECT prize_details FROM sponsors WHERE slug = ?", ["unkey"]);
+  assert.equal(unkeyPrize.prize_details, "$3,000 cash");
   await app.db.run("UPDATE sponsors SET name = ?, url = ? WHERE slug = ?", ["Custom Org", "https://example.com/kept-kunal", "kunal"]);
   await confirmKunal(app.db);
   const keptKunal = await app.db.get("SELECT name, url FROM sponsors WHERE slug = ?", ["kunal"]);
@@ -296,7 +303,9 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /5 Keychron keyboards/);
   assert.doesNotMatch(home.text, /class="badge">Kunal</);
   assert.doesNotMatch(home.text, /kunalstwt|wemakedevs-wordmark-dark|davekiss|_christinacodes|mux-wordmark-black|mux-wordmark-medium|resend-wordmark-black/);
-  assert.match(home.text, /class="mark-clear" src="\/logos\/mux-wordmark-white\.svg"/);
+  assert.match(home.text, /src="\/logos\/mux-wordmark-white\.svg"/);
+  assert.match(home.text, /<strong>Unkey<\/strong><small>\$3,000 cash<\/small>/);
+  assert.doesNotMatch(home.text, /NuPhy|mark-clear/);
   assert.match(home.text, /href="https:\/\/mux\.com"/);
   assert.match(home.text, /<h3>Silver<\/h3>[\s\S]*src="\/logos\/resend-wordmark-white\.svg"[\s\S]*Resend[\s\S]*Cash donation/);
   assert.match(home.text, /href="https:\/\/resend\.com"/);
@@ -329,8 +338,9 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Nov 20/);
   assert.match(pitch.text, /Nov 30/);
   assert.match(pitch.text, /Dec 22/);
-  assert.match(pitch.text, /id="tier-platinum"[\s\S]*Open · 1-hour block[\s\S]*Laravel[\s\S]*href="https:\/\/mux\.com"[\s\S]*class="mark-clear" src="\/logos\/mux-wordmark-white\.svg"[\s\S]*Mux[\s\S]*Streaming gear bundle \(details TBA\)[\s\S]*Unkey/);
-  assert.match(pitch.text, /id="tier-gold"[\s\S]*Open · 30-minute block[\s\S]*Coder[\s\S]*src="\/logos\/levelup-white\.png"[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12[\s\S]*href="https:\/\/www\.wemakedevs\.org\/"[\s\S]*src="\/logos\/wemakedevs-wordmark-light\.svg"[\s\S]*WeMakeDevs[\s\S]*5 Keychron keyboards[\s\S]*Tighten/);
+  assert.match(pitch.text, /id="tier-platinum"[\s\S]*Open · 1-hour block[\s\S]*Laravel[\s\S]*src="\/logos\/mux-wordmark-white\.svg"[\s\S]*<strong>Mux<\/strong><small>Streaming gear bundle \(details TBA\)<\/small>[\s\S]*href="https:\/\/mux\.com"[\s\S]*Unkey[\s\S]*\$3,000 cash/);
+  assert.match(pitch.text, /id="tier-gold"[\s\S]*Open · 30-minute block[\s\S]*Coder[\s\S]*src="\/logos\/levelup-white\.png"[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12[\s\S]*Tighten[\s\S]*src="\/logos\/wemakedevs-wordmark-light\.svg"[\s\S]*WeMakeDevs[\s\S]*5 Keychron keyboards/);
+  assert.doesNotMatch(pitch.text, /NuPhy|mark-clear/);
   assert.doesNotMatch(pitch.text, /Full ·|sold out|\d+ of \d+|spot is still open|spots are still open/i);
   assert.doesNotMatch(pitch.text, /kunalstwt|class="badge">Kunal</);
   assert.doesNotMatch(pitch.text, /Lucas Casarez|stock compensation|Guest:/);
@@ -393,7 +403,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /Gold books 30 minutes/);
   assert.match(desk.text, /Temporary storage/);
   assert.match(desk.text, /New MacBook Pro/);
-  assert.match(desk.text, /NuPhy Air75 V3/);
+  assert.match(desk.text, /id="sponsor-unkey"[\s\S]*\$3,000 cash/);
+  assert.doesNotMatch(desk.text, /NuPhy/);
   assert.match(desk.text, /Nintendo Switch 2/);
   assert.match(desk.text, /Work Louder keyboard/);
   assert.match(desk.text, /Amazon gift cards/);

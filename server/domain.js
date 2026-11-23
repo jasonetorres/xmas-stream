@@ -527,6 +527,13 @@ export async function confirmKunal(db) {
   await db.run("UPDATE sponsors SET name = ?, url = ? WHERE id = ?", [name, url, row.id]);
 }
 
+export async function confirmUnkey(db) {
+  const row = await db.get("SELECT id, prize_details FROM sponsors WHERE slug = ?", ["unkey"]);
+  if (!row) return;
+  if (!/NuPhy/i.test(String(row.prize_details || ""))) return;
+  await db.run("UPDATE sponsors SET prize_details = ? WHERE id = ?", ["$3,000 cash", row.id]);
+}
+
 export async function confirmRenderAtl(db) {
   const row = await db.get("SELECT id, tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
   if (!row) return;
@@ -572,7 +579,7 @@ export function segmentSummary(booking) {
 
 const SEED = [
   { slug: "laravel", name: "Laravel", tier: "platinum", prize_details: "New MacBook Pro", logos: [] },
-  { slug: "unkey", name: "Unkey", tier: "platinum", prize_details: "$3,000 cash + NuPhy Air75 V3", logos: [] },
+  { slug: "unkey", name: "Unkey", tier: "platinum", prize_details: "$3,000 cash", logos: [] },
   {
     slug: "mux",
     name: "Mux",
