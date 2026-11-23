@@ -286,7 +286,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /href="https:\/\/tighten\.com"/);
   assert.match(home.text, /href="https:\/\/coderabbit\.ai"/);
   assert.match(home.text, /href="https:\/\/torc\.dev"/);
-  assert.match(home.text, /class="badge">Level Up Financial Planning</);
+  assert.match(home.text, /src="\/logos\/levelup-white\.png"/);
+  assert.doesNotMatch(home.text, /class="badge">Level Up Financial Planning|levelup-dark/);
   assert.match(home.text, /href="https:\/\/www\.levelupfinancialplanning\.com\/"/);
   assert.match(home.text, /Apple Watch Series 12 \(GPS \+ Cellular\) 42mm/);
   assert.match(home.text, /New MacBook Pro/);
@@ -301,7 +302,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /href="https:\/\/resend\.com"/);
   assert.doesNotMatch(home.text, /Lucas Casarez|stock compensation|Guest:/);
   assertSponsorCards(home.text);
-  assert.doesNotMatch(home.text, /<img[^>]+luke/i);
+  assert.match(home.text, /<h3>Gold<\/h3>[\s\S]*src="\/logos\/levelup-white\.png"[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12/);
   assert.match(home.text, /JetBrains\+Mono/);
   assert.doesNotMatch(home.text, /Fraunces|Oswald/);
   assert.doesNotMatch(home.text, /hostjt|\/displayurl|\/vote/);
@@ -329,7 +330,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Nov 30/);
   assert.match(pitch.text, /Dec 22/);
   assert.match(pitch.text, /id="tier-platinum"[\s\S]*Open · 1-hour block[\s\S]*Laravel[\s\S]*href="https:\/\/mux\.com"[\s\S]*class="mark-clear" src="\/logos\/mux-wordmark-white\.svg"[\s\S]*Mux[\s\S]*Streaming gear bundle \(details TBA\)[\s\S]*Unkey/);
-  assert.match(pitch.text, /id="tier-gold"[\s\S]*Open · 30-minute block[\s\S]*Coder[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12[\s\S]*href="https:\/\/www\.wemakedevs\.org\/"[\s\S]*src="\/logos\/wemakedevs-wordmark-light\.svg"[\s\S]*WeMakeDevs[\s\S]*5 Keychron keyboards[\s\S]*Tighten/);
+  assert.match(pitch.text, /id="tier-gold"[\s\S]*Open · 30-minute block[\s\S]*Coder[\s\S]*src="\/logos\/levelup-white\.png"[\s\S]*Level Up Financial Planning[\s\S]*Apple Watch Series 12[\s\S]*href="https:\/\/www\.wemakedevs\.org\/"[\s\S]*src="\/logos\/wemakedevs-wordmark-light\.svg"[\s\S]*WeMakeDevs[\s\S]*5 Keychron keyboards[\s\S]*Tighten/);
   assert.doesNotMatch(pitch.text, /Full ·|sold out|\d+ of \d+|spot is still open|spots are still open/i);
   assert.doesNotMatch(pitch.text, /kunalstwt|class="badge">Kunal</);
   assert.doesNotMatch(pitch.text, /Lucas Casarez|stock compensation|Guest:/);
@@ -404,12 +405,13 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /Copy invite message/);
   assert.match(desk.text, /Access code: /);
   assert.match(desk.text, /Logo: present · public\/logos\/laravel-wordmark\.png/);
-  assert.match(desk.text, /Logo: missing · none in the database/);
+  assert.doesNotMatch(desk.text, /Logo: missing/);
   assert.match(desk.text, /id="sponsor-renderatl"[\s\S]*tier">Silver[\s\S]*Confirmed Silver[\s\S]*All-access RenderATL ticket[\s\S]*renderatl-mark-dark\.svg/);
   assert.match(desk.text, /server\/seed-logos\/tighten-wordmark\.png/);
   assert.match(desk.text, /2 in the database/);
   assert.match(desk.text, /Website: <a href="https:\/\/laravel\.com"/);
-  assert.match(desk.text, /id="sponsor-luke"[\s\S]*Level Up Financial Planning[\s\S]*Lucas Casarez, CFP®[\s\S]*Apple Watch Series 12[\s\S]*stock compensation[\s\S]*Logo: missing[\s\S]*levelupfinancialplanning\.com/);
+  assert.match(desk.text, /id="sponsor-luke"[\s\S]*Level Up Financial Planning[\s\S]*Lucas Casarez, CFP®[\s\S]*Apple Watch Series 12[\s\S]*stock compensation[\s\S]*Logo: present · public\/logos\/levelup-white\.png[\s\S]*levelupfinancialplanning\.com/);
+  assert.match(desk.text, /id="sponsor-torc"[\s\S]*randstad\.png/);
   assert.match(desk.text, /id="sponsor-kunal"[\s\S]*WeMakeDevs[\s\S]*@kunalstwt[\s\S]*5 Keychron keyboards[\s\S]*wemakedevs-wordmark-light\.svg[\s\S]*https:\/\/www\.wemakedevs\.org\//);
   assert.match(desk.text, /id="sponsor-mux"[\s\S]*Mux[\s\S]*@davekiss[\s\S]*Dave Kiss[\s\S]*Streaming gear bundle \(details TBA\)[\s\S]*mux-wordmark-white\.svg[\s\S]*https:\/\/mux\.com/);
   assert.match(desk.text, /id="sponsor-resend"[\s\S]*Resend[\s\S]*@_christinacodes[\s\S]*Christina[\s\S]*Cash donation[\s\S]*resend-wordmark-white\.svg[\s\S]*https:\/\/resend\.com/);
