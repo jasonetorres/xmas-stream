@@ -402,6 +402,8 @@ const HINTS = {
   luke: "Confirmed Gold. No logo on file, so the public pages use a text badge.",
   kunal: "Confirmed Gold as WeMakeDevs. X stays @kunalstwt. The public pages use the white wordmark.",
   renderatl: "Confirmed Silver. The giveaway is one all-access RenderATL ticket.",
+  mux: "Confirmed Platinum. Dave Kiss stays on this card. The public pages use the large white wordmark.",
+  resend: "Confirmed Silver. Christina stays on this card. Cash amount is not set yet. Edit Prize or cash when it is.",
 };
 
 function inviteMessage(sponsor, link) {

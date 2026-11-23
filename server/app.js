@@ -45,13 +45,6 @@ function header(req, name) {
   return value || "";
 }
 
-function positive(value, fallback, label) {
-  if (value == null || value === "") return fallback;
-  const n = Number(value);
-  if (!Number.isInteger(n) || n < 1 || n > 24) throw new ConfigError(`${label} must be a whole number from 1 to 24.`);
-  return n;
-}
-
 function loadOrCreate(file, create) {
   try {
     return { value: fs.readFileSync(file, "utf8").trim(), created: false };
@@ -128,10 +121,7 @@ export async function createApp(env = {}) {
   await confirmRenderAtl(db);
   await ensureWebsites(db);
   await ensureAccessCodes(db, secrets.sessionSecret, secrets.adminCode);
-  const caps = {
-    platinum: positive(env.PLATINUM_SPOTS, 3, "PLATINUM_SPOTS"),
-    gold: positive(env.GOLD_SPOTS, 4, "GOLD_SPOTS"),
-  };
+  const caps = { platinum: 0, gold: 0 };
   const publicDir = path.resolve(env.PUBLIC_DIR || path.join(root, "..", "public"));
   const config = {
     ...secrets,
@@ -430,7 +420,7 @@ async function postRemoveLogo(req, res, db, session) {
 async function postAddSponsor(req, res, db, config, session) {
   requireAdmin(session);
   const fields = await readForm(req);
-  await addSponsor(db, fields, config.sessionSecret, config.adminCode, config.caps);
+  await addSponsor(db, fields, config.sessionSecret, config.adminCode);
   return redirect(res, "/admin?saved=added");
 }
 
@@ -466,7 +456,7 @@ async function postInvite(req, res, db, config, session) {
 async function postEditSponsor(req, res, db, config, session) {
   requireAdmin(session);
   const fields = await readForm(req);
-  await updateSponsor(db, Number(fields.sponsor_id), fields, config.caps);
+  await updateSponsor(db, Number(fields.sponsor_id), fields);
   return redirect(res, "/admin?saved=edited");
 }
 
