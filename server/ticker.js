@@ -17,6 +17,6 @@ export function bannerLines() {
     "Thank you to every sponsor on the Christmas Birthday Stream.",
     "Scan the on-screen QR or open the entry page. No donation needed.",
     "Call Santa finale at 7:00 PM ET. Stay through the end.",
-    "Platinum books an hour. Gold books 30 minutes. Come hang out.",
+    `Be a guest. Request a half-hour slot at ${siteUrl}/guests.`,
   ];
 }

@@ -8,7 +8,7 @@ StreamYard only takes still images: transparent JPG, PNG, or GIF at 1280×720, u
 npm run overlays
 ```
 
-That script renders every PNG with headless Chromium from the sponsors and the schedule, then builds the snow GIFs. Booked Platinum and Gold blocks show up on the matching lower third as “presented by”. Run it again after the bookings change, and commit `public/overlays/`. Approved guests get a `guest-<id>.png` lower third that reads “Guest: Name, @handle”.
+That script renders every PNG with headless Chromium from the sponsors and the schedule, then builds the snow GIFs. Each lower third is a 104px bar just above the 42px ticker zone: segment title, time, and the sponsor logo when a Platinum or Gold block overlaps that hour. Run it again after the bookings change, and commit `public/overlays/`. Approved guests get a `guest-<id>.png` lower third in the same bar, with the guest’s name and handle.
 
 `/overlays` lists each file, a zip of the pack, the ticker, and the short banner lines.
 

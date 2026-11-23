@@ -83,10 +83,19 @@ h1 em { font-style: italic; color: var(--gold); }
 .banner.warn { background: rgba(200, 50, 43, 0.12); border: 2px solid var(--line); color: var(--muted); }
 label.field, .field { display: flex; flex-direction: column; gap: 6px; }
 .field span, legend { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.82rem; color: var(--gold); }
-input, select, textarea {
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea {
   width: 100%; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--line);
   background: #140f0c; color: var(--cream); font: inherit; font-size: 1rem;
 }
+input[type="checkbox"], input[type="radio"] {
+  appearance: none; -webkit-appearance: none; width: 22px; height: 22px; min-width: 22px; min-height: 22px;
+  margin: 0; padding: 0; flex: 0 0 22px; border: 2px solid var(--gold); border-radius: 6px;
+  background: #140f0c; display: grid; place-content: center; cursor: pointer;
+}
+input[type="radio"] { border-radius: 50%; }
+input[type="checkbox"]:checked, input[type="radio"]:checked { background: var(--gold); }
+input[type="checkbox"]:checked::before { content: ""; width: 5px; height: 9px; border: solid #17110d; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+input[type="radio"]:checked::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #17110d; }
 textarea { min-height: 110px; resize: vertical; }
 input.code { font-family: var(--label); letter-spacing: 0.14em; font-size: 1.25rem; text-transform: lowercase; }
 .hint, .quiet { color: var(--muted); margin: 0; }
@@ -95,12 +104,10 @@ input.code { font-family: var(--label); letter-spacing: 0.14em; font-size: 1.25r
 .slot { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line); }
 .slot:first-child { border-top: 0; }
 .slot time { font-family: var(--label); letter-spacing: 0.06em; font-size: 0.95rem; }
-.slot label.pick { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; }
-.slot label.pick input { width: auto; margin-top: 4px; accent-color: var(--gold); }
+.slot label.pick { display: flex; gap: 12px; align-items: center; justify-content: flex-start; width: 100%; min-height: 44px; text-align: left; }
 .slot.mine { background: rgba(242, 179, 61, 0.08); }
 .slot.taken { color: var(--muted); }
-.check { display: flex; gap: 10px; align-items: flex-start; }
-.check input { width: auto; margin-top: 6px; accent-color: var(--gold); }
+.check { display: flex; gap: 12px; align-items: center; justify-content: flex-start; width: 100%; text-align: left; }
 fieldset { border: 2px solid var(--line); border-radius: 14px; margin: 0; padding: 14px 16px 16px; }
 .meter { height: 10px; border-radius: 999px; background: rgba(245, 230, 184, 0.12); overflow: hidden; }
 .meter span { display: block; height: 100%; background: var(--gold); }
