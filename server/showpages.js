@@ -18,12 +18,44 @@ a { color:var(--gold); }
 h1 { font-size:clamp(1.8rem,4vw,2.6rem); margin:8px 0; }
 .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; }
 .card { padding:14px; border:1px solid var(--line); border-radius:16px; background:rgba(0,0,0,.2); }
-.card img { width:100%; height:135px; object-fit:contain; background:#0e0b09; border-radius:10px; }
+.card img {
+  width:100%; height:148px; object-fit:contain; border-radius:10px;
+  background-color:#8d8d8d;
+  background-image:
+    linear-gradient(45deg, #6f6f6f 25%, transparent 25%),
+    linear-gradient(-45deg, #6f6f6f 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #6f6f6f 75%),
+    linear-gradient(-45deg, transparent 75%, #6f6f6f 75%);
+  background-size:16px 16px;
+  background-position:0 0, 0 8px, 8px -8px, -8px 0;
+}
 .card a.btn, button.btn { display:inline-flex; align-items:center; min-height:44px; margin-top:8px; padding:0 14px; border-radius:999px; background:var(--gold); color:#17110d; text-decoration:none; font-weight:700; border:0; font:inherit; cursor:pointer; }
 label { display:block; margin:12px 0; }
-input, textarea { width:100%; min-height:48px; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#100d0b; color:var(--cream); font:inherit; }
-.prize { display:flex; gap:10px; align-items:flex-start; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea { width:100%; min-height:48px; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#100d0b; color:var(--cream); font:inherit; }
+input[type="checkbox"], input[type="radio"] {
+  appearance:none; -webkit-appearance:none; width:22px; height:22px; min-width:22px; min-height:22px; margin:0; flex:0 0 22px;
+  border:2px solid var(--gold); background:#100d0b; display:grid; place-content:center; cursor:pointer;
+}
+input[type="checkbox"] { border-radius:6px; }
+input[type="radio"] { border-radius:50%; }
+input[type="checkbox"]:checked, input[type="radio"]:checked { background:var(--gold); }
+input[type="checkbox"]:checked::before { content:""; width:5px; height:9px; border:solid #17110d; border-width:0 2px 2px 0; transform:rotate(45deg) translate(-1px,-1px); }
+input[type="radio"]:checked::before { content:""; width:8px; height:8px; border-radius:50%; background:#17110d; }
+input[type="checkbox"]:disabled { opacity:.45; cursor:not-allowed; }
+label.prize {
+  display:flex; align-items:center; justify-content:flex-start; gap:14px; width:100%; margin:8px 0; padding:12px 14px;
+  min-height:56px; text-align:left; border:1px solid var(--line); border-radius:12px; background:#140f0c; cursor:pointer;
+}
+label.prize > span { display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:2px; min-width:0; }
+label.prize b { font-weight:700; }
+label.prize:has(input:disabled) { opacity:.55; cursor:not-allowed; }
 .note { color:var(--muted); }
+.l3 { position:fixed; left:0; right:0; bottom:42px; height:104px; display:flex; background:#17110d; }
+.l3 .stripe { width:12px; flex:none; background:#f2b33d; }
+.l3-body { flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; padding:0 28px 0 22px; gap:24px; }
+.l3 .eye { color:#f2b33d; font-size:18px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; line-height:1; }
+.l3-title { margin-top:6px; font-size:40px; font-weight:700; line-height:1.05; }
+.l3-aside { text-align:right; font-size:28px; font-weight:700; }
 .banner { padding:12px 14px; border-radius:12px; background:rgba(242,179,61,.12); }
 .hp { position:absolute; left:-9999px; }
 .ticker { overflow:hidden; white-space:nowrap; border-top:4px solid var(--gold); border-bottom:4px solid var(--gold); font-size:32px; line-height:64px; }
@@ -79,7 +111,7 @@ export function renderRules() {
 }
 
 export function renderEnter({ prizes, message, error }) {
-  const boxes = prizes.map((prize) => `<label class="prize"><input type="checkbox" name="prize" value="${esc(prize.slug)}" ${prize.closed ? "disabled" : ""}><span><b>${esc(prize.prize)}</b><br><span class="note">${esc(prize.sponsor)}${prize.closed ? " · drawn" : ""}</span></span></label>`).join("");
+  const boxes = prizes.map((prize) => `<label class="prize"><input type="checkbox" name="prize" value="${esc(prize.slug)}" ${prize.closed ? "disabled" : ""}><span><b>${esc(prize.prize)}</b><span class="note">${esc(prize.sponsor)}${prize.closed ? " · drawn" : ""}</span></span></label>`).join("");
   const flash = error ? `<p class="banner">${esc(error)}</p>` : message ? `<p class="banner">${esc(message)}</p>` : "";
   const body = `<div class="wrap"><p class="note">Friday, December 18, 2026</p><h1>Enter the giveaway</h1>
     <p class="banner">No purchase or donation is necessary. Donating does not add entries.</p>
@@ -125,10 +157,8 @@ export function renderDraw({ prizes, log, reveal, error }) {
 }
 
 export function renderWinnerCard({ name, prize, mode }) {
-  const body = `<div style="min-height:100vh;display:flex;align-items:flex-end;padding:48px"><div style="padding:18px 22px;background:rgba(23,17,13,.94);border-left:8px solid #f2b33d;border-radius:14px">
-    <div style="color:#f2b33d;letter-spacing:.14em;text-transform:uppercase">Winner</div>
-    <div style="font-size:64px;font-weight:700">${esc(name || "Winner!")}</div>
-    <div style="font-size:28px;color:#cdbf98">${esc(prize || "")}</div></div></div>`;
+  const aside = prize ? `<div class="l3-aside">${esc(prize)}</div>` : "";
+  const body = `<div class="l3"><div class="stripe"></div><div class="l3-body"><div><div class="eye">Winner</div><div class="l3-title">${esc(name || "Winner!")}</div></div>${aside}</div></div>`;
   return page("Winner", body, { live: true, mode });
 }
 

@@ -97,5 +97,8 @@ test("guest slots stay private until Jason approves them", async (t) => {
   const after = await (await fetch(`${base}/guests`)).text();
   assert.doesNotMatch(after, /Ada Lovelace/);
 
-  assert.match(guestLowerHtml({ name: "Ada Lovelace", handle: "ada", time: "2:00–2:30 PM ET" }), /Guest: Ada Lovelace, @ada/);
+  const lower = guestLowerHtml({ name: "Ada Lovelace", handle: "ada", time: "2:00–2:30 PM ET" });
+  assert.match(lower, /Guest · 2:00–2:30 PM ET/);
+  assert.match(lower, /Ada Lovelace, @ada/);
+  assert.match(lower, /height:104px/);
 });

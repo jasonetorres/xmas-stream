@@ -33,71 +33,90 @@ export function logoUri(publicDir, sponsor) {
   return dataUri(path.join(publicDir, hub.replace(/^\//, "")));
 }
 
+const TICKER = 42;
+const BAR = 104;
+
 export function frameHtml() {
-  return stage(`<div style="position:absolute;inset:0 0 42px 0;border:3px solid rgba(242,179,61,.9);border-bottom:0"></div>
-    <div style="position:absolute;top:28px;left:28px;max-width:640px;padding:14px 18px;border:2px solid #f2b33d;border-radius:16px;background:rgba(23,17,13,.9)">
-      <div style="color:#f2b33d;font-size:15px;letter-spacing:.14em;text-transform:uppercase">On the air</div>
-      <div style="font-size:28px;font-weight:700;line-height:1.25">Birthday + Christmas Stream</div>
-      <div style="margin-top:6px;color:#cdbf98;font-size:20px">Raising $10K for freeCodeCamp · tilt.fyi/9va4uz7GEn</div>
+  return stage(`<div style="position:absolute;inset:0 0 ${TICKER}px 0;border:4px solid #f2b33d;border-bottom:0"></div>
+    <div style="position:absolute;top:32px;left:32px;display:flex;max-width:980px;background:#17110d;border:3px solid #f2b33d">
+      <div style="width:12px;flex:none;background:#f2b33d"></div>
+      <div style="padding:16px 26px 18px 22px">
+        <div style="color:#f2b33d;font-size:20px;font-weight:700;letter-spacing:.16em;text-transform:uppercase">On the air</div>
+        <div style="margin-top:4px;font-size:46px;font-weight:700;line-height:1.05">Birthday + Christmas Stream</div>
+        <div style="margin-top:8px;color:#f5e6b8;font-size:26px;line-height:1.2">Raising $10K for freeCodeCamp · tilt.fyi/9va4uz7GEn</div>
+      </div>
     </div>`);
 }
 
 export function sceneHtml({ kicker, title, detail, qr }) {
-  const code = qr ? `<img alt="" src="${qr}" style="width:220px;height:220px;background:#f5e6b8;border-radius:12px;padding:10px">` : "";
-  return stage(`<div style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:64px">
-      <div style="color:#f2b33d;letter-spacing:.16em;text-transform:uppercase;font-size:18px">${esc(kicker)}</div>
-      <div style="margin-top:16px;font-size:84px;font-weight:700;line-height:1.05">${esc(title)}</div>
-      <div style="margin-top:18px;max-width:860px;color:#cdbf98;font-size:28px">${esc(detail)}</div>
+  const code = qr ? `<img alt="" src="${qr}" style="width:248px;height:248px;background:#f5e6b8;border-radius:12px;padding:12px">` : "";
+  return stage(`<div style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 56px">
+      <div style="color:#f2b33d;letter-spacing:.16em;text-transform:uppercase;font-size:22px;font-weight:700">${esc(kicker)}</div>
+      <div style="margin-top:14px;font-size:76px;font-weight:700;line-height:1.02">${esc(title)}</div>
+      <div style="margin-top:16px;color:#cdbf98;font-size:30px;line-height:1.25;white-space:nowrap">${esc(detail)}</div>
       ${code ? `<div style="margin-top:28px">${code}</div>` : ""}
     </div>`, { opaque: true });
+}
+
+/** Full-width lower third, 104px tall, sitting just above the 42px ticker. */
+export function broadcastBar({ eyebrow, title, aside = "" }) {
+  return stage(`<div style="position:absolute;left:0;right:0;bottom:${TICKER}px;height:${BAR}px;display:flex;background:#17110d">
+      <div style="width:12px;flex:none;background:#f2b33d"></div>
+      <div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 22px">
+        <div style="min-width:0">
+          <div style="color:#f2b33d;font-size:18px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;line-height:1">${esc(eyebrow)}</div>
+          <div style="margin-top:6px;font-size:40px;font-weight:700;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div>
+        </div>
+        ${aside}
+      </div>
+    </div>`);
 }
 
 export function lowerHtml({ time, name, presenters = [], logoUris = [] }) {
   const logos = presenters.map((sponsor, index) => {
     const uri = logoUris[index];
-    const img = uri ? `<img alt="" src="${uri}" style="height:56px;max-width:180px">` : "";
-    return `<span style="display:flex;align-items:center;gap:10px">${img}<b>${esc(sponsor.name)}</b></span>`;
+    if (uri) return `<img alt="${esc(sponsor.name)}" src="${uri}" style="height:64px;max-width:220px;object-fit:contain">`;
+    return `<b style="font-size:24px;color:#f2b33d">${esc(sponsor.name)}</b>`;
   }).join("");
-  const by = presenters.length ? `<div style="margin-top:6px;display:flex;gap:16px;align-items:center;color:#f2b33d;font-size:22px">Presented by ${logos}</div>` : "";
-  return stage(`<div style="position:absolute;left:40px;bottom:58px;max-width:1100px;padding:16px 20px;background:rgba(23,17,13,.92);border-left:8px solid #f2b33d;border-radius:14px">
-      <div style="color:#f2b33d;font-size:18px">${esc(time)}</div>
-      <div style="font-size:40px;font-weight:700;line-height:1.15">${esc(name)}</div>
-      ${by}
-    </div>`);
+  const aside = logos ? `<div style="display:flex;align-items:center;gap:18px;margin-left:24px;flex:none">${logos}</div>` : "";
+  return broadcastBar({ eyebrow: time, title: name, aside });
 }
 
 export function slateHtml({ name, prize, link, logo }) {
-  const img = logo ? `<img alt="" src="${logo}" style="max-height:180px;max-width:640px">` : "";
-  return stage(`<div style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px">
-      ${img}
-      <div style="margin-top:22px;font-size:54px;font-weight:700">${esc(name)}</div>
-      <div style="margin-top:10px;font-size:28px;color:#cdbf98">${esc(prize || "On the show")}</div>
-      <div style="margin-top:14px;font-size:24px;color:#f2b33d">${esc(link || "")}</div>
+  const img = logo ? `<img alt="" src="${logo}" style="height:160px;width:auto;max-width:860px;object-fit:contain">` : "";
+  return stage(`<div style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 64px">
+      <div style="height:180px;display:flex;align-items:center;justify-content:center">${img}</div>
+      <div style="margin-top:8px;font-size:52px;font-weight:700;line-height:1.1">${esc(name)}</div>
+      <div style="margin-top:10px;font-size:28px;color:#cdbf98;line-height:1.3">${esc(prize || "On the show")}</div>
+      <div style="margin-top:12px;font-size:24px;color:#f2b33d">${esc(link || "")}</div>
     </div>`, { opaque: true });
 }
 
 export function wallHtml(groups) {
   const columns = groups.map((group) => {
     const items = group.sponsors.map((sponsor) => {
-      const img = sponsor.logo ? `<img alt="" src="${sponsor.logo}" style="height:54px;max-width:180px">` : `<b>${esc(sponsor.name)}</b>`;
-      return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:180px">${img}<span style="font-size:16px">${esc(sponsor.name)}</span></div>`;
+      const img = sponsor.logo
+        ? `<img alt="" src="${sponsor.logo}" style="width:250px;height:76px;object-fit:contain">`
+        : `<b style="font-size:26px;line-height:76px">${esc(sponsor.name)}</b>`;
+      return `<div style="width:270px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px">${img}<span style="font-size:16px;line-height:1.15;text-align:center;white-space:nowrap">${esc(sponsor.name)}</span></div>`;
     }).join("");
-    return `<section style="margin-top:18px"><div style="color:#f2b33d;letter-spacing:.14em;text-transform:uppercase;font-size:14px">${esc(group.tier)}</div><div style="margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:18px 28px">${items}</div></section>`;
+    return `<section style="margin-top:18px"><div style="color:#f2b33d;letter-spacing:.16em;text-transform:uppercase;font-size:16px;font-weight:700">${esc(group.tier)}</div><div style="margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:14px 18px">${items}</div></section>`;
   }).join("");
-  return stage(`<div style="height:720px;padding:36px 48px;text-align:center"><div style="font-size:42px;font-weight:700">Thank you, sponsors</div><div style="color:#cdbf98">Raising $10,000 for freeCodeCamp</div>${columns}</div>`, { opaque: true });
+  return stage(`<div style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 32px;text-align:center"><div style="font-size:48px;font-weight:700;line-height:1.05">Thank you, sponsors</div><div style="margin-top:6px;color:#cdbf98;font-size:22px">Raising $10,000 for freeCodeCamp</div>${columns}</div>`, { opaque: true });
 }
 
 export function guestLowerHtml({ name, handle, time }) {
   const who = handle ? `${name}, @${String(handle).replace(/^@/, "")}` : name;
-  return lowerHtml({ time: time || "", name: `Guest: ${who}` });
+  const eyebrow = time ? `Guest · ${time}` : "Guest";
+  return broadcastBar({ eyebrow, title: who });
 }
 
 export function winnerTemplateHtml() {
-  return stage(`<div style="position:absolute;left:40px;right:40px;bottom:58px;padding:18px 22px;background:rgba(23,17,13,.94);border-left:8px solid #f2b33d;border-radius:14px">
-      <div style="color:#f2b33d;letter-spacing:.14em;text-transform:uppercase">Winner</div>
-      <div style="font-size:48px;font-weight:700">Winner!</div>
-      <div style="color:#cdbf98;font-size:24px">Name goes here · prize goes here</div>
-    </div>`);
+  return broadcastBar({
+    eyebrow: "Winner",
+    title: "Winner!",
+    aside: `<div style="margin-left:24px;text-align:right;flex:none"><div style="font-size:28px;font-weight:700">Name goes here</div><div style="margin-top:4px;color:#cdbf98;font-size:20px">Prize goes here</div></div>`,
+  });
 }
 
 export function hostOf(url) {

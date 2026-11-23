@@ -29,6 +29,8 @@ test("ticker, rules, entry, and draw stay inside the stream rules", async (t) =>
   assert.match(ticker, /No donation needed to enter/);
   assert.match(ticker, /Laravel/);
   for (const line of bannerLines()) assert.ok(line.length < 200 && !line.includes("\n"));
+  assert.equal(bannerLines().some((line) => /Platinum books an hour/i.test(line)), false);
+  assert.match(bannerLines().join("\n"), /\/guests/);
 
   const rules = await fetch(`${base}/rules`);
   const rulesText = await rules.text();
@@ -40,6 +42,8 @@ test("ticker, rules, entry, and draw stay inside the stream rules", async (t) =>
   assert.match(enterText, /name="share"/);
   assert.doesNotMatch(enterText, /name="share"[^>]*checked/);
   assert.match(enterText, /New MacBook Pro/);
+  assert.match(enterText, /input\[type="checkbox"\][\s\S]*width:22px/);
+  assert.match(enterText, /label\.prize[\s\S]*text-align:left/);
 
   const bot = await fetch(`${base}/enter`, {
     method: "POST",
