@@ -144,7 +144,7 @@ export function catalog(sponsors, publicDir, qrs, guests = []) {
     { file: "brb.png", title: "Be right back", html: sceneHtml({ kicker: "Stay here", title: "Be right back", detail: "Grab a cocoa. The next game starts in a minute." }) },
     { file: "ending.png", title: "Thanks for watching", html: sceneHtml({ kicker: "That’s a wrap", title: "Thanks for watching", detail: "Merry Christmas. Every dollar went to freeCodeCamp." }) },
     { file: "donate-qr.png", title: "Donate QR", html: sceneHtml({ kicker: "freeCodeCamp", title: "Donate now", detail: campaign.tiltifyUrl.replace("https://", ""), qr: qrs.donate }) },
-    { file: "enter-giveaway.png", title: "Enter the giveaway", html: sceneHtml({ kicker: "No donation needed", title: "Enter the giveaway", detail: `${siteUrl.replace("https://", "")}/enter`, qr: qrs.enter }) },
+    { file: "enter-giveaway.png", title: "Enter the giveaway", html: sceneHtml({ kicker: "Open to US residents only", title: "Enter the giveaway", detail: `${siteUrl.replace("https://", "")}/enter`, qr: qrs.enter }) },
     { file: "winner.png", title: "Winner lower third", html: winnerTemplateHtml() },
   ];
   for (const segment of SEGMENTS) items.push(segmentCard(segment, sponsors, publicDir));

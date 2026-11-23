@@ -39,15 +39,20 @@ export async function closedPrizeSlugs(db) {
 }
 
 export async function entryCounts(db, prizes) {
-  const entries = await db.all("SELECT prizes FROM entries");
+  const entries = await db.all("SELECT id, prizes FROM entries");
+  const draws = await db.all("SELECT entry_id, prize_slug, status FROM draws");
+  const champions = new Set(draws.filter((row) => row.status === "winner").map((row) => Number(row.entry_id)));
   const counts = new Map(prizes.map((prize) => [prize.slug, 0]));
   for (const entry of entries) {
+    if (champions.has(Number(entry.id))) continue;
     for (const slug of entryPrizeSlugs(entry)) {
-      if (counts.has(slug)) counts.set(slug, counts.get(slug) + 1);
+      if (!counts.has(slug)) continue;
+      const alreadyDrawn = draws.some((row) => row.prize_slug === slug && Number(row.entry_id) === Number(entry.id));
+      if (alreadyDrawn) continue;
+      counts.set(slug, counts.get(slug) + 1);
     }
   }
-  const total = entries.length;
-  return { total, counts };
+  return { total: entries.length, counts };
 }
 
 function clean(value, max) {
@@ -62,6 +67,8 @@ export async function saveEntry(db, input, prizes) {
   const handle = clean(input.handle, 40).replace(/^@/, "");
   if (!name) throw new AppError("Add your name.");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError("That email doesn’t look right.");
+  const livesInUs = input.us === "yes" || input.us === "on";
+  if (!livesInUs) throw new AppError("Confirm that you live in the United States.");
   const open = prizes.filter((prize) => !prize.closed).map((prize) => prize.slug);
   const wantsAll = input.all === "yes" || input.all === "on";
   const picked = wantsAll ? open : [].concat(input.prize || []).map(String).filter((slug) => open.includes(slug));
