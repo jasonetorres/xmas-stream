@@ -54,7 +54,27 @@ function schema(dialect) {
       platform TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL
     )`,
+    `CREATE TABLE IF NOT EXISTS entries (
+      id ${pk},
+      name TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      handle TEXT NOT NULL DEFAULT '',
+      prizes TEXT NOT NULL DEFAULT '',
+      all_prizes INTEGER NOT NULL DEFAULT 0,
+      share_opt_in INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS draws (
+      id ${pk},
+      prize_slug TEXT NOT NULL,
+      entry_id INTEGER NOT NULL REFERENCES entries(id),
+      status TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      drawn_at TEXT NOT NULL
+    )`,
     "CREATE INDEX IF NOT EXISTS bookings_range ON bookings (start_min, end_min)",
+    "CREATE INDEX IF NOT EXISTS draws_prize ON draws (prize_slug, status)",
     "CREATE INDEX IF NOT EXISTS logos_sponsor ON logos (sponsor_id)",
     "CREATE INDEX IF NOT EXISTS leads_sponsor ON leads (sponsor_id)",
   ];

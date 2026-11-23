@@ -33,6 +33,33 @@ import {
 import { boundaryFrom, parseMultipart } from "./multipart.js";
 import { applyHome } from "./campaign.js";
 import { tiersHtml } from "./pitch.js";
+import { scheduleHtml, onAir } from "./schedule.js";
+import { tickerText } from "./ticker.js";
+import { liveFundraiser } from "./tiltify.js";
+import { zipStore } from "./zip.js";
+import {
+  closedPrizeSlugs,
+  drawLog,
+  drawWinner,
+  entryCounts,
+  entrantCsv,
+  prizeCatalog,
+  redrawWinner,
+  saveEntry,
+} from "./giveaway.js";
+import {
+  galleryCopy,
+  modeFrom,
+  renderDraw,
+  renderEnter,
+  renderGallery,
+  renderLiveAlerts,
+  renderLiveGoal,
+  renderLiveTicker,
+  renderRules,
+  renderUpNext,
+  renderWinnerCard,
+} from "./showpages.js";
 import { flashFrom, renderAdmin, renderAdminLogin, renderDenied, renderLogin, renderPortalDirectory, renderSponsor } from "./pages.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -153,12 +180,13 @@ export async function createApp(env = {}) {
         await routePortal(req, res, url, db, config);
         return;
       }
+      if (await routeShow(req, res, url, db, config)) return;
       if (req.method !== "GET") return text(res, 405, "Method not allowed\n");
       if (url.pathname === "/" || url.pathname === "/index.html" || url.pathname === "/sponsor" || url.pathname === "/sponsor.html") {
         const sponsors = await listSponsors(db, config.sessionSecret);
         const file = url.pathname === "/sponsor" || url.pathname === "/sponsor.html" ? "sponsor.html" : "index.html";
         const raw = await fs.promises.readFile(path.join(publicDir, file), "utf8");
-        const body = applyHome(raw, sponsors).replaceAll("__TIERS__", tiersHtml(sponsors, config.caps));
+        const body = applyHome(raw, sponsors).replaceAll("__TIERS__", tiersHtml(sponsors, config.caps)).replaceAll("__SCHEDULE__", scheduleHtml());
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("X-Content-Type-Options", "nosniff");
@@ -211,6 +239,8 @@ async function routeAdmin(req, res, url, db, config) {
   if ((url.pathname === "/admin/leads.csv" || leadFile) && req.method === "GET") {
     return sendLeads(res, db, session, leadFile ? Number(leadFile[1]) : null);
   }
+  const giveawayFile = url.pathname.match(/^\/admin\/giveaway(?:\/([a-z0-9-]+))?\.csv$/);
+  if (giveawayFile && req.method === "GET") return sendGiveaway(res, db, session, giveawayFile[1] || "");
   if (url.pathname === "/admin/leads" && req.method === "POST") return postLead(req, res, db, session);
   if (url.pathname === "/admin/sponsors" && req.method === "POST") return postAddSponsor(req, res, db, config, session);
   if (url.pathname === "/admin/booking" && req.method === "POST") return postAdminBooking(req, res, db, session);
@@ -222,6 +252,8 @@ async function routeAdmin(req, res, url, db, config) {
   if (!session) return html(res, 200, renderAdminLogin({ flash: flashFrom(url) }));
   if (session.role !== "admin") return html(res, 403, renderDenied());
   const sponsors = await listSponsors(db, config.sessionSecret, { withCodes: true });
+  const prizes = await prizeBoard(db, sponsors);
+  const counts = await entryCounts(db, prizes);
   return html(
     res,
     200,
@@ -231,8 +263,153 @@ async function routeAdmin(req, res, url, db, config) {
       flash: flashFrom(url),
       base: baseUrl(req, config),
       ephemeral: config.ephemeral,
+      giveaway: {
+        total: counts.total,
+        lines: prizes.map((prize) => `${prize.prize}: ${counts.counts.get(prize.slug) || 0}`),
+      },
     })
   );
+}
+
+async function prizeBoard(db, sponsors) {
+  const closed = await closedPrizeSlugs(db);
+  return prizeCatalog(sponsors).map((prize) => ({ ...prize, closed: closed.has(prize.slug) }));
+}
+
+const enterHits = new Map();
+
+function entryAllowed(ip) {
+  const now = Date.now();
+  const recent = (enterHits.get(ip) || []).filter((at) => now - at < 15 * 60 * 1000);
+  if (recent.length >= 8) return false;
+  recent.push(now);
+  enterHits.set(ip, recent);
+  return true;
+}
+
+async function routeShow(req, res, url, db, config) {
+  if (url.pathname === "/api/live/goal" && req.method === "GET") {
+    const data = await liveFundraiser(process.env.TILTIFY_TOKEN || "");
+    json(res, 200, { goal: data.goal, raised: data.raised, source: data.source, donations: data.donations });
+    return true;
+  }
+  if (url.pathname === "/overlays/pack.zip" && req.method === "GET") {
+    await sendOverlayZip(res, config.publicDir);
+    return true;
+  }
+  if (url.pathname === "/overlays" && req.method === "GET") {
+    const sponsors = await listSponsors(db, config.sessionSecret);
+    const items = await overlayItems(config.publicDir);
+    const copy = galleryCopy(sponsors);
+    html(res, 200, renderGallery({ items, ticker: copy.ticker, lines: copy.lines }));
+    return true;
+  }
+  if (url.pathname === "/rules" && req.method === "GET") {
+    html(res, 200, renderRules());
+    return true;
+  }
+  if (url.pathname === "/enter" && req.method === "GET") {
+    const sponsors = await listSponsors(db, config.sessionSecret);
+    html(res, 200, renderEnter({ prizes: await prizeBoard(db, sponsors), message: url.searchParams.get("saved") ? "You’re entered." : "", error: url.searchParams.get("error") || "" }));
+    return true;
+  }
+  if (url.pathname === "/enter" && req.method === "POST") {
+    await postEnter(req, res, db, config);
+    return true;
+  }
+  if (url.pathname === "/live/goal" && req.method === "GET") {
+    html(res, 200, renderLiveGoal(modeFrom(url)));
+    return true;
+  }
+  if (url.pathname === "/live/alerts" && req.method === "GET") {
+    html(res, 200, renderLiveAlerts(modeFrom(url)));
+    return true;
+  }
+  if (url.pathname === "/live/ticker" && req.method === "GET") {
+    const sponsors = await listSponsors(db, config.sessionSecret);
+    html(res, 200, renderLiveTicker(modeFrom(url), tickerText(sponsors)));
+    return true;
+  }
+  if (url.pathname === "/live/up-next" && req.method === "GET") {
+    html(res, 200, renderUpNext(modeFrom(url), onAir()));
+    return true;
+  }
+  if (url.pathname === "/draw" || url.pathname === "/draw/card") {
+    await routeDraw(req, res, url, db, config);
+    return true;
+  }
+  return false;
+}
+
+async function overlayItems(publicDir) {
+  const dir = path.join(publicDir, "overlays");
+  let names = [];
+  try { names = (await fs.promises.readdir(dir)).filter((name) => /\.(png|gif)$/i.test(name)).sort(); } catch { names = []; }
+  return names.map((file) => ({ file, title: file.replace(/-/g, " ") }));
+}
+
+async function sendOverlayZip(res, publicDir) {
+  const dir = path.join(publicDir, "overlays");
+  const names = (await fs.promises.readdir(dir)).filter((name) => /\.(png|gif)$/i.test(name));
+  const files = [];
+  for (const name of names) files.push({ name, data: await fs.promises.readFile(path.join(dir, name)) });
+  const body = zipStore(files);
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/zip");
+  res.setHeader("Content-Disposition", "attachment; filename=\"streamyard-overlays.zip\"");
+  res.end(body);
+}
+
+async function postEnter(req, res, db, config) {
+  assertSameOrigin(req);
+  const ip = header(req, "x-forwarded-for").split(",")[0].trim() || req.socket?.remoteAddress || "local";
+  if (!entryAllowed(ip)) return redirect(res, "/enter?error=" + encodeURIComponent("Too many tries. Wait a few minutes."));
+  const fields = await readForm(req);
+  const sponsors = await listSponsors(db, config.sessionSecret);
+  try {
+    const saved = await saveEntry(db, fields, await prizeBoard(db, sponsors));
+    if (saved.silent) return redirect(res, "/enter?saved=1");
+    return redirect(res, "/enter?saved=1");
+  } catch (err) {
+    if (err instanceof AppError) return redirect(res, "/enter?error=" + encodeURIComponent(err.message));
+    throw err;
+  }
+}
+
+async function routeDraw(req, res, url, db, config) {
+  if (req.method === "POST") assertSameOrigin(req);
+  const session = await currentSession(req, db, config);
+  if (!session || session.role !== "admin") return html(res, 200, renderAdminLogin({ flash: { saved: "", error: "Jason’s code is required for the drawing." } }));
+  const sponsors = await listSponsors(db, config.sessionSecret);
+  const prizes = await prizeBoard(db, sponsors);
+  if (url.pathname === "/draw/card" && req.method === "GET") {
+    return html(res, 200, renderWinnerCard({ name: url.searchParams.get("name") || "Winner!", prize: url.searchParams.get("prize") || "", mode: modeFrom(url) }));
+  }
+  let reveal = null;
+  if (req.method === "POST") {
+    const fields = await readForm(req);
+    try {
+      reveal = fields.redraw === "yes" ? await redrawWinner(db, fields.prize, prizes) : await drawWinner(db, fields.prize, prizes);
+    } catch (err) {
+      if (!(err instanceof AppError)) throw err;
+      return html(res, 200, renderDraw({ prizes, log: await drawLog(db), reveal: null, error: err.message }));
+    }
+  }
+  const fresh = await prizeBoard(db, sponsors);
+  return html(res, 200, renderDraw({ prizes: fresh, log: await drawLog(db), reveal }));
+}
+
+async function sendGiveaway(res, db, session, prizeSlug) {
+  if (!session || session.role !== "admin") {
+    res.statusCode = 401;
+    res.end("Jason’s code is required.\n");
+    return;
+  }
+  const entries = await db.all("SELECT name, email, handle, prizes, share_opt_in, created_at FROM entries ORDER BY id");
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=\"giveaway.csv\"");
+  res.end(entrantCsv(entries, prizeSlug));
 }
 
 async function routePortal(req, res, url, db, config) {
@@ -637,7 +814,10 @@ async function readForm(req) {
   const body = await readBody(req, 100 * 1024);
   const params = new URLSearchParams(body.toString("utf8"));
   const fields = {};
-  for (const [key, value] of params) fields[key] = value;
+  for (const [key, value] of params) {
+    if (Object.prototype.hasOwnProperty.call(fields, key)) fields[key] = [].concat(fields[key], value);
+    else fields[key] = value;
+  }
   return fields;
 }
 

@@ -12,6 +12,13 @@ export const campaign = {
   tiltifyUrl: "https://tilt.fyi/9va4uz7GEn",
 };
 
+export const siteUrl = "https://jetdemo-xmas-stream-jetbrain.unkey.app";
+export const tiltifyCampaign = {
+  user: "tasonjorres",
+  slug: "livestream-fundraiser-for-freecodecamporg",
+  page: "https://tiltify.com/@tasonjorres/livestream-fundraiser-for-freecodecamporg",
+};
+
 export const prizes = [
   { item: "MacBook Pro", from: "Laravel" },
   { item: "Streaming gear bundle (details TBA)", from: "Mux" },
