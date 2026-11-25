@@ -1,14 +1,12 @@
 import { showcaseHtml } from "./brands.js";
 
 /**
- * The one place Jason edits the public fundraiser.
- * Change `raised` when more cash lands. Add a prize by appending to `prizes`.
- * Donate buttons use `tiltifyUrl`.
+ * The public goal. The raised amount is the Tiltify campaign total only.
+ * Sponsor cash is not part of that number. Donate buttons use `tiltifyUrl`.
  */
 export const campaign = {
   cause: "freeCodeCamp",
   goal: 10000,
-  raised: 6000,
   tiltifyUrl: "https://tilt.fyi/9va4uz7GEn",
 };
 
@@ -49,8 +47,8 @@ function prizeCard(prize) {
   return `<article class="prize"><b>${esc(prize.item)}${esc(count)}</b><span>${esc(prize.from)}${esc(note)}</span></article>`;
 }
 
-export function applyHome(html, sponsors = []) {
-  const raised = campaign.raised;
+export function applyHome(html, sponsors = [], raisedAmount = 0) {
+  const raised = Math.max(0, Math.round(Number(raisedAmount) || 0));
   const goal = campaign.goal;
   const percent = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
   return html

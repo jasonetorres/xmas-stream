@@ -177,6 +177,7 @@ export async function createApp(env = {}) {
     appBaseUrl: (env.APP_BASE_URL || "").replace(/\/$/, ""),
     publicDir,
     sqlitePath,
+    tiltifyToken: "TILTIFY_TOKEN" in env ? String(env.TILTIFY_TOKEN || "") : "",
   };
 
   async function handle(req, res) {
@@ -187,6 +188,7 @@ export async function createApp(env = {}) {
           ok: true,
           adminCodeSet: Boolean(config.adminCode),
           sponsorCodeSet: Boolean(config.sponsorCode),
+          tiltifyTokenSet: Boolean(config.tiltifyToken),
         });
       }
       if (req.method !== "GET" && req.method !== "POST") return text(res, 405, "Method not allowed\n");
@@ -204,7 +206,8 @@ export async function createApp(env = {}) {
         const sponsors = await listSponsors(db, config.sessionSecret);
         const file = url.pathname === "/sponsor" || url.pathname === "/sponsor.html" ? "sponsor.html" : "index.html";
         const raw = await fs.promises.readFile(path.join(publicDir, file), "utf8");
-        const body = applyHome(raw, sponsors).replaceAll("__TIERS__", tiersHtml(sponsors, config.caps)).replaceAll("__SCHEDULE__", scheduleHtml());
+        const live = await liveFundraiser(config.tiltifyToken);
+        const body = applyHome(raw, sponsors, live.raised).replaceAll("__TIERS__", tiersHtml(sponsors, config.caps)).replaceAll("__SCHEDULE__", scheduleHtml());
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("X-Content-Type-Options", "nosniff");
@@ -212,7 +215,7 @@ export async function createApp(env = {}) {
         res.end(body);
         return;
       }
-      await serveStatic(res, url.pathname, publicDir);
+      await serveStatic(res, url.pathname, publicDir, config.tiltifyToken);
     } catch (err) {
       if (err instanceof AppError || err.status) {
         const message = err instanceof AppError ? err.message : "That didn’t work.";
@@ -274,6 +277,7 @@ async function routeAdmin(req, res, url, db, config) {
   const sponsors = await listSponsors(db, config.sessionSecret, { withCodes: true });
   const prizes = await prizeBoard(db, sponsors);
   const counts = await entryCounts(db, prizes);
+  const live = await liveFundraiser(config.tiltifyToken);
   return html(
     res,
     200,
@@ -283,6 +287,7 @@ async function routeAdmin(req, res, url, db, config) {
       flash: flashFrom(url),
       base: baseUrl(req, config),
       ephemeral: config.ephemeral,
+      raised: live.raised,
       giveaway: {
         total: counts.total,
         lines: prizes.map((prize) => `${prize.prize}: ${counts.counts.get(prize.slug) || 0} in the pool`),
@@ -309,7 +314,7 @@ function entryAllowed(ip) {
 
 async function routeShow(req, res, url, db, config) {
   if (url.pathname === "/api/live/goal" && req.method === "GET") {
-    const data = await liveFundraiser(process.env.TILTIFY_TOKEN || "");
+    const data = await liveFundraiser(config.tiltifyToken);
     json(res, 200, { goal: data.goal, raised: data.raised, source: data.source, donations: data.donations });
     return true;
   }
@@ -1004,7 +1009,7 @@ function text(res, status, body) {
   res.end(body);
 }
 
-async function serveStatic(res, pathname, publicDir) {
+async function serveStatic(res, pathname, publicDir, tiltifyToken = "") {
   let decoded = pathname;
   try {
     decoded = decodeURIComponent(pathname);
@@ -1040,6 +1045,9 @@ async function serveStatic(res, pathname, publicDir) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=3600");
   const body = await fs.promises.readFile(file);
-  if (path.basename(file) === "index.html") return res.end(applyHome(body.toString("utf8")));
+  if (path.basename(file) === "index.html" || path.basename(file) === "sponsor.html") {
+    const live = await liveFundraiser(tiltifyToken);
+    return res.end(applyHome(body.toString("utf8"), [], live.raised));
+  }
   res.end(body);
 }

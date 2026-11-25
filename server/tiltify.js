@@ -7,10 +7,10 @@ function money(value) {
   return Number.isFinite(n) ? Math.round(n) : null;
 }
 
-function fallback(reason) {
+function emptyTotal(reason) {
   return {
     goal: campaign.goal,
-    raised: campaign.raised,
+    raised: 0,
     source: "fallback",
     reason,
     donations: [],
@@ -37,13 +37,12 @@ async function findCampaign(token) {
 }
 
 export async function liveFundraiser(token) {
-  if (!token) return fallback("TILTIFY_TOKEN is not set");
-  if (cache.value && Date.now() - cache.at < 20000) return cache.value;
+  if (!token) return emptyTotal("no_token");
+  if (cache.value && Date.now() - cache.at < 15000) return cache.value;
   try {
     const found = await findCampaign(token);
-    if (!found?.id) return fallback("Tiltify campaign was not found");
+    if (!found?.id) return emptyTotal("not_found");
     const raised = money(found.total_amount_raised?.value ?? found.amount_raised?.value);
-    const goal = money(found.goal?.value) || campaign.goal;
     let donations = [];
     try {
       const listed = await getJson(`https://v5api.tiltify.com/api/public/campaigns/${found.id}/donations?limit=20`, token);
@@ -56,15 +55,15 @@ export async function liveFundraiser(token) {
       donations = [];
     }
     const value = {
-      goal: goal || campaign.goal,
-      raised: raised == null ? campaign.raised : raised,
+      goal: campaign.goal,
+      raised: raised == null ? 0 : raised,
       source: "tiltify",
       reason: "",
       donations,
     };
     cache = { at: Date.now(), value };
     return value;
-  } catch (err) {
-    return fallback(err.message || "Tiltify request failed");
+  } catch {
+    return emptyTotal("unavailable");
   }
 }

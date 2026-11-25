@@ -190,7 +190,20 @@ export function renderWinnerCard({ name, prize, mode }) {
 export function renderLiveGoal(mode) {
   const body = `<div class="goal"><div style="letter-spacing:.14em;text-transform:uppercase;color:#8a5a09">freeCodeCamp</div><h1 id="raised">$0</h1><div class="bar"><b id="fill" style="width:0"></b></div><p id="meta"></p></div>
     <script>
-      async function pull(){ const res=await fetch("/api/live/goal"); const data=await res.json(); const raised=Math.round(data.raised||0); const goal=Math.round(data.goal||10000); document.getElementById("raised").textContent="$"+raised.toLocaleString("en-US"); document.getElementById("fill").style.width=Math.min(100,Math.round(raised/goal*100))+"%"; document.getElementById("meta").textContent="of $"+goal.toLocaleString("en-US")+" · "+(data.source==="tiltify"?"live from Tiltify":"site total until Tiltify is connected"); }
+      async function pull(){
+        var raised=0, goal=10000, live=false;
+        try {
+          const res=await fetch("/api/live/goal",{cache:"no-store"});
+          if(!res.ok) throw new Error("goal");
+          const data=await res.json();
+          raised=Math.max(0,Math.round(Number(data.raised)||0));
+          goal=Math.max(1,Math.round(Number(data.goal)||10000));
+          live=data.source==="tiltify";
+        } catch (e) { raised=0; goal=10000; live=false; }
+        document.getElementById("raised").textContent="$"+raised.toLocaleString("en-US");
+        document.getElementById("fill").style.width=Math.min(100,Math.round(raised/goal*100))+"%";
+        document.getElementById("meta").textContent="of $"+goal.toLocaleString("en-US")+(live?" · live from Tiltify":"");
+      }
       pull(); setInterval(pull, 15000);
     </script>`;
   return page("Goal", body, { live: false, mode });
@@ -208,8 +221,17 @@ export function renderLiveAlerts(mode) {
 export function renderLiveTicker(mode, line) {
   const body = `<div class="ticker"><span id="line">${esc(line)}</span></div><script>
     const base = ${JSON.stringify(line)};
-    async function pull(){ const res=await fetch("/api/live/goal"); const data=await res.json(); const raised=Math.round(data.raised||0).toLocaleString("en-US"); document.getElementById("line").textContent="$"+raised+" raised for freeCodeCamp · "+base; }
-    pull(); setInterval(pull, 20000);
+    async function pull(){
+      var raised=0;
+      try {
+        const res=await fetch("/api/live/goal",{cache:"no-store"});
+        if(!res.ok) throw new Error("goal");
+        const data=await res.json();
+        raised=Math.max(0,Math.round(Number(data.raised)||0));
+      } catch (e) { raised=0; }
+      document.getElementById("line").textContent="$"+raised.toLocaleString("en-US")+" raised for freeCodeCamp · "+base;
+    }
+    pull(); setInterval(pull, 15000);
   </script>`;
   return page("Ticker", body, { live: true, mode });
 }
