@@ -35,8 +35,6 @@ import { boundaryFrom, parseMultipart } from "./multipart.js";
 import { applyHome } from "./campaign.js";
 import { tiersHtml } from "./pitch.js";
 import { scheduleHtml, onAir } from "./schedule.js";
-import { applyGame, loadGame } from "./games.js";
-import { renderDisplay, renderGameIndex, renderHost } from "./gamepages.js";
 import { tickerText } from "./ticker.js";
 import { liveFundraiser } from "./tiltify.js";
 import { zipStore } from "./zip.js";
@@ -200,10 +198,6 @@ export async function createApp(env = {}) {
         await routePortal(req, res, url, db, config);
         return;
       }
-      if (url.pathname === "/games" || url.pathname.startsWith("/games/")) {
-        await routeGames(req, res, url, db, config);
-        return;
-      }
       if (await routeShow(req, res, url, db, config)) return;
       if (req.method !== "GET") return text(res, 405, "Method not allowed\n");
       if (url.pathname === "/" || url.pathname === "/index.html" || url.pathname === "/sponsor" || url.pathname === "/sponsor.html") {
@@ -311,45 +305,6 @@ function entryAllowed(ip) {
   recent.push(now);
   enterHits.set(ip, recent);
   return true;
-}
-
-async function routeGames(req, res, url, db, config) {
-  if (url.pathname === "/games" && req.method === "GET") return html(res, 200, renderGameIndex());
-  const match = url.pathname.match(/^\/games\/(movie|price|feud|sweater)\/(host|display)$/);
-  if (!match) return text(res, 404, "Not found\n");
-  const slug = match[1];
-  const view = match[2];
-  if (view === "display" && req.method === "GET") {
-    const state = await loadGame(db, slug);
-    const part = url.searchParams.get("part") === "board";
-    const body = renderDisplay(slug, state, { mode: url.searchParams.get("mode") || "", part });
-    if (part) {
-      res.statusCode = 200;
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.setHeader("Cache-Control", "no-store");
-      res.end(body);
-      return;
-    }
-    return html(res, 200, body);
-  }
-  if (view !== "host") return text(res, 404, "Not found\n");
-  if (req.method === "POST") assertSameOrigin(req);
-  const session = await currentSession(req, db, config);
-  if (!session || session.role !== "admin") {
-    return html(res, 200, renderAdminLogin({ flash: { saved: "", error: "Jason’s code is required for the host controls." } }));
-  }
-  if (req.method === "POST") {
-    const fields = await readForm(req);
-    try {
-      await applyGame(db, slug, fields);
-    } catch (err) {
-      if (!(err instanceof AppError)) throw err;
-      return html(res, 200, renderHost(slug, await loadGame(db, slug), { error: err.message }));
-    }
-    return redirect(res, `/games/${slug}/host?saved=1`);
-  }
-  if (req.method !== "GET") return text(res, 405, "Method not allowed\n");
-  return html(res, 200, renderHost(slug, await loadGame(db, slug), { saved: url.searchParams.get("saved") || "" }));
 }
 
 async function routeShow(req, res, url, db, config) {

@@ -7,28 +7,28 @@ function esc(value) {
 }
 
 const css = `
-:root { --ground:#17110d; --line:rgba(245,230,184,.22); --cream:#f5e6b8; --muted:#cdbf98; --gold:#f2b33d; }
+:root { --ground:#e7f6f4; --line:#c6dbcc; --cream:#254f55; --muted:#3e6866; --gold:#8a5a09; }
 * { box-sizing: border-box; }
-body { margin:0; background:#17110d; color:var(--cream); font-family:"JetBrains Mono",ui-monospace,monospace; font-size:16px; line-height:1.45; }
+body { margin:0; min-height:100vh; color:var(--cream); font-family:"JetBrains Mono",ui-monospace,monospace; font-size:16px; line-height:1.45; background:radial-gradient(ellipse at 85% 0%, #fff8d5 0, transparent 28%), linear-gradient(180deg, #8fd3f0 0%, #bce8ed 48%, #e6f6f4 100%); background-attachment:fixed; }
 a { color:var(--gold); }
 .wrap { max-width:980px; margin:0 auto; padding:24px 16px 72px; }
 h1 { font-size:clamp(1.7rem,4vw,2.4rem); margin:8px 0; }
-.slot { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; padding:12px 0; border-top:1px solid var(--line); }
+.slot { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; padding:14px 16px; margin-top:10px; border:2px solid var(--line); border-radius:20px; background:#fffbed; box-shadow:0 4px 0 #254f5512; }
 .meta { color:var(--muted); font-size:.86rem; }
-.btn, button { display:inline-flex; align-items:center; min-height:44px; padding:0 14px; border-radius:999px; background:var(--gold); color:#17110d; font:inherit; font-weight:700; border:0; text-decoration:none; cursor:pointer; }
-input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea { width:100%; min-height:44px; margin-top:4px; padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:#100d0b; color:var(--cream); font:inherit; }
+.btn, button { display:inline-flex; align-items:center; min-height:44px; padding:0 14px; border-radius:999px; background:#fbd475; color:#254f55; font:inherit; font-weight:700; border:0; text-decoration:none; cursor:pointer; box-shadow:0 4px 0 #e2b84a; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea { width:100%; min-height:44px; margin-top:4px; padding:8px 10px; border-radius:12px; border:2px solid var(--line); background:#fff; color:var(--cream); font:inherit; }
 input[type="checkbox"], input[type="radio"] {
   appearance:none; -webkit-appearance:none; width:22px; height:22px; min-width:22px; min-height:22px; margin:0; flex:0 0 22px;
-  border:2px solid var(--gold); background:#100d0b; display:grid; place-content:center; cursor:pointer;
+  border:2px solid var(--gold); background:#fff; display:grid; place-content:center; cursor:pointer;
 }
 input[type="checkbox"] { border-radius:6px; }
 input[type="radio"] { border-radius:50%; }
-input[type="checkbox"]:checked, input[type="radio"]:checked { background:var(--gold); }
-input[type="checkbox"]:checked::before { content:""; width:5px; height:9px; border:solid #17110d; border-width:0 2px 2px 0; transform:rotate(45deg) translate(-1px,-1px); }
-input[type="radio"]:checked::before { content:""; width:8px; height:8px; border-radius:50%; background:#17110d; }
+input[type="checkbox"]:checked, input[type="radio"]:checked { background:#fbd475; }
+input[type="checkbox"]:checked::before { content:""; width:5px; height:9px; border:solid #254f55; border-width:0 2px 2px 0; transform:rotate(45deg) translate(-1px,-1px); }
+input[type="radio"]:checked::before { content:""; width:8px; height:8px; border-radius:50%; background:#254f55; }
 label.check { display:flex; align-items:center; justify-content:flex-start; gap:12px; width:100%; text-align:left; }
 label { display:block; margin:12px 0; }
-.banner { padding:12px; border-radius:12px; background:rgba(242,179,61,.12); }
+.banner { padding:12px; border-radius:16px; background:#fff4d2; border:2px solid #fbd475; }
 .hp { position:absolute; left:-9999px; }
 .tabs a { margin-right:12px; }
 textarea.copy { min-height:96px; }
@@ -36,7 +36,7 @@ textarea.copy { min-height:96px; }
 
 function page(title, body) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"><style>${css}</style></head><body>${body}</body></html>`;
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"><link rel="stylesheet" href="/theme.css"><style>${css}</style></head><body>${body}</body></html>`;
 }
 
 export function renderGuests({ sponsors, guests, blocks, message, error }) {

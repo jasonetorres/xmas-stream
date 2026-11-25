@@ -1,59 +1,64 @@
 import { formatRange } from "./time.js";
 
+/** Public Game Night site. Host pages stay off this site. */
+export const GAME_NIGHT_URL = String(process.env.GAME_NIGHT_URL || "https://christmasmillionaire.vercel.app").replace(/\/+$/, "");
+
+function night(path) {
+  return `${GAME_NIGHT_URL}${path}`;
+}
+
 /**
  * One source for the public schedule, lower thirds, the live up-next board,
- * and the run of show. `href` is the public watch link. `soon` hides that
- * link until the outside app is confirmed live.
+ * and the run of show. `href` is the public Game Night link.
  */
 export const SEGMENTS = [
   {
-    id: "santa",
-    name: "Call Santa",
-    note: "Santavel. Call Santa live.",
-    start: 14 * 60,
-    href: "https://findsanta.vercel.app",
-    watch: "Watch",
-  },
-  {
-    id: "movie",
-    name: "Name That Christmas Movie",
-    note: "Emoji, line, and scene clues. Played live on the stream.",
-    start: 15 * 60,
-    href: "/games/movie/display",
-    watch: "Watch",
-  },
-  {
     id: "price",
-    name: "Holiday Price is Right",
-    note: "Level Up Financial Planning’s finance-friendly hour. No sales pitch.",
-    start: 16 * 60,
-    href: "/games/price/display",
+    name: "The Price Is Merry",
+    note: "Level Up Financial Planning’s hour.",
+    start: 14 * 60,
+    href: night("/games/price"),
     watch: "Watch",
   },
   {
     id: "feud",
-    name: "Christmas Family Feud",
-    note: "Survey board with two teams. Played live on the stream.",
+    name: "Holiday Family Feud",
+    note: "Survey says. Two teams, one board.",
+    start: 15 * 60,
+    href: night("/games/feud"),
+    watch: "Watch",
+  },
+  {
+    id: "wheel",
+    name: "Wheel of Winter",
+    note: "Spin, call a letter, and solve the puzzle.",
+    start: 16 * 60,
+    href: night("/games/wheel"),
+    watch: "Watch",
+  },
+  {
+    id: "deal",
+    name: "Deal or No Sleigh",
+    note: "Pick a gift. Take the banker’s offer when it feels right.",
     start: 17 * 60,
-    href: "/games/feud/display",
+    href: night("/games/deal"),
     watch: "Watch",
   },
   {
-    id: "sweater",
-    name: "Ugly Sweater Showdown + Donation Dares",
-    note: "Sweater votes, then donation dares. Played live on the stream.",
+    id: "password",
+    name: "North Pole Password",
+    note: "One-word clues. Guess the holiday word.",
     start: 18 * 60,
-    href: "/games/sweater/display",
+    href: night("/games/password"),
     watch: "Watch",
   },
   {
-    id: "christmasaire",
-    name: "Christmasaire 2.0",
-    note: "Christmas Millionaire finale.",
+    id: "millionaire",
+    name: "Christmas Millionaire",
+    note: "The finale. The audience votes along.",
     start: 19 * 60,
-    href: "https://christmasmillionaire.vercel.app",
+    href: night("/vote"),
     watch: "Watch",
-    soon: true,
   },
 ].map((segment) => ({ ...segment, end: segment.start + 60 }));
 
@@ -75,7 +80,7 @@ export function scheduleHtml() {
       ? `<p><a class="watch" href="${escapeHtml(segment.href)}"${segment.href.startsWith("http") ? ` target="_blank" rel="noopener noreferrer"` : ""}>${escapeHtml(segment.watch || "Watch")}</a></p>`
       : "";
     return `<li class="game"><time datetime="${STREAM_DATE}T${hour}:00:00-05:00">${segmentRange(segment)}</time><div><h3>${escapeHtml(segment.name)}</h3><p>${escapeHtml(segment.note)}</p>${soon}${link}</div></li>`;
-  }).join("")}</ol>`;
+  }).join("")}</ol><p class="fun">Or <a href="https://findsanta.vercel.app">Call Santa</a> whenever you like.</p>`;
 }
 
 function escapeHtml(value) {

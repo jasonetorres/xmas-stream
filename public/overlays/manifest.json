@@ -28,28 +28,28 @@
     "title": "Winner lower third"
   },
   {
-    "file": "lower-santa.png",
-    "title": "Lower third · Call Santa"
-  },
-  {
-    "file": "lower-movie.png",
-    "title": "Lower third · Name That Christmas Movie"
-  },
-  {
     "file": "lower-price.png",
-    "title": "Lower third · Holiday Price is Right"
+    "title": "Lower third · The Price Is Merry"
   },
   {
     "file": "lower-feud.png",
-    "title": "Lower third · Christmas Family Feud"
+    "title": "Lower third · Holiday Family Feud"
   },
   {
-    "file": "lower-sweater.png",
-    "title": "Lower third · Ugly Sweater Showdown + Donation Dares"
+    "file": "lower-wheel.png",
+    "title": "Lower third · Wheel of Winter"
   },
   {
-    "file": "lower-christmasaire.png",
-    "title": "Lower third · Christmasaire 2.0"
+    "file": "lower-deal.png",
+    "title": "Lower third · Deal or No Sleigh"
+  },
+  {
+    "file": "lower-password.png",
+    "title": "Lower third · North Pole Password"
+  },
+  {
+    "file": "lower-millionaire.png",
+    "title": "Lower third · Christmas Millionaire"
   },
   {
     "file": "slate-laravel.png",

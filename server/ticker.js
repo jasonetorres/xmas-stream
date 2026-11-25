@@ -17,7 +17,7 @@ export function bannerLines() {
     "Six holiday games, 2:00–8:00 PM ET, Friday, December 18.",
     "Thank you to every sponsor on the Christmas Birthday Stream.",
     "Scan the on-screen QR or open the entry page. No donation needed.",
-    "Call Santa opens at 2:00 PM ET. Christmasaire 2.0 closes the show at 7:00.",
+    "The Price Is Merry opens at 2:00 PM ET. Christmas Millionaire closes the show at 7:00.",
     `Be a guest. Request a half-hour slot at ${siteUrl}/guests.`,
   ];
 }

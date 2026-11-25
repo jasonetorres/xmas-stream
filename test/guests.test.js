@@ -78,7 +78,7 @@ test("guest slots stay private until Jason approves them", async (t) => {
   assert.match(sheet, /Ada Lovelace/);
   assert.match(sheet, /Holiday debugging/);
   assert.match(sheet, /ada-guest@example.com/);
-  assert.match(sheet, /Call Santa/);
+  assert.match(sheet, /The Price Is Merry/);
 
   const moved = await fetch(`${base}/admin/guests/move`, {
     method: "POST",
