@@ -29,7 +29,7 @@
     if (meter) {
       meter.setAttribute("aria-valuenow", String(raised));
       meter.setAttribute("aria-valuemax", String(goal));
-      meter.setAttribute("aria-label", money(raised) + " of " + money(goal) + " raised for freeCodeCamp");
+      meter.setAttribute("aria-label", money(raised) + " of " + money(goal) + " raised for charity");
     }
   }
 

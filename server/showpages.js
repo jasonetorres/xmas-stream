@@ -99,7 +99,7 @@ export function renderRules({ prizes = [] } = {}) {
     ? `<ul>${prizes.map((prize) => `<li><b>${esc(prize.prize)}</b> from ${esc(prize.sponsor)}</li>`).join("")}</ul>`
     : "<p>The prizes are the ones listed on the entry page.</p>";
   const body = `<div class="wrap"><h1>Official rules</h1>
-    <p>These are the rules for the giveaway on Jason Torres’s Birthday + Christmas Stream. The stream benefits freeCodeCamp.</p>
+    <p>These are the rules for the giveaway on Jason Torres’s Birthday + Christmas Stream. The stream benefits a charity.</p>
     <h2>Who can enter</h2>
     <p>Legal residents of the United States.</p>
     <p class="banner"><b>Jason, confirm this before the stream.</b> Placeholder, not a rule yet: the minimum age still needs your sign-off. Do not treat this sentence as an age limit.</p>
@@ -188,7 +188,7 @@ export function renderWinnerCard({ name, prize, mode }) {
 }
 
 export function renderLiveGoal(mode) {
-  const body = `<div class="goal"><div style="letter-spacing:.14em;text-transform:uppercase;color:#8a5a09">freeCodeCamp</div><h1 id="raised">$0</h1><div class="bar"><b id="fill" style="width:0"></b></div><p id="meta"></p></div>
+  const body = `<div class="goal"><div style="letter-spacing:.14em;text-transform:uppercase;color:#8a5a09">For charity</div><h1 id="raised">$0</h1><div class="bar"><b id="fill" style="width:0"></b></div><p id="meta"></p></div>
     <script>
       async function pull(){
         var raised=0, goal=10000, live=false;
@@ -229,7 +229,7 @@ export function renderLiveTicker(mode, line) {
         const data=await res.json();
         raised=Math.max(0,Math.round(Number(data.raised)||0));
       } catch (e) { raised=0; }
-      document.getElementById("line").textContent="$"+raised.toLocaleString("en-US")+" raised for freeCodeCamp · "+base;
+      document.getElementById("line").textContent="$"+raised.toLocaleString("en-US")+" raised for charity · "+base;
     }
     pull(); setInterval(pull, 15000);
   </script>`;

@@ -4,14 +4,14 @@ const ENTER = `${siteUrl}/enter`;
 
 export function tickerText(sponsors) {
   const names = (sponsors || []).map((sponsor) => sponsor.name).filter(Boolean).join(", ");
-  const line = `Donate at tilt.fyi/9va4uz7GEn · Raising $${campaign.goal.toLocaleString("en-US")} for freeCodeCamp · Thank you ${names} · Enter the giveaway at ${ENTER} · No donation needed to enter · Open to US residents only`;
+  const line = `Donate at tilt.fyi/9va4uz7GEn · Raising $${campaign.goal.toLocaleString("en-US")} for charity · Thank you ${names} · Enter the giveaway at ${ENTER} · No donation needed to enter · Open to US residents only`;
   return line.replace(/\s+/g, " ").trim();
 }
 
 export function bannerLines() {
   return [
-    "Donate at tilt.fyi/9va4uz7GEn. Every dollar goes to freeCodeCamp.",
-    "Goal: $10,000 for freeCodeCamp. The giveaway needs no donation.",
+    "Donate at tilt.fyi/9va4uz7GEn. Every dollar goes to charity.",
+    "Goal: $10,000 for charity. The giveaway needs no donation.",
     "Enter the giveaway. Open to US residents only. One entry per email. No purchase necessary.",
     "Open to US residents only.",
     "Six holiday games, 2:00–8:00 PM ET, Friday, December 18.",

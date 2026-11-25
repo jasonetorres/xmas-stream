@@ -45,7 +45,7 @@ export function frameHtml() {
       <div style="padding:16px 26px 18px 22px">
         <div style="color:#8a5a09;font-size:20px;font-weight:700;letter-spacing:.16em;text-transform:uppercase">On the air</div>
         <div style="margin-top:4px;font-size:46px;font-weight:700;line-height:1.05">Birthday + Christmas Stream</div>
-        <div style="margin-top:8px;color:#3e6866;font-size:26px;line-height:1.2">Raising $10K for freeCodeCamp · tilt.fyi/9va4uz7GEn</div>
+        <div style="margin-top:8px;color:#3e6866;font-size:26px;line-height:1.2">Raising $10K for charity · tilt.fyi/9va4uz7GEn</div>
       </div>
     </div>`);
 }
@@ -115,7 +115,7 @@ export function wallHtml(groups) {
     }).join("");
     return `<section style="margin-top:18px"><div style="color:#8a5a09;letter-spacing:.16em;text-transform:uppercase;font-size:16px;font-weight:700">${esc(group.tier)}</div><div style="margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:14px 18px">${items}</div></section>`;
   }).join("");
-  return stage(`<div style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 32px;text-align:center"><div style="font-size:48px;font-weight:700;line-height:1.05">Thank you, sponsors</div><div style="margin-top:6px;color:#3e6866;font-size:22px">Raising $10,000 for freeCodeCamp</div>${columns}</div>`, { opaque: true });
+  return stage(`<div style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 32px;text-align:center"><div style="font-size:48px;font-weight:700;line-height:1.05">Thank you, sponsors</div><div style="margin-top:6px;color:#3e6866;font-size:22px">Raising $10,000 for charity</div>${columns}</div>`, { opaque: true });
 }
 
 export function guestLowerHtml({ name, handle, time }) {
@@ -153,10 +153,10 @@ export function segmentCard(segment, sponsors, publicDir) {
 export function catalog(sponsors, publicDir, qrs, guests = []) {
   const items = [
     { file: "frame.png", title: "Main frame", html: frameHtml() },
-    { file: "starting-soon.png", title: "Starting Soon", html: sceneHtml({ kicker: "Friday, December 18 · 2:00 PM ET", title: "Starting soon", detail: "Six holiday games. Raising $10,000 for freeCodeCamp." }) },
+    { file: "starting-soon.png", title: "Starting Soon", html: sceneHtml({ kicker: "Friday, December 18 · 2:00 PM ET", title: "Starting soon", detail: "Six holiday games. Raising $10,000 for charity." }) },
     { file: "brb.png", title: "Be right back", html: sceneHtml({ kicker: "Stay here", title: "Be right back", detail: "Grab a cocoa. The next game starts in a minute." }) },
-    { file: "ending.png", title: "Thanks for watching", html: sceneHtml({ kicker: "That’s a wrap", title: "Thanks for watching", detail: "Merry Christmas. Every dollar went to freeCodeCamp." }) },
-    { file: "donate-qr.png", title: "Donate QR", html: sceneHtml({ kicker: "freeCodeCamp", title: "Donate now", detail: campaign.tiltifyUrl.replace("https://", ""), qr: qrs.donate }) },
+    { file: "ending.png", title: "Thanks for watching", html: sceneHtml({ kicker: "That’s a wrap", title: "Thanks for watching", detail: "Merry Christmas. Every dollar went to charity." }) },
+    { file: "donate-qr.png", title: "Donate QR", html: sceneHtml({ kicker: "For charity", title: "Donate now", detail: campaign.tiltifyUrl.replace("https://", ""), qr: qrs.donate }) },
     { file: "enter-giveaway.png", title: "Enter the giveaway", html: sceneHtml({ kicker: "Open to US residents only", title: "Enter the giveaway", detail: `${siteUrl.replace("https://", "")}/enter`, qr: qrs.enter }) },
     { file: "winner.png", title: "Winner lower third", html: winnerTemplateHtml() },
   ];

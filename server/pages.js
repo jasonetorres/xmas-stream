@@ -306,7 +306,7 @@ function bookingBlock(sponsor) {
     const heading = prizeSeat ? "Your prize" : "Cash gift";
     const copy = prizeSeat
       ? "Your giveaway is already on the lineup. Send the logo, the link, and how it gets to the winner."
-      : "This gift is cash for freeCodeCamp. Send your logo, link, talking points, X handle, and the credit line.";
+      : "This gift is cash for charity. Send your logo, link, talking points, X handle, and the credit line.";
     return `<section class="panel stack"><h2>${heading}</h2><p class="quiet">${copy}</p></section>`;
   }
   const rows = sponsor.rows
@@ -359,15 +359,15 @@ const BENEFITS = {
     "A 1-hour block on Friday, Dec 18, 2:00–8:00 PM ET.",
     "Gift Drop, Hot Seat, or both, and a guest name.",
     "Your logo on screen all six hours, plus a thank-you at the open and the close.",
-    "$3,000 cash for freeCodeCamp, or a $1,500+ experience, trip, or big-ticket prize.",
+    "$3,000 cash for charity, or a $1,500+ experience, trip, or big-ticket prize.",
   ],
   gold: [
     "A 30-minute block on Friday, Dec 18, 2:00–8:00 PM ET.",
     "Bring a guest or jump into a game, and a live giveaway moment.",
-    "$1,000 cash for freeCodeCamp, or a prize. Gear starts at $500. An experience or a trip starts at $1,000.",
+    "$1,000 cash for charity, or a prize. Gear starts at $500. An experience or a trip starts at $1,000.",
   ],
-  silver: ["$500 cash for freeCodeCamp.", "A shoutout on the stream and a spot on the logo wall."],
-  community: ["$100 or more in cash for freeCodeCamp.", "Your name on the thank-you wall."],
+  silver: ["$500 cash for charity.", "A shoutout on the stream and a spot on the logo wall."],
+  community: ["$100 or more in cash for charity.", "Your name on the thank-you wall."],
   prize: ["Your giveaway is already on the lineup.", "Send the logo and how it reaches the winner."],
 };
 
@@ -545,7 +545,7 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
 <p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Prize sponsors: ${spots.prize}. Silver: ${spots.silver}. Community: ${spots.community}.</p>
 <p>Giveaway entries: <b>${giveaway?.total || 0}</b>. ${(giveaway?.lines || []).map(esc).join(" · ") || "No prize entries yet."}</p>
 <p>Tiltify donations: <b id="raised-amount">${esc(money(raised))}</b> of <span id="raised-goal">${esc(money(campaign.goal))}</span>. Sponsor cash is not included.</p>
-<div class="raise-track" id="raised-meter" role="meter" aria-valuemin="0" aria-valuemax="${campaign.goal}" aria-valuenow="${Math.max(0, Math.round(Number(raised) || 0))}" aria-label="${esc(money(raised))} of ${esc(money(campaign.goal))} raised for freeCodeCamp" style="max-width:460px"><span id="raised-fill" style="width:${campaign.goal > 0 ? Math.min(100, Math.round((Math.max(0, Number(raised) || 0) / campaign.goal) * 100)) : 0}%"></span></div>
+<div class="raise-track" id="raised-meter" role="meter" aria-valuemin="0" aria-valuemax="${campaign.goal}" aria-valuenow="${Math.max(0, Math.round(Number(raised) || 0))}" aria-label="${esc(money(raised))} of ${esc(money(campaign.goal))} raised for charity" style="max-width:460px"><span id="raised-fill" style="width:${campaign.goal > 0 ? Math.min(100, Math.round((Math.max(0, Number(raised) || 0) / campaign.goal) * 100)) : 0}%"></span></div>
 <script src="/raise.js"></script>
 <p><a class="btn btn-ghost btn-tiny" href="/admin">Sponsors</a> <a class="btn btn-ghost btn-tiny" href="/admin/guests">Guests</a> <a class="btn btn-ghost btn-tiny" href="/admin/leads.csv">All leads CSV</a> <a class="btn btn-ghost btn-tiny" href="/admin/giveaway.csv">Entrants CSV</a> <a class="btn btn-ghost btn-tiny" href="/draw">Draw a winner</a> <a class="btn btn-ghost btn-tiny" href="/overlays">Overlays</a></p>
 ${hostLinksHtml()}

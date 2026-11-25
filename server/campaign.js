@@ -5,7 +5,7 @@ import { showcaseHtml } from "./brands.js";
  * Sponsor cash is not part of that number. Donate buttons use `tiltifyUrl`.
  */
 export const campaign = {
-  cause: "freeCodeCamp",
+  cause: "charity",
   goal: 10000,
   tiltifyUrl: "https://tilt.fyi/9va4uz7GEn",
 };
