@@ -1,0 +1,23 @@
+/* Pale sky, cream cards, and a slow snow drift. Matches the Game Night boards. */
+html { color-scheme: light; }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 1.3px, transparent 1.7px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.7) 1px, transparent 1.4px);
+  background-size: 170px 250px, 110px 190px;
+  animation: santa-snow 20s linear infinite;
+}
+@keyframes santa-snow {
+  from { background-position: 0 -250px, 40px -190px; }
+  to { background-position: 48px 250px, 8px 190px; }
+}
+body > * { position: relative; z-index: 1; }
+body.live::before, body.green::before { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+}

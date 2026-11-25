@@ -52,8 +52,8 @@ await app.close();
 
 fs.mkdirSync(tmp, { recursive: true });
 fs.mkdirSync(outDir, { recursive: true });
-const donate = await QRCode.toDataURL(campaign.tiltifyUrl, { margin: 1, width: 280, color: { dark: "#17110d", light: "#f5e6b8" } });
-const enter = await QRCode.toDataURL(`${siteUrl}/enter`, { margin: 1, width: 280, color: { dark: "#17110d", light: "#f5e6b8" } });
+const donate = await QRCode.toDataURL(campaign.tiltifyUrl, { margin: 1, width: 280, color: { dark: "#254f55", light: "#fffbed" } });
+const enter = await QRCode.toDataURL(`${siteUrl}/enter`, { margin: 1, width: 280, color: { dark: "#254f55", light: "#fffbed" } });
 const items = catalog(sponsors, path.join(root, "public"), { donate, enter }, guests);
 const manifest = [];
 for (const item of items) {

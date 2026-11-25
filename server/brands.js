@@ -13,6 +13,7 @@ export const BRANDS = {
     website: "https://unkey.com",
     logos: ["public/logos/unkey.svg"],
     hub: "/logos/unkey.svg",
+    plate: "ink",
   },
   mux: {
     website: "https://mux.com",
@@ -22,7 +23,7 @@ export const BRANDS = {
       "public/logos/mux-wordmark-medium-white.svg",
       "public/logos/mux-wordmark-white.png",
     ],
-    hub: "/logos/mux-wordmark-white.svg",
+    hub: "/logos/mux-wordmark-black.svg",
     x: "https://x.com/davekiss",
     clear: true,
   },
@@ -30,11 +31,12 @@ export const BRANDS = {
     website: "https://coder.com",
     logos: ["public/logos/coder.png"],
     hub: "/logos/coder.png",
+    plate: "ink",
   },
   luke: {
     website: "https://www.levelupfinancialplanning.com/",
     logos: ["public/logos/levelup-white.png", "public/logos/levelup-dark.png"],
-    hub: "/logos/levelup-white.png",
+    hub: "/logos/levelup-dark.png",
     x: "https://x.com/LukeCFPLevelUp",
   },
   kunal: {
@@ -43,7 +45,7 @@ export const BRANDS = {
       "public/logos/wemakedevs-wordmark-light.svg",
       "public/logos/wemakedevs-wordmark-dark.svg",
     ],
-    hub: "/logos/wemakedevs-wordmark-light.svg",
+    hub: "/logos/wemakedevs-wordmark-dark.svg",
     x: "https://x.com/kunalstwt",
   },
   tighten: {
@@ -56,6 +58,7 @@ export const BRANDS = {
     website: "https://coderabbit.ai",
     logos: ["public/logos/coderabbit.png"],
     hub: "/logos/coderabbit.png",
+    plate: "ink",
   },
   torc: {
     website: "https://torc.dev",
@@ -76,13 +79,13 @@ export const BRANDS = {
   resend: {
     website: "https://resend.com",
     logos: ["public/logos/resend-wordmark-white.svg", "public/logos/resend-wordmark-black.svg"],
-    hub: "/logos/resend-wordmark-white.svg",
+    hub: "/logos/resend-wordmark-black.svg",
     x: "https://x.com/_christinacodes",
   },
   temporal: {
     website: "https://temporal.io",
     logos: ["public/logos/temporal-wordmark-light.svg", "public/logos/temporal-wordmark-dark.svg"],
-    hub: "/logos/temporal-wordmark-light.svg",
+    hub: "/logos/temporal-wordmark-dark.svg",
   },
 };
 
@@ -140,9 +143,10 @@ export function sponsorCard(sponsor) {
   const mark = brand.hub
     ? `<img src="${esc(brand.hub)}" alt="">`
     : `<span class="badge">${esc(sponsor.name)}</span>`;
+  const slot = brand.plate === "ink" ? "logo-slot ink" : "logo-slot";
   const prize = sponsor.prize_details ? esc(sponsor.prize_details) : "Prize to be announced";
   const link = href ? `<a class="card-link" href="${esc(href)}">${esc(linkLabel(href))}</a>` : "";
-  return `<li class="sponsor-card"><div class="logo-slot">${mark}</div><strong>${esc(sponsor.name)}</strong><small>${prize}</small>${link}</li>`;
+  return `<li class="sponsor-card"><div class="${slot}">${mark}</div><strong>${esc(sponsor.name)}</strong><small>${prize}</small>${link}</li>`;
 }
 
 export function showcaseHtml(sponsors) {

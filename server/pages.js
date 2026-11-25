@@ -1,5 +1,6 @@
 import { logoStatusText } from "./brands.js";
 import { cashOnly, durationFor, pickerLabel, segmentSummary, spotLines, tierLabel } from "./domain.js";
+import { hostLinksHtml } from "./schedule.js";
 import { ASSETS_DUE, STREAM_DAY, STREAM_END, STREAM_START, WINDOW_LABEL, formatClock, formatRange, gridStarts } from "./time.js";
 
 const SAVED = {
@@ -36,19 +37,23 @@ function shell({ title, body, wide, section = "sponsor" }) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap">
+<link rel="stylesheet" href="/theme.css">
 <style>
 :root {
-  --ground: #17110d; --panel: #221a14; --line: rgba(245, 230, 184, 0.22);
-  --cream: #f5e6b8; --muted: #cdbf98; --gold: #f2b33d; --red: #c8322b;
+  --ground: #e7f6f4; --panel: #fffbed; --line: #c6dbcc;
+  --cream: #254f55; --muted: #3e6866; --gold: #8a5a09; --red: #bd373b;
   --display: "JetBrains Mono", ui-monospace, monospace; --label: "JetBrains Mono", ui-monospace, monospace;
-  color-scheme: dark;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 body {
-  margin: 0; background: var(--ground); color: var(--cream);
+  margin: 0; color: var(--cream);
   font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 16px; line-height: 1.5;
-  background-image: radial-gradient(ellipse at 50% -10%, #3a2a1d 0%, var(--ground) 55%);
-  background-repeat: no-repeat; min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 85% 0%, #fff8d5 0, transparent 28%),
+    linear-gradient(180deg, #8fd3f0 0%, #bce8ed 48%, #e6f6f4 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 a { color: var(--gold); }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
@@ -65,7 +70,7 @@ main { padding-block: 32px 64px; }
 h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.15; font-weight: 700; letter-spacing: -0.03em; }
 h1 em { font-style: italic; color: var(--gold); }
 .lede { color: var(--muted); max-width: 62ch; }
-.panel { background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 20px; }
+.panel { background: var(--panel); border: 2px solid var(--line); border-radius: 24px; padding: 20px; box-shadow: 0 6px 0 #254f5512, 0 16px 32px #254f5514; }
 .stack { display: flex; flex-direction: column; gap: 16px; }
 .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .btn, button.btn {
@@ -74,52 +79,52 @@ h1 em { font-style: italic; color: var(--gold); }
   letter-spacing: 0.1em; font-weight: 600; font-size: 0.95rem; border: 2px solid transparent; cursor: pointer;
   background: transparent; color: var(--cream);
 }
-.btn-gold { background: var(--gold); color: var(--ground); }
-.btn-ghost { border-color: var(--cream); color: var(--cream); background: transparent; }
+.btn-gold { background: #fbd475; color: #254f55; box-shadow: 0 4px 0 #e2b84a; }
+.btn-ghost { border-color: #254f55; color: #254f55; background: #fffbede6; }
 .btn-tiny { min-height: 40px; padding: 0 12px; font-size: 0.82rem; }
 .banner { padding: 12px 14px; border-radius: 12px; }
-.banner.ok { background: rgba(242, 179, 61, 0.12); border: 2px solid var(--gold); }
-.banner.bad { background: rgba(200, 50, 43, 0.18); border: 2px solid var(--red); }
-.banner.warn { background: rgba(200, 50, 43, 0.12); border: 2px solid var(--line); color: var(--muted); }
+.banner.ok { background: #fff4d2; border: 2px solid #fbd475; }
+.banner.bad { background: #ffe4e1; border: 2px solid var(--red); }
+.banner.warn { background: #fff; border: 2px solid var(--line); color: var(--muted); }
 label.field, .field { display: flex; flex-direction: column; gap: 6px; }
 .field span, legend { font-family: var(--label); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.82rem; color: var(--gold); }
 input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea {
   width: 100%; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--line);
-  background: #140f0c; color: var(--cream); font: inherit; font-size: 1rem;
+  background: #fff; color: var(--cream); font: inherit; font-size: 1rem;
 }
 input[type="checkbox"], input[type="radio"] {
   appearance: none; -webkit-appearance: none; width: 22px; height: 22px; min-width: 22px; min-height: 22px;
   margin: 0; padding: 0; flex: 0 0 22px; border: 2px solid var(--gold); border-radius: 6px;
-  background: #140f0c; display: grid; place-content: center; cursor: pointer;
+  background: #fff; display: grid; place-content: center; cursor: pointer;
 }
 input[type="radio"] { border-radius: 50%; }
-input[type="checkbox"]:checked, input[type="radio"]:checked { background: var(--gold); }
-input[type="checkbox"]:checked::before { content: ""; width: 5px; height: 9px; border: solid #17110d; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
-input[type="radio"]:checked::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #17110d; }
+input[type="checkbox"]:checked, input[type="radio"]:checked { background: #fbd475; }
+input[type="checkbox"]:checked::before { content: ""; width: 5px; height: 9px; border: solid #254f55; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+input[type="radio"]:checked::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #254f55; }
 textarea { min-height: 110px; resize: vertical; }
 input.code { font-family: var(--label); letter-spacing: 0.14em; font-size: 1.25rem; text-transform: lowercase; }
 .hint, .quiet { color: var(--muted); margin: 0; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.board { border: 2px solid var(--line); border-radius: 14px; overflow: hidden; background: rgba(0,0,0,0.2); }
+.board { border: 2px solid var(--line); border-radius: 20px; overflow: hidden; background: #fff; }
 .slot { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line); }
 .slot:first-child { border-top: 0; }
 .slot time { font-family: var(--label); letter-spacing: 0.06em; font-size: 0.95rem; }
 .slot label.pick { display: flex; gap: 12px; align-items: center; justify-content: flex-start; width: 100%; min-height: 44px; text-align: left; }
-.slot.mine { background: rgba(242, 179, 61, 0.08); }
+.slot.mine { background: #fff4d2; }
 .slot.taken { color: var(--muted); }
 .check { display: flex; gap: 12px; align-items: center; justify-content: flex-start; width: 100%; text-align: left; }
 fieldset { border: 2px solid var(--line); border-radius: 14px; margin: 0; padding: 14px 16px 16px; }
-.meter { height: 10px; border-radius: 999px; background: rgba(245, 230, 184, 0.12); overflow: hidden; }
-.meter span { display: block; height: 100%; background: var(--gold); }
+.meter { height: 10px; border-radius: 999px; background: #e7f3ea; overflow: hidden; }
+.meter span { display: block; height: 100%; background: #fbd475; }
 .logos { display: flex; flex-wrap: wrap; gap: 10px; }
-.logo-tile { background: var(--cream); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.logo-tile { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .logo-tile img { display: block; max-height: 56px; max-width: 200px; width: auto; height: auto; object-fit: contain; }
 .card { display: flex; flex-direction: column; gap: 12px; }
 .card h2 { font-size: 1.35rem; }
 .picks { display: flex; flex-direction: column; gap: 10px; }
 .pick {
   display: flex; align-items: center; width: 100%; min-height: 52px; padding: 12px 16px;
-  border-radius: 12px; border: 2px solid var(--line); background: #140f0c; color: var(--cream);
+  border-radius: 16px; border: 2px solid var(--line); background: #fff; color: var(--cream);
   font: inherit; text-align: left; cursor: pointer;
 }
 .pick:hover, .pick:focus-visible { border-color: var(--gold); }
@@ -127,6 +132,8 @@ fieldset { border: 2px solid var(--line); border-radius: 14px; margin: 0; paddin
 .tier { font-family: var(--label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-size: 0.85rem; }
 .split { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
 .miss { margin: 0; padding-left: 18px; color: var(--muted); }
+.host-links { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.host-links a { font-weight: 700; }
 footer { border-top: 4px double var(--line); padding-block: 18px 28px; color: var(--muted); font-size: 0.92rem; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
 .stamp { display: inline-flex; align-self: flex-start; gap: 10px; align-items: center; padding: 8px 12px; background: var(--red); color: #fff6e0; transform: rotate(-1deg); }
@@ -406,10 +413,10 @@ function earliestOptions(selected) {
 const HINTS = {
   torc: "On the public logo wall this is Randstad, powered by Torc. The gift cards are already on the prize lineup.",
   tighten: "CEO Matt. The mark and the wordmark are already on file.",
-  luke: "Confirmed Gold. The public pages use the white wordmark.",
-  kunal: "Confirmed Gold as WeMakeDevs. X stays @kunalstwt. The public pages use the white wordmark.",
+  luke: "Confirmed Gold. The public pages use the dark wordmark.",
+  kunal: "Confirmed Gold as WeMakeDevs. X stays @kunalstwt. The public pages use the dark wordmark.",
   renderatl: "Confirmed Silver. The giveaway is one all-access RenderATL ticket.",
-  mux: "Confirmed Platinum. Dave Kiss stays on this card. The public pages use the large white wordmark.",
+  mux: "Confirmed Platinum. Dave Kiss stays on this card. The public pages use the black wordmark.",
   resend: "Confirmed Silver, $500 cash.",
   temporal: "Confirmed Gold, $1,500 cash. The 30-minute block is open until a time is booked.",
 };
@@ -537,6 +544,7 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
 <p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Prize sponsors: ${spots.prize}. Silver: ${spots.silver}. Community: ${spots.community}.</p>
 <p>Giveaway entries: <b>${giveaway?.total || 0}</b>. ${(giveaway?.lines || []).map(esc).join(" · ") || "No prize entries yet."}</p>
 <p><a class="btn btn-ghost btn-tiny" href="/admin">Sponsors</a> <a class="btn btn-ghost btn-tiny" href="/admin/guests">Guests</a> <a class="btn btn-ghost btn-tiny" href="/admin/leads.csv">All leads CSV</a> <a class="btn btn-ghost btn-tiny" href="/admin/giveaway.csv">Entrants CSV</a> <a class="btn btn-ghost btn-tiny" href="/draw">Draw a winner</a> <a class="btn btn-ghost btn-tiny" href="/overlays">Overlays</a></p>
+${hostLinksHtml()}
 <details class="panel" open>
   <summary>Add a sponsor</summary>
   <form class="stack" style="padding-top:14px" method="post" action="/admin/sponsors">

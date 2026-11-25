@@ -20,11 +20,7 @@ That script renders every PNG with headless Chromium from the sponsors and the s
 | `/live/alerts` | New donations |
 | `/live/ticker` | Scrolling total and sponsor thank-yous |
 | `/live/up-next` | Current and next segment in Eastern Time, plus an approved guest in that hour |
-| `/games` | The six hours. Call Santa at 2:00 PM ET, Christmasaire 2.0 at 7:00 PM ET. |
-| `/games/movie/display` | Name That Christmas Movie, for screen share. Host controls are at `/host`. |
-| `/games/price/display` | Holiday Price is Right. |
-| `/games/feud/display` | Christmas Family Feud. |
-| `/games/sweater/display` | Ugly Sweater Showdown and donation dares. |
+| `/` | The six hours as plain cards. The Price Is Merry at 2:00 PM ET, Christmas Millionaire at 7:00 PM ET. Game Night controls are on `/admin`. |
 | `/guests` | 12 half-hour guest slots, 2:00–8:00 PM ET. Pending names stay off the public page. |
 | `/draw/card` | Winner lower third. Admin only. Add `?name=` and `?prize=` |
 

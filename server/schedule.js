@@ -1,59 +1,59 @@
 import { formatRange } from "./time.js";
 
+/** Public Game Night site. Host pages stay off this site. */
+export const GAME_NIGHT_URL = String(process.env.GAME_NIGHT_URL || "https://chrisstmass.vercel.app").replace(/\/+$/, "");
+
+function night(path) {
+  return `${GAME_NIGHT_URL}${path}`;
+}
+
 /**
  * One source for the public schedule, lower thirds, the live up-next board,
- * and the run of show. `href` is the public watch link. `soon` hides that
- * link until the outside app is confirmed live.
+ * and the run of show. The public cards have no Game Night links. `host` is
+ * the admin-only control page.
  */
 export const SEGMENTS = [
   {
-    id: "santa",
-    name: "Call Santa",
-    note: "Santavel. Call Santa live.",
-    start: 14 * 60,
-    href: "https://findsanta.vercel.app",
-    watch: "Watch",
-  },
-  {
-    id: "movie",
-    name: "Name That Christmas Movie",
-    note: "Emoji, line, and scene clues. Played live on the stream.",
-    start: 15 * 60,
-    href: "/games/movie/display",
-    watch: "Watch",
-  },
-  {
     id: "price",
-    name: "Holiday Price is Right",
-    note: "Level Up Financial Planning’s finance-friendly hour. No sales pitch.",
-    start: 16 * 60,
-    href: "/games/price/display",
-    watch: "Watch",
+    name: "The Price Is Merry",
+    note: "Level Up Financial Planning’s hour.",
+    start: 14 * 60,
+    host: "/games/price",
   },
   {
     id: "feud",
-    name: "Christmas Family Feud",
-    note: "Survey board with two teams. Played live on the stream.",
+    name: "Holiday Family Feud",
+    note: "Survey says. Two teams, one board.",
+    start: 15 * 60,
+    host: "/games/feud",
+  },
+  {
+    id: "wheel",
+    name: "Wheel of Winter",
+    note: "Spin, call a letter, and solve the puzzle.",
+    start: 16 * 60,
+    host: "/games/wheel",
+  },
+  {
+    id: "deal",
+    name: "Deal or No Sleigh",
+    note: "Pick a gift. Take the banker’s offer when it feels right.",
     start: 17 * 60,
-    href: "/games/feud/display",
-    watch: "Watch",
+    host: "/games/deal",
   },
   {
-    id: "sweater",
-    name: "Ugly Sweater Showdown + Donation Dares",
-    note: "Sweater votes, then donation dares. Played live on the stream.",
+    id: "password",
+    name: "North Pole Password",
+    note: "One-word clues. Guess the holiday word.",
     start: 18 * 60,
-    href: "/games/sweater/display",
-    watch: "Watch",
+    host: "/games/password",
   },
   {
-    id: "christmasaire",
-    name: "Christmasaire 2.0",
-    note: "Christmas Millionaire finale.",
+    id: "millionaire",
+    name: "Christmas Millionaire",
+    note: "The finale.",
     start: 19 * 60,
-    href: "https://christmasmillionaire.vercel.app",
-    watch: "Watch",
-    soon: true,
+    host: "/hostjt",
   },
 ].map((segment) => ({ ...segment, end: segment.start + 60 }));
 
@@ -70,12 +70,15 @@ export function segmentAt(minute) {
 export function scheduleHtml() {
   return `<ol class="games">${SEGMENTS.map((segment) => {
     const hour = String(Math.floor(segment.start / 60)).padStart(2, "0");
-    const soon = segment.soon ? `<p class="soon">Coming soon</p>` : "";
-    const link = !segment.soon && segment.href
-      ? `<p><a class="watch" href="${escapeHtml(segment.href)}"${segment.href.startsWith("http") ? ` target="_blank" rel="noopener noreferrer"` : ""}>${escapeHtml(segment.watch || "Watch")}</a></p>`
-      : "";
-    return `<li class="game"><time datetime="${STREAM_DATE}T${hour}:00:00-05:00">${segmentRange(segment)}</time><div><h3>${escapeHtml(segment.name)}</h3><p>${escapeHtml(segment.note)}</p>${soon}${link}</div></li>`;
-  }).join("")}</ol>`;
+    return `<li class="game"><time datetime="${STREAM_DATE}T${hour}:00:00-05:00">${segmentRange(segment)}</time><div><h3>${escapeHtml(segment.name)}</h3><p>${escapeHtml(segment.note)}</p></div></li>`;
+  }).join("")}</ol><p class="fun"><a href="https://findsanta.vercel.app">Call Santa</a> whenever you like.</p>`;
+}
+
+/** Controls Jason opens on stream. Never rendered on a public page. */
+export function hostLinksHtml() {
+  const link = (path, label) => `<li><a href="${escapeHtml(night(path))}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></li>`;
+  const hosts = SEGMENTS.map((segment) => link(segment.host, `${segment.name} host`)).join("");
+  return `<section class="panel" id="game-night"><h2>Game Night</h2><p class="hint">Only you open these. The public schedule has no game links.</p><ul class="host-links">${link("/stream", "Stream control")}${link("/stream/display", "Stream display")}${hosts}</ul></section>`;
 }
 
 function escapeHtml(value) {

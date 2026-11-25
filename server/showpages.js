@@ -8,63 +8,63 @@ function esc(value) {
 }
 
 const css = `
-:root { --ground:#17110d; --panel:#221a14; --line:rgba(245,230,184,.22); --cream:#f5e6b8; --muted:#cdbf98; --gold:#f2b33d; --red:#c8322b; }
+:root { --ground:#e7f6f4; --panel:#fffbed; --line:#c6dbcc; --cream:#254f55; --muted:#3e6866; --gold:#8a5a09; --red:#bd373b; }
 * { box-sizing: border-box; }
-body { margin:0; background:var(--ground); color:var(--cream); font-family:"JetBrains Mono",ui-monospace,monospace; font-size:16px; line-height:1.5; }
+body { margin:0; min-height:100vh; color:var(--cream); font-family:"JetBrains Mono",ui-monospace,monospace; font-size:16px; line-height:1.5; background:radial-gradient(ellipse at 85% 0%, #fff8d5 0, transparent 28%), linear-gradient(180deg, #8fd3f0 0%, #bce8ed 48%, #e6f6f4 100%); background-attachment:fixed; }
 body.live { background:transparent; }
-body.green { background:#00b140; }
+body.green { background:#00b140; color:#073018; }
 a { color:var(--gold); }
 .wrap { max-width:1080px; margin:0 auto; padding:28px 20px 64px; }
 h1 { font-size:clamp(1.8rem,4vw,2.6rem); margin:8px 0; }
 .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; }
-.card { padding:14px; border:1px solid var(--line); border-radius:16px; background:rgba(0,0,0,.2); }
+.card { padding:14px; border:2px solid var(--line); border-radius:22px; background:#fffbed; box-shadow:0 5px 0 #254f5512, 0 14px 28px #254f5514; }
 .card img {
-  width:100%; height:148px; object-fit:contain; border-radius:10px;
-  background-color:#8d8d8d;
+  width:100%; height:148px; object-fit:contain; border-radius:14px;
+  background-color:#d7ece4;
   background-image:
-    linear-gradient(45deg, #6f6f6f 25%, transparent 25%),
-    linear-gradient(-45deg, #6f6f6f 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #6f6f6f 75%),
-    linear-gradient(-45deg, transparent 75%, #6f6f6f 75%);
+    linear-gradient(45deg, #c5e0d6 25%, transparent 25%),
+    linear-gradient(-45deg, #c5e0d6 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #c5e0d6 75%),
+    linear-gradient(-45deg, transparent 75%, #c5e0d6 75%);
   background-size:16px 16px;
   background-position:0 0, 0 8px, 8px -8px, -8px 0;
 }
-.card a.btn, button.btn { display:inline-flex; align-items:center; min-height:44px; margin-top:8px; padding:0 14px; border-radius:999px; background:var(--gold); color:#17110d; text-decoration:none; font-weight:700; border:0; font:inherit; cursor:pointer; }
+.card a.btn, button.btn { display:inline-flex; align-items:center; min-height:44px; margin-top:8px; padding:0 14px; border-radius:999px; background:#fbd475; color:#254f55; text-decoration:none; font-weight:700; border:0; font:inherit; cursor:pointer; }
 label { display:block; margin:12px 0; }
-input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea { width:100%; min-height:48px; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#100d0b; color:var(--cream); font:inherit; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea { width:100%; min-height:48px; padding:10px 12px; border-radius:12px; border:2px solid var(--line); background:#fff; color:var(--cream); font:inherit; }
 input[type="checkbox"], input[type="radio"] {
   appearance:none; -webkit-appearance:none; width:22px; height:22px; min-width:22px; min-height:22px; margin:0; flex:0 0 22px;
-  border:2px solid var(--gold); background:#100d0b; display:grid; place-content:center; cursor:pointer;
+  border:2px solid var(--gold); background:#fff; display:grid; place-content:center; cursor:pointer;
 }
 input[type="checkbox"] { border-radius:6px; }
 input[type="radio"] { border-radius:50%; }
-input[type="checkbox"]:checked, input[type="radio"]:checked { background:var(--gold); }
-input[type="checkbox"]:checked::before { content:""; width:5px; height:9px; border:solid #17110d; border-width:0 2px 2px 0; transform:rotate(45deg) translate(-1px,-1px); }
-input[type="radio"]:checked::before { content:""; width:8px; height:8px; border-radius:50%; background:#17110d; }
+input[type="checkbox"]:checked, input[type="radio"]:checked { background:#fbd475; }
+input[type="checkbox"]:checked::before { content:""; width:5px; height:9px; border:solid #254f55; border-width:0 2px 2px 0; transform:rotate(45deg) translate(-1px,-1px); }
+input[type="radio"]:checked::before { content:""; width:8px; height:8px; border-radius:50%; background:#254f55; }
 input[type="checkbox"]:disabled { opacity:.45; cursor:not-allowed; }
 label.prize {
   display:flex; align-items:center; justify-content:flex-start; gap:14px; width:100%; margin:8px 0; padding:12px 14px;
-  min-height:56px; text-align:left; border:1px solid var(--line); border-radius:12px; background:#140f0c; cursor:pointer;
+  min-height:56px; text-align:left; border:2px solid var(--line); border-radius:16px; background:#fff; cursor:pointer;
 }
 label.prize > span { display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:2px; min-width:0; }
 label.prize b { font-weight:700; }
 label.prize:has(input:disabled) { opacity:.55; cursor:not-allowed; }
 .note { color:var(--muted); }
-.l3 { position:fixed; left:0; right:0; bottom:42px; height:104px; display:flex; background:#17110d; }
-.l3 .stripe { width:12px; flex:none; background:#f2b33d; }
+.l3 { position:fixed; left:0; right:0; bottom:42px; height:104px; display:flex; background:#fffbed; color:#254f55; }
+.l3 .stripe { width:12px; flex:none; background:#bd373b; }
 .l3-body { flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; padding:0 28px 0 22px; gap:24px; }
-.l3 .eye { color:#f2b33d; font-size:18px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; line-height:1; }
+.l3 .eye { color:#8a5a09; font-size:18px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; line-height:1; }
 .l3-title { margin-top:6px; font-size:40px; font-weight:700; line-height:1.05; }
 .l3-aside { text-align:right; font-size:28px; font-weight:700; }
-.banner { padding:12px 14px; border-radius:12px; background:rgba(242,179,61,.12); }
+.banner { padding:12px 14px; border-radius:16px; background:#fff4d2; border:2px solid #fbd475; }
 .hp { position:absolute; left:-9999px; }
-.ticker { overflow:hidden; white-space:nowrap; border-top:4px solid var(--gold); border-bottom:4px solid var(--gold); font-size:32px; line-height:64px; }
+.ticker { overflow:hidden; white-space:nowrap; background:#fffbed; color:#254f55; border-top:4px solid #fbd475; border-bottom:4px solid #fbd475; font-size:32px; line-height:64px; }
 .ticker span { display:inline-block; padding-left:100%; animation:marquee 28s linear infinite; }
 @keyframes marquee { to { transform:translateX(-100%); } }
-.goal { max-width:960px; margin:8vh auto; padding:28px; }
-.bar { height:28px; border:2px solid var(--gold); border-radius:999px; overflow:hidden; }
-.bar b { display:block; height:100%; background:var(--gold); }
-.alert { position:fixed; left:32px; bottom:64px; padding:16px 18px; background:rgba(23,17,13,.92); border-left:8px solid var(--gold); border-radius:12px; }
+.goal { max-width:960px; margin:8vh auto; padding:28px; border:2px solid #c6dbcc; border-radius:28px; background:#fffbed; box-shadow:0 8px 0 #254f5514; }
+.bar { height:28px; border:2px solid #c6dbcc; border-radius:999px; overflow:hidden; background:#fff; }
+.bar b { display:block; height:100%; background:#fbd475; }
+.alert { position:fixed; left:32px; bottom:64px; padding:16px 18px; background:#fffbed; color:#254f55; border-left:8px solid #bd373b; border-radius:16px; box-shadow:0 8px 24px #254f5528; }
 .up { min-height:100vh; display:flex; flex-direction:column; justify-content:flex-end; padding:36px 48px 72px; }
 `;
 
@@ -73,6 +73,7 @@ function page(title, body, { live = false, mode = "" } = {}) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="/theme.css">
 <style>${css}</style></head><body class="${cls}">${body}</body></html>`;
 }
 
@@ -187,12 +188,12 @@ export function renderWinnerCard({ name, prize, mode }) {
 }
 
 export function renderLiveGoal(mode) {
-  const body = `<div class="goal"><div style="letter-spacing:.14em;text-transform:uppercase;color:#f2b33d">freeCodeCamp</div><h1 id="raised">$0</h1><div class="bar"><b id="fill" style="width:0"></b></div><p id="meta"></p></div>
+  const body = `<div class="goal"><div style="letter-spacing:.14em;text-transform:uppercase;color:#8a5a09">freeCodeCamp</div><h1 id="raised">$0</h1><div class="bar"><b id="fill" style="width:0"></b></div><p id="meta"></p></div>
     <script>
       async function pull(){ const res=await fetch("/api/live/goal"); const data=await res.json(); const raised=Math.round(data.raised||0); const goal=Math.round(data.goal||10000); document.getElementById("raised").textContent="$"+raised.toLocaleString("en-US"); document.getElementById("fill").style.width=Math.min(100,Math.round(raised/goal*100))+"%"; document.getElementById("meta").textContent="of $"+goal.toLocaleString("en-US")+" · "+(data.source==="tiltify"?"live from Tiltify":"site total until Tiltify is connected"); }
       pull(); setInterval(pull, 15000);
     </script>`;
-  return page("Goal", body, { live: true, mode });
+  return page("Goal", body, { live: false, mode });
 }
 
 export function renderLiveAlerts(mode) {
@@ -216,9 +217,9 @@ export function renderLiveTicker(mode, line) {
 export function renderUpNext(mode, air, guestNote = "") {
   const current = air.current ? `${air.current.name} · ${segmentRange(air.current)}` : air.phase === "after" ? "Thanks for watching" : "Starting soon";
   const next = air.next ? `Up next: ${air.next.name} · ${segmentRange(air.next)}` : "";
-  const guest = guestNote ? `<div style="margin-top:12px;font-size:32px;color:#f2b33d">${esc(guestNote)}</div>` : "";
-  const body = `<div class="up"><div style="color:#f2b33d;letter-spacing:.14em;text-transform:uppercase">${air.phase === "live" ? "On now" : "Stream"}</div><div style="font-size:54px;font-weight:700;max-width:1000px">${esc(current)}</div><div style="font-size:28px;color:#cdbf98">${esc(next)}</div>${guest}</div>`;
-  return page("Up next", body, { live: true, mode });
+  const guest = guestNote ? `<div style="margin-top:12px;font-size:32px;color:#8a5a09">${esc(guestNote)}</div>` : "";
+  const body = `<div class="up"><div style="color:#8a5a09;letter-spacing:.14em;text-transform:uppercase">${air.phase === "live" ? "On now" : "Stream"}</div><div style="font-size:54px;font-weight:700;max-width:1000px">${esc(current)}</div><div style="font-size:28px;color:#3e6866">${esc(next)}</div>${guest}</div>`;
+  return page("Up next", body, { live: false, mode });
 }
 
 export function modeFrom(url) {
