@@ -534,6 +534,14 @@ export async function confirmUnkey(db) {
   await db.run("UPDATE sponsors SET prize_details = ? WHERE id = ?", ["$3,000 cash", row.id]);
 }
 
+export async function confirmResend(db) {
+  const row = await db.get("SELECT id, prize_details FROM sponsors WHERE slug = ?", ["resend"]);
+  if (!row) return;
+  const current = String(row.prize_details || "").trim();
+  if (current && !/^cash donation$/i.test(current)) return;
+  await db.run("UPDATE sponsors SET prize_details = ? WHERE id = ?", ["$500 cash", row.id]);
+}
+
 export async function confirmRenderAtl(db) {
   const row = await db.get("SELECT id, tier, prize_details FROM sponsors WHERE slug = ?", ["renderatl"]);
   if (!row) return;
@@ -610,8 +618,9 @@ const SEED = [
     tier: "silver",
     contact_name: "Christina",
     x_handle: "_christinacodes",
-    prize_details: "Cash donation",
+    prize_details: "$500 cash",
   },
+  { slug: "temporal", name: "Temporal", tier: "gold", prize_details: "$1,500 cash" },
 ];
 
 export async function seedIfEmpty(db, secret, adminCode) {

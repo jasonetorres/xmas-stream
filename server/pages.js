@@ -410,7 +410,8 @@ const HINTS = {
   kunal: "Confirmed Gold as WeMakeDevs. X stays @kunalstwt. The public pages use the white wordmark.",
   renderatl: "Confirmed Silver. The giveaway is one all-access RenderATL ticket.",
   mux: "Confirmed Platinum. Dave Kiss stays on this card. The public pages use the large white wordmark.",
-  resend: "Confirmed Silver. Christina stays on this card. Cash amount is not set yet. Edit Prize or cash when it is.",
+  resend: "Confirmed Silver, $500 cash.",
+  temporal: "Confirmed Gold, $1,500 cash. The 30-minute block is open until a time is booked.",
 };
 
 function inviteMessage(sponsor, link) {
