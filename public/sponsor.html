@@ -149,8 +149,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <li>freeCodeCamp</li>
       </ul>
       <div class="raise">
-        <p><b>__RAISED__</b> of __GOAL__ raised for freeCodeCamp</p>
-        <div class="raise-track" role="meter" aria-valuemin="0" aria-valuemax="__GOAL_RAW__" aria-valuenow="__RAISED_RAW__" aria-label="__RAISED__ of __GOAL__ raised for freeCodeCamp"><span style="width:__PERCENT__%"></span></div>
+        <p><b id="raised-amount">__RAISED__</b> of <span id="raised-goal">__GOAL__</span> raised for freeCodeCamp</p>
+        <div class="raise-track" id="raised-meter" role="meter" aria-valuemin="0" aria-valuemax="__GOAL_RAW__" aria-valuenow="__RAISED_RAW__" aria-label="__RAISED__ of __GOAL__ raised for freeCodeCamp"><span id="raised-fill" style="width:__PERCENT__%"></span></div>
       </div>
       <div class="ctas">
         <a class="btn btn-gold btn-mail" href="mailto:jason.torres@jetbrains.com">Interested? Email jason.torres@jetbrains.com</a>
@@ -242,5 +242,6 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     <span>2:00–8:00 PM ET · freeCodeCamp · $10,000</span>
   </div>
 </footer>
+<script src="/raise.js"></script>
 </body>
 </html>

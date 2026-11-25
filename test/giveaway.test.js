@@ -135,7 +135,15 @@ test("ticker, rules, entry, and draw stay inside the stream rules", async (t) =>
   const goal = await fetch(`${base}/api/live/goal`);
   const goalBody = await goal.json();
   assert.equal(goalBody.source, "fallback");
+  assert.equal(goalBody.raised, 0);
+  assert.equal(goalBody.goal, 10000);
   assert.equal(JSON.stringify(goalBody).includes("TILTIFY"), false);
+  assert.equal(JSON.stringify(goalBody).includes("6000"), false);
+  const liveGoal = await (await fetch(`${base}/live/goal`)).text();
+  assert.match(liveGoal, /\$0/);
+  assert.doesNotMatch(liveGoal, /site total|6,000/);
+  const tickerPage = await (await fetch(`${base}/live/ticker`)).text();
+  assert.match(tickerPage, /api\/live\/goal/);
   const green = await fetch(`${base}/live/goal?mode=green`);
   assert.match(await green.text(), /body class="green"/);
   const up = await fetch(`${base}/live/up-next`);

@@ -1,5 +1,6 @@
 import { logoStatusText } from "./brands.js";
 import { cashOnly, durationFor, pickerLabel, segmentSummary, spotLines, tierLabel } from "./domain.js";
+import { campaign, money } from "./campaign.js";
 import { hostLinksHtml } from "./schedule.js";
 import { ASSETS_DUE, STREAM_DAY, STREAM_END, STREAM_START, WINDOW_LABEL, formatClock, formatRange, gridStarts } from "./time.js";
 
@@ -529,7 +530,7 @@ function adminCard(sponsor, base) {
   </article>`;
 }
 
-export function renderAdmin({ sponsors, caps, flash, base, ephemeral, giveaway }) {
+export function renderAdmin({ sponsors, caps, flash, base, ephemeral, giveaway, raised = 0 }) {
   const spots = spotLines(sponsors, caps);
   const body = `
 ${banners(flash)}
@@ -543,6 +544,9 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
 </div>
 <p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Prize sponsors: ${spots.prize}. Silver: ${spots.silver}. Community: ${spots.community}.</p>
 <p>Giveaway entries: <b>${giveaway?.total || 0}</b>. ${(giveaway?.lines || []).map(esc).join(" · ") || "No prize entries yet."}</p>
+<p>Tiltify donations: <b id="raised-amount">${esc(money(raised))}</b> of <span id="raised-goal">${esc(money(campaign.goal))}</span>. Sponsor cash is not included.</p>
+<div class="raise-track" id="raised-meter" role="meter" aria-valuemin="0" aria-valuemax="${campaign.goal}" aria-valuenow="${Math.max(0, Math.round(Number(raised) || 0))}" aria-label="${esc(money(raised))} of ${esc(money(campaign.goal))} raised for freeCodeCamp" style="max-width:460px"><span id="raised-fill" style="width:${campaign.goal > 0 ? Math.min(100, Math.round((Math.max(0, Number(raised) || 0) / campaign.goal) * 100)) : 0}%"></span></div>
+<script src="/raise.js"></script>
 <p><a class="btn btn-ghost btn-tiny" href="/admin">Sponsors</a> <a class="btn btn-ghost btn-tiny" href="/admin/guests">Guests</a> <a class="btn btn-ghost btn-tiny" href="/admin/leads.csv">All leads CSV</a> <a class="btn btn-ghost btn-tiny" href="/admin/giveaway.csv">Entrants CSV</a> <a class="btn btn-ghost btn-tiny" href="/draw">Draw a winner</a> <a class="btn btn-ghost btn-tiny" href="/overlays">Overlays</a></p>
 ${hostLinksHtml()}
 <details class="panel" open>

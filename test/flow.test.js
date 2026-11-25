@@ -38,7 +38,7 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
   });
   const health = await fetch(`${base}/health`);
   const body = await health.json();
-  assert.deepEqual(body, { ok: true, adminCodeSet: true, sponsorCodeSet: false });
+  assert.deepEqual(body, { ok: true, adminCodeSet: true, sponsorCodeSet: false, tiltifyTokenSet: false });
   const missing = await fetch(`${base}/portal/login`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -259,7 +259,9 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /Multistream/);
   assert.match(home.text, /freeCodeCamp/);
   assert.match(home.text, /\$10,000/);
-  assert.match(home.text, /\$6,000<\/b> of \$10,000 raised/);
+  assert.match(home.text, /\$0<\/b> of <span id="raised-goal">\$10,000<\/span> raised/);
+  assert.match(home.text, /src="\/raise\.js"/);
+  assert.doesNotMatch(home.text, /\$6,000<\/b>/);
   assert.match(home.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
   assert.match(home.text, />Donate</);
   assert.match(home.text, /Platinum[\s\S]*Laravel[\s\S]*Unkey[\s\S]*src="\/logos\/mux-wordmark-black\.svg"[\s\S]*Mux[\s\S]*Streaming gear bundle \(details TBA\)/);
@@ -331,7 +333,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Multistream/);
   assert.match(pitch.text, /freeCodeCamp/);
   assert.match(pitch.text, /\$10,000/);
-  assert.match(pitch.text, /\$6,000<\/b> of \$10,000 raised/);
+  assert.match(pitch.text, /\$0<\/b> of <span id="raised-goal">\$10,000<\/span> raised/);
+  assert.doesNotMatch(pitch.text, /\$6,000<\/b>/);
   assert.match(pitch.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
   assert.match(pitch.text, /JetBrains\+Mono/);
   assert.match(pitch.text, /23K\+/);
@@ -406,6 +409,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /Prize sponsor/);
   assert.match(desk.text, /Gold books 30 minutes/);
   assert.match(desk.text, /Temporary storage/);
+  assert.match(desk.text, /Tiltify donations: <b id="raised-amount">\$0<\/b> of <span id="raised-goal">\$10,000<\/span>/);
+  assert.match(desk.text, /Sponsor cash is not included/);
   assert.match(desk.text, /id="game-night"[\s\S]*href="https:\/\/chrisstmass\.vercel\.app\/stream"/);
   assert.match(desk.text, /href="https:\/\/chrisstmass\.vercel\.app\/stream\/display"/);
   assert.match(desk.text, /href="https:\/\/chrisstmass\.vercel\.app\/games\/price"/);

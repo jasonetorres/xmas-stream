@@ -30,7 +30,7 @@ Add `?mode=green` for a chroma-green background. Leave it off for a transparent 
 
 The campaign page is https://tiltify.com/@tasonjorres/livestream-fundraiser-for-freecodecamporg.
 
-Live totals need a Tiltify API token in `TILTIFY_TOKEN`. The server calls `https://v5api.tiltify.com/api/public/campaigns/by/slugs/tasonjorres/livestream-fundraiser-for-freecodecamporg` and, with the campaign id it gets back, the donations list. The token never goes to the browser. If the token is missing or Tiltify does not answer, `/live/goal` uses the `raised` number in `server/campaign.js` and the alerts stay empty.
+Live totals need a Tiltify API token in `TILTIFY_TOKEN`. The server calls `https://v5api.tiltify.com/api/public/campaigns/by/slugs/tasonjorres/livestream-fundraiser-for-freecodecamporg` and, with the campaign id it gets back, the donations list. The token never goes to the browser. The homepage, sponsor page, admin desk, ticker, and `/live/goal` poll that total. If the token is missing, Tiltify does not answer, or nothing has been raised, the amount is $0 of $10,000. Sponsor cash is not included. Alerts stay empty when the donations list is missing.
 
 Create an application token in the Tiltify dashboard. The public API uses `Authorization: Bearer <token>`.
 
