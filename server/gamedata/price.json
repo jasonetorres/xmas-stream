@@ -1,0 +1,22 @@
+{
+  "title": "Holiday Price is Right",
+  "note": "Closest without going over. This hour stays finance-friendly: no product pitch.",
+  "rounds": [
+    { "item": "Box of 100 warm-white LED string lights", "price": 15 },
+    { "item": "Tin of peppermint hot cocoa", "price": 12 },
+    { "item": "Knit holiday stocking", "price": 18 },
+    { "item": "6-foot pre-lit artificial tree", "price": 89 },
+    { "item": "Box of 24 candy canes", "price": 5 },
+    { "item": "Wireless mouse", "price": 29 },
+    { "item": "USB-C hub with HDMI", "price": 45 },
+    { "item": "Padded laptop sleeve", "price": 32 },
+    { "item": "Mechanical keyboard", "price": 129 },
+    { "item": "Noise-reducing headphones", "price": 179 },
+    { "item": "27-inch computer monitor", "price": 249 },
+    { "item": "Small single-board computer kit", "price": 80 },
+    { "item": "Standing-desk mat", "price": 39 },
+    { "item": "Holiday cookie tin, one dozen", "price": 24 },
+    { "item": "Wool winter scarf", "price": 28 },
+    { "item": "Showcase: keyboard, monitor, and cocoa tin", "price": 390, "showcase": true }
+  ]
+}

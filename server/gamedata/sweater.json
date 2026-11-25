@@ -1,0 +1,11 @@
+{
+  "title": "Ugly Sweater Showdown",
+  "dares": [
+    { "id": "carol", "text": "Sing one chorus of a carol, on key or not", "goal": 25 },
+    { "id": "wear", "text": "Wear the winning sweater for the next game", "goal": 40 },
+    { "id": "story", "text": "Tell a wholesome story about a gift that went sideways", "goal": 30 },
+    { "id": "cocoa", "text": "Take a big sip of cocoa before the next sentence", "goal": 15 },
+    { "id": "lights", "text": "Hold up the nearest string of lights like a trophy", "goal": 20 },
+    { "id": "thanks", "text": "Name three people you are glad spent the year with you", "goal": 50 }
+  ]
+}

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { STREAM_END, STREAM_START, formatRange } from "./time.js";
 import { AppError } from "./domain.js";
+import { segmentAt } from "./schedule.js";
 
 export const GUEST_SLOT = 30;
 export const STREAM_UTC = Date.parse("2026-12-18T00:00:00-05:00");
@@ -205,6 +206,7 @@ export function runOfShowCsv(guests, blocks, sponsors) {
       topic: guest.topic,
       sponsor: sponsor ? sponsor.name : "",
       contact: guest.email,
+      segment: segmentAt(Number(guest.start_min))?.name || "",
     });
   }
   for (const block of blocks) {
@@ -216,11 +218,12 @@ export function runOfShowCsv(guests, blocks, sponsors) {
       topic: block.reason,
       sponsor: "",
       contact: "",
+      segment: segmentAt(Number(block.start_min))?.name || "",
     });
   }
   rows.sort((a, b) => a.start - b.start);
-  const lines = ["time_et,guest,handle,topic,sponsor_block,contact"];
-  for (const row of rows) lines.push([row.time, row.guest, row.handle, row.topic, row.sponsor, row.contact].map(csvCell).join(","));
+  const lines = ["time_et,segment,guest,handle,topic,sponsor_block,contact"];
+  for (const row of rows) lines.push([row.time, row.segment, row.guest, row.handle, row.topic, row.sponsor, row.contact].map(csvCell).join(","));
   return `${lines.join("\n")}\n`;
 }
 
