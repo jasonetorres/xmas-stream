@@ -280,7 +280,7 @@ function assertBookable(sponsor, start, actor) {
   if (!duration) {
     const why = sponsor.tier === "prize"
       ? "Prize sponsors are already on the lineup"
-      : `${tierLabel(sponsor.tier)} is a cash gift for freeCodeCamp`;
+      : `${tierLabel(sponsor.tier)} is a cash gift for charity`;
     throw new AppError(`${why}, so there’s no stream block to book.`);
   }
   if (!Number.isInteger(start) || start % 30 !== 0) throw new AppError("Pick a block from the schedule.");

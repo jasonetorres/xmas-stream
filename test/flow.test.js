@@ -257,7 +257,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /Friday, December 18, 2026/);
   assert.match(home.text, /2:00–8:00 PM ET/);
   assert.match(home.text, /Multistream/);
-  assert.match(home.text, /freeCodeCamp/);
+  assert.match(home.text, /raised for charity/);
+  assert.doesNotMatch(home.text, /free\s*code\s*camp|\bfcc\b/i);
   assert.match(home.text, /\$10,000/);
   assert.match(home.text, /\$0<\/b> of <span id="raised-goal">\$10,000<\/span> raised/);
   assert.match(home.text, /src="\/raise\.js"/);
@@ -331,7 +332,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Friday, December 18, 2026/);
   assert.match(pitch.text, /2:00–8:00 PM ET/);
   assert.match(pitch.text, /Multistream/);
-  assert.match(pitch.text, /freeCodeCamp/);
+  assert.match(pitch.text, /for charity/);
+  assert.doesNotMatch(pitch.text, /free\s*code\s*camp|\bfcc\b/i);
   assert.match(pitch.text, /\$10,000/);
   assert.match(pitch.text, /\$0<\/b> of <span id="raised-goal">\$10,000<\/span> raised/);
   assert.doesNotMatch(pitch.text, /\$6,000<\/b>/);
@@ -573,7 +575,8 @@ test("sponsor portal flow", async (t) => {
   assert.match((await follow(rabbit, rabbitTry)).text, /no stream block to book/);
   const rabbitHome = await rabbit.fetch("/portal");
   assert.match(rabbitHome.text, /Cash gift/);
-  assert.match(rabbitHome.text, /freeCodeCamp/);
+  assert.match(rabbitHome.text, /for charity/);
+  assert.doesNotMatch(rabbitHome.text, /free\s*code\s*camp|\bfcc\b/i);
   assert.doesNotMatch(rabbitHome.text, /name="prize_details"/);
   assert.doesNotMatch(rabbitHome.text, /name="shipping"/);
 
