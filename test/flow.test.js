@@ -274,9 +274,13 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /Name That Christmas Movie/);
   assert.match(home.text, /Holiday Price is Right/);
   assert.match(home.text, /Family Feud/);
-  assert.match(home.text, /Ugly Sweater \+ Donation Dares/);
-  assert.match(home.text, /Call Santa finale/);
+  assert.match(home.text, /Ugly Sweater Showdown \+ Donation Dares/);
+  assert.match(home.text, /Call Santa/);
   assert.match(home.text, /Santavel/);
+  assert.match(home.text, /href="https:\/\/findsanta\.vercel\.app"/);
+  assert.match(home.text, /href="\/games\/movie\/display"/);
+  assert.doesNotMatch(home.text, /christmasmillionaire\.vercel\.app/);
+  assert.match(home.text, /Call Santa[\s\S]*Name That Christmas Movie[\s\S]*Holiday Price is Right[\s\S]*Christmas Family Feud[\s\S]*Ugly Sweater Showdown[\s\S]*Christmasaire 2\.0/);
   assert.match(home.text, /https:\/\/x\.com\/TasonJorres/);
   assert.match(home.text, /https:\/\/www\.linkedin\.com\/in\/thejasontorres/);
   assert.match(home.text, /href="\/sponsor">Sponsor the stream/);

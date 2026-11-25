@@ -1,13 +1,60 @@
 import { formatRange } from "./time.js";
 
-/** One source for the public schedule, lower thirds, and the live up-next board. */
+/**
+ * One source for the public schedule, lower thirds, the live up-next board,
+ * and the run of show. `href` is the public watch link. `soon` hides that
+ * link until the outside app is confirmed live.
+ */
 export const SEGMENTS = [
-  { id: "christmasaire", name: "Christmasaire 2.0", note: "Christmas Millionaire. The audience app is not up yet.", soon: true, start: 14 * 60 },
-  { id: "movie", name: "Name That Christmas Movie", note: "Played live on the stream.", start: 15 * 60 },
-  { id: "price", name: "Holiday Price is Right", note: "Played live on the stream.", start: 16 * 60 },
-  { id: "feud", name: "Family Feud", note: "Played live on the stream.", start: 17 * 60 },
-  { id: "sweater", name: "Ugly Sweater + Donation Dares", note: "Played live on the stream.", start: 18 * 60 },
-  { id: "santa", name: "Call Santa finale", note: "Santavel. Played live on the stream.", start: 19 * 60 },
+  {
+    id: "santa",
+    name: "Call Santa",
+    note: "Santavel. Call Santa live.",
+    start: 14 * 60,
+    href: "https://findsanta.vercel.app",
+    watch: "Watch",
+  },
+  {
+    id: "movie",
+    name: "Name That Christmas Movie",
+    note: "Emoji, line, and scene clues. Played live on the stream.",
+    start: 15 * 60,
+    href: "/games/movie/display",
+    watch: "Watch",
+  },
+  {
+    id: "price",
+    name: "Holiday Price is Right",
+    note: "Level Up Financial Planning’s finance-friendly hour. No sales pitch.",
+    start: 16 * 60,
+    href: "/games/price/display",
+    watch: "Watch",
+  },
+  {
+    id: "feud",
+    name: "Christmas Family Feud",
+    note: "Survey board with two teams. Played live on the stream.",
+    start: 17 * 60,
+    href: "/games/feud/display",
+    watch: "Watch",
+  },
+  {
+    id: "sweater",
+    name: "Ugly Sweater Showdown + Donation Dares",
+    note: "Sweater votes, then donation dares. Played live on the stream.",
+    start: 18 * 60,
+    href: "/games/sweater/display",
+    watch: "Watch",
+  },
+  {
+    id: "christmasaire",
+    name: "Christmasaire 2.0",
+    note: "Christmas Millionaire finale.",
+    start: 19 * 60,
+    href: "https://christmasmillionaire.vercel.app",
+    watch: "Watch",
+    soon: true,
+  },
 ].map((segment) => ({ ...segment, end: segment.start + 60 }));
 
 const STREAM_DATE = "2026-12-18";
@@ -16,11 +63,18 @@ export function segmentRange(segment) {
   return formatRange(segment.start, segment.end);
 }
 
+export function segmentAt(minute) {
+  return SEGMENTS.find((segment) => minute >= segment.start && minute < segment.end) || null;
+}
+
 export function scheduleHtml() {
   return `<ol class="games">${SEGMENTS.map((segment) => {
     const hour = String(Math.floor(segment.start / 60)).padStart(2, "0");
     const soon = segment.soon ? `<p class="soon">Coming soon</p>` : "";
-    return `<li class="game"><time datetime="${STREAM_DATE}T${hour}:00:00-05:00">${segmentRange(segment)}</time><div><h3>${escapeHtml(segment.name)}</h3><p>${escapeHtml(segment.note)}</p>${soon}</div></li>`;
+    const link = !segment.soon && segment.href
+      ? `<p><a class="watch" href="${escapeHtml(segment.href)}"${segment.href.startsWith("http") ? ` target="_blank" rel="noopener noreferrer"` : ""}>${escapeHtml(segment.watch || "Watch")}</a></p>`
+      : "";
+    return `<li class="game"><time datetime="${STREAM_DATE}T${hour}:00:00-05:00">${segmentRange(segment)}</time><div><h3>${escapeHtml(segment.name)}</h3><p>${escapeHtml(segment.note)}</p>${soon}${link}</div></li>`;
   }).join("")}</ol>`;
 }
 

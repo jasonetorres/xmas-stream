@@ -1,0 +1,22 @@
+{
+  "title": "Name That Christmas Movie",
+  "seconds": 20,
+  "rounds": [
+    { "kind": "emoji", "clue": "🏠 👦 ✈️ 🎄 😱", "answer": "Home Alone" },
+    { "kind": "line", "clue": "A tall man in a green coat walks into a department store and announces that he is an elf.", "answer": "Elf" },
+    { "kind": "frame", "clue": "A boy in pajamas stands on a train that serves hot chocolate as the world outside turns to snow.", "answer": "The Polar Express" },
+    { "kind": "emoji", "clue": "🐰 🦵 💡 👓 🎄", "answer": "A Christmas Story" },
+    { "kind": "frame", "clue": "A green figure squeezes down a chimney and stuffs a whole tree up the flue.", "answer": "How the Grinch Stole Christmas" },
+    { "kind": "line", "clue": "A department-store Santa insists, very calmly, that he is the real one.", "answer": "Miracle on 34th Street" },
+    { "kind": "frame", "clue": "A man stands on a snowy bridge and wishes he had never been born. An angel shows up.", "answer": "It's a Wonderful Life" },
+    { "kind": "emoji", "clue": "🎃 🎄 🦴 👻 🌙", "answer": "The Nightmare Before Christmas" },
+    { "kind": "line", "clue": "The other reindeer laugh until a glowing nose saves Christmas Eve.", "answer": "Rudolph the Red-Nosed Reindeer" },
+    { "kind": "emoji", "clue": "☃️ 🎩 🌽 🧣 💃", "answer": "Frosty the Snowman" },
+    { "kind": "frame", "clue": "A tiny tree, a blanket, and a kid who learns the pageant is enough.", "answer": "A Charlie Brown Christmas" },
+    { "kind": "emoji", "clue": "🐸 👔 🔗 👻 🎵", "answer": "The Muppet Christmas Carol" },
+    { "kind": "frame", "clue": "A dad falls off a roof in a red suit and wakes up with a job he did not apply for.", "answer": "The Santa Clause" },
+    { "kind": "line", "clue": "Santa’s youngest son takes a high-tech sleigh because the official one is running late.", "answer": "Arthur Christmas" },
+    { "kind": "frame", "clue": "A woodsman and a little girl build toys so a town will believe again. Almost no one speaks.", "answer": "Klaus" },
+    { "kind": "emoji", "clue": "💰 👻 🕯️ 🦃 ❤️", "answer": "A Christmas Carol" }
+  ]
+}
