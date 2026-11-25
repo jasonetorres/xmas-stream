@@ -96,9 +96,9 @@ export function wallHtml(groups) {
   const columns = groups.map((group) => {
     const items = group.sponsors.map((sponsor) => {
       const img = sponsor.logo
-        ? `<img alt="" src="${sponsor.logo}" style="width:250px;height:76px;object-fit:contain">`
-        : `<b style="font-size:26px;line-height:76px">${esc(sponsor.name)}</b>`;
-      return `<div style="width:270px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px">${img}<span style="font-size:16px;line-height:1.15;text-align:center;white-space:nowrap">${esc(sponsor.name)}</span></div>`;
+        ? `<img alt="" src="${sponsor.logo}" style="width:200px;height:64px;object-fit:contain">`
+        : `<b style="font-size:22px;line-height:64px">${esc(sponsor.name)}</b>`;
+      return `<div style="width:216px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px">${img}<span style="font-size:13px;line-height:1.15;text-align:center;white-space:nowrap">${esc(sponsor.name)}</span></div>`;
     }).join("");
     return `<section style="margin-top:18px"><div style="color:#f2b33d;letter-spacing:.16em;text-transform:uppercase;font-size:16px;font-weight:700">${esc(group.tier)}</div><div style="margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:14px 18px">${items}</div></section>`;
   }).join("");

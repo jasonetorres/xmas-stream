@@ -29,6 +29,7 @@ test("ticker, rules, entry, and draw stay inside the stream rules", async (t) =>
   assert.match(ticker, /No donation needed to enter/);
   assert.match(ticker, /Open to US residents only/);
   assert.match(ticker, /Laravel/);
+  assert.match(ticker, /Temporal/);
   for (const line of bannerLines()) assert.ok(line.length < 200 && !line.includes("\n"));
   assert.equal(bannerLines().some((line) => /Platinum books an hour/i.test(line)), false);
   assert.match(bannerLines().join("\n"), /\/guests/);

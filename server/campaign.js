@@ -8,7 +8,7 @@ import { showcaseHtml } from "./brands.js";
 export const campaign = {
   cause: "freeCodeCamp",
   goal: 10000,
-  raised: 4000,
+  raised: 6000,
   tiltifyUrl: "https://tilt.fyi/9va4uz7GEn",
 };
 
@@ -26,6 +26,9 @@ export const prizes = [
   { item: "All-access RenderATL ticket", from: "RenderATL" },
   { item: "Keychron keyboards", from: "WeMakeDevs", count: 5 },
   { item: "$3,000 cash", from: "Unkey" },
+  { item: "$1,500 cash", from: "Temporal" },
+  { item: "$1,000 cash", from: "Coder" },
+  { item: "$500 cash", from: "Resend" },
   { item: "Work Louder keyboard", from: "CodeRabbit" },
   { item: "Amazon gift cards", from: "Torc" },
   { item: "Apple Watch Series 12 (GPS + Cellular) 42mm", from: "Level Up Financial Planning" },

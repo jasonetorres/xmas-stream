@@ -3,7 +3,7 @@ import fs from "node:fs";
 import http from "node:http";
 import test from "node:test";
 import { createApp } from "../server/app.js";
-import { confirmKunal, confirmLuke, confirmRenderAtl, confirmUnkey, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
+import { confirmKunal, confirmLuke, confirmRenderAtl, confirmResend, confirmUnkey, ensureAccessCodes, ensureWebsites } from "../server/domain.js";
 import { formatRange } from "../server/time.js";
 
 function assertSponsorCards(html) {
@@ -55,7 +55,7 @@ test("admin code keeps symbols, quotes, and spaces, and health hides the values"
   const codesRes = await fetch(`${base}/admin/api/sponsor-codes`, { headers: { "x-admin-code": "J@s0n-Admin!" } });
   assert.equal(codesRes.status, 200);
   const codesBody = await codesRes.json();
-  assert.equal(codesBody.sponsors.length, 11);
+  assert.equal(codesBody.sponsors.length, 12);
   for (const sponsor of codesBody.sponsors) {
     assert.match(sponsor.code, /^[abcdefghjkmnpqrstuvwxyz23456789]{8}$/);
   }
@@ -259,7 +259,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /Multistream/);
   assert.match(home.text, /freeCodeCamp/);
   assert.match(home.text, /\$10,000/);
-  assert.match(home.text, /\$4,000<\/b> of \$10,000 raised/);
+  assert.match(home.text, /\$6,000<\/b> of \$10,000 raised/);
   assert.match(home.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
   assert.match(home.text, />Donate</);
   assert.match(home.text, /Platinum[\s\S]*Laravel[\s\S]*Unkey[\s\S]*src="\/logos\/mux-wordmark-white\.svg"[\s\S]*Mux[\s\S]*Streaming gear bundle \(details TBA\)/);
@@ -307,7 +307,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(home.text, /<strong>Unkey<\/strong><small>\$3,000 cash<\/small>/);
   assert.doesNotMatch(home.text, /NuPhy|mark-clear/);
   assert.match(home.text, /href="https:\/\/mux\.com"/);
-  assert.match(home.text, /<h3>Silver<\/h3>[\s\S]*src="\/logos\/resend-wordmark-white\.svg"[\s\S]*Resend[\s\S]*Cash donation/);
+  assert.match(home.text, /<h3>Silver<\/h3>[\s\S]*src="\/logos\/resend-wordmark-white\.svg"[\s\S]*Resend[\s\S]*\$500 cash/);
+  assert.match(home.text, /<h3>Gold<\/h3>[\s\S]*src="\/logos\/temporal-wordmark-light\.svg"[\s\S]*Temporal[\s\S]*\$1,500 cash[\s\S]*href="https:\/\/temporal\.io"/);
   assert.match(home.text, /href="https:\/\/resend\.com"/);
   assert.doesNotMatch(home.text, /Lucas Casarez|stock compensation|Guest:/);
   assertSponsorCards(home.text);
@@ -328,7 +329,7 @@ test("sponsor portal flow", async (t) => {
   assert.match(pitch.text, /Multistream/);
   assert.match(pitch.text, /freeCodeCamp/);
   assert.match(pitch.text, /\$10,000/);
-  assert.match(pitch.text, /\$4,000<\/b> of \$10,000 raised/);
+  assert.match(pitch.text, /\$6,000<\/b> of \$10,000 raised/);
   assert.match(pitch.text, /href="https:\/\/tilt\.fyi\/9va4uz7GEn"/);
   assert.match(pitch.text, /JetBrains\+Mono/);
   assert.match(pitch.text, /23K\+/);
@@ -345,7 +346,8 @@ test("sponsor portal flow", async (t) => {
   assert.doesNotMatch(pitch.text, /kunalstwt|class="badge">Kunal</);
   assert.doesNotMatch(pitch.text, /Lucas Casarez|stock compensation|Guest:/);
   assertSponsorCards(pitch.text);
-  assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*src="\/logos\/renderatl-mark-dark\.svg"[\s\S]*All-access RenderATL ticket[\s\S]*src="\/logos\/resend-wordmark-white\.svg"[\s\S]*Cash donation[\s\S]*Torc/);
+  assert.match(pitch.text, /id="tier-silver"[\s\S]*Open · No timed block[\s\S]*CodeRabbit[\s\S]*src="\/logos\/renderatl-mark-dark\.svg"[\s\S]*All-access RenderATL ticket[\s\S]*src="\/logos\/resend-wordmark-white\.svg"[\s\S]*\$500 cash[\s\S]*Torc/);
+  assert.match(pitch.text, /id="tier-gold"[\s\S]*Open · 30-minute block[\s\S]*src="\/logos\/temporal-wordmark-light\.svg"[\s\S]*\$1,500 cash/);
   assert.doesNotMatch(pitch.text, /davekiss|_christinacodes|Dave Kiss|Christina/);
   assert.match(pitch.text, /id="tier-community"[\s\S]*Open · No timed block/);
   assert.match(pitch.text, /MacBook Pro/);
@@ -425,7 +427,8 @@ test("sponsor portal flow", async (t) => {
   assert.match(desk.text, /id="sponsor-torc"[\s\S]*randstad\.png/);
   assert.match(desk.text, /id="sponsor-kunal"[\s\S]*WeMakeDevs[\s\S]*@kunalstwt[\s\S]*5 Keychron keyboards[\s\S]*wemakedevs-wordmark-light\.svg[\s\S]*https:\/\/www\.wemakedevs\.org\//);
   assert.match(desk.text, /id="sponsor-mux"[\s\S]*Mux[\s\S]*@davekiss[\s\S]*Dave Kiss[\s\S]*Streaming gear bundle \(details TBA\)[\s\S]*mux-wordmark-white\.svg[\s\S]*https:\/\/mux\.com/);
-  assert.match(desk.text, /id="sponsor-resend"[\s\S]*Resend[\s\S]*@_christinacodes[\s\S]*Christina[\s\S]*Cash donation[\s\S]*resend-wordmark-white\.svg[\s\S]*https:\/\/resend\.com/);
+  assert.match(desk.text, /id="sponsor-resend"[\s\S]*Resend[\s\S]*@_christinacodes[\s\S]*Confirmed Silver, \$500 cash[\s\S]*Christina[\s\S]*resend-wordmark-white\.svg[\s\S]*https:\/\/resend\.com/);
+  assert.match(desk.text, /id="sponsor-temporal"[\s\S]*Temporal[\s\S]*No block booked[\s\S]*\$1,500 cash[\s\S]*temporal-wordmark-light\.svg[\s\S]*https:\/\/temporal\.io/);
   const codeFile = await client().fetch("/admin/api/sponsor-codes", { headers: { "x-admin-code": "admin-test-code" } });
   assert.equal(codeFile.status, 200);
   for (const sponsor of JSON.parse(codeFile.text).sponsors) codes[sponsor.slug] = sponsor.code;
@@ -466,6 +469,10 @@ test("sponsor portal flow", async (t) => {
   assert.match(resendDoor.text, /<h1>Resend</);
   assert.doesNotMatch(muxDoor.text, /davekiss|Streaming gear/);
   assert.doesNotMatch(resendDoor.text, /christinacodes|Cash donation/);
+  await app.db.run("UPDATE sponsors SET prize_details = ? WHERE slug = ?", ["Cash donation", "resend"]);
+  await confirmResend(app.db);
+  const resendPrize = await app.db.get("SELECT prize_details FROM sponsors WHERE slug = ?", ["resend"]);
+  assert.equal(resendPrize.prize_details, "$500 cash");
 
   const direct = client();
   const directLogin = await direct.fetch("/portal/login", {

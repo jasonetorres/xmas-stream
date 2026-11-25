@@ -79,11 +79,16 @@ export const BRANDS = {
     hub: "/logos/resend-wordmark-white.svg",
     x: "https://x.com/_christinacodes",
   },
+  temporal: {
+    website: "https://temporal.io",
+    logos: ["public/logos/temporal-wordmark-light.svg", "public/logos/temporal-wordmark-dark.svg"],
+    hub: "/logos/temporal-wordmark-light.svg",
+  },
 };
 
 const SHOWCASE = [
   { tier: "Platinum", id: "platinum", slugs: ["laravel", "unkey", "mux"] },
-  { tier: "Gold", id: "gold", slugs: ["coder", "luke", "kunal", "tighten"] },
+  { tier: "Gold", id: "gold", slugs: ["coder", "luke", "kunal", "tighten", "temporal"] },
   { tier: "Silver", id: "silver", slugs: ["coderabbit", "torc", "renderatl", "resend"] },
 ];
 

@@ -12,6 +12,7 @@ import {
   confirmKunal,
   confirmLuke,
   confirmRenderAtl,
+  confirmResend,
   confirmUnkey,
   ensureAccessCodes,
   ensureWebsites,
@@ -164,6 +165,7 @@ export async function createApp(env = {}) {
   await confirmKunal(db);
   await confirmRenderAtl(db);
   await confirmUnkey(db);
+  await confirmResend(db);
   await ensureWebsites(db);
   await ensureAccessCodes(db, secrets.sessionSecret, secrets.adminCode);
   const caps = { platinum: 0, gold: 0 };
