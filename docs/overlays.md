@@ -20,7 +20,7 @@ That script renders every PNG with headless Chromium from the sponsors and the s
 | `/live/alerts` | New donations |
 | `/live/ticker` | Scrolling total and sponsor thank-yous |
 | `/live/up-next` | Current and next segment in Eastern Time, plus an approved guest in that hour |
-| `/` | The six hours, each linking to Game Night. The Price Is Merry at 2:00 PM ET, Christmas Millionaire at 7:00 PM ET. |
+| `/` | The six hours as plain cards. The Price Is Merry at 2:00 PM ET, Christmas Millionaire at 7:00 PM ET. Game Night controls are on `/admin`. |
 | `/guests` | 12 half-hour guest slots, 2:00–8:00 PM ET. Pending names stay off the public page. |
 | `/draw/card` | Winner lower third. Admin only. Add `?name=` and `?prize=` |
 

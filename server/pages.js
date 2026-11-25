@@ -1,5 +1,6 @@
 import { logoStatusText } from "./brands.js";
 import { cashOnly, durationFor, pickerLabel, segmentSummary, spotLines, tierLabel } from "./domain.js";
+import { hostLinksHtml } from "./schedule.js";
 import { ASSETS_DUE, STREAM_DAY, STREAM_END, STREAM_START, WINDOW_LABEL, formatClock, formatRange, gridStarts } from "./time.js";
 
 const SAVED = {
@@ -131,6 +132,8 @@ fieldset { border: 2px solid var(--line); border-radius: 14px; margin: 0; paddin
 .tier { font-family: var(--label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-size: 0.85rem; }
 .split { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
 .miss { margin: 0; padding-left: 18px; color: var(--muted); }
+.host-links { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.host-links a { font-weight: 700; }
 footer { border-top: 4px double var(--line); padding-block: 18px 28px; color: var(--muted); font-size: 0.92rem; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
 .stamp { display: inline-flex; align-self: flex-start; gap: 10px; align-items: center; padding: 8px 12px; background: var(--red); color: #fff6e0; transform: rotate(-1deg); }
@@ -541,6 +544,7 @@ ${ephemeral ? `<div class="banner warn">Temporary storage. Unkey wipes the conta
 <p class="lede">${esc(STREAM_DAY)}, ${esc(WINDOW_LABEL)}. ${spots.lines.map(esc).join(" ")} Prize sponsors: ${spots.prize}. Silver: ${spots.silver}. Community: ${spots.community}.</p>
 <p>Giveaway entries: <b>${giveaway?.total || 0}</b>. ${(giveaway?.lines || []).map(esc).join(" · ") || "No prize entries yet."}</p>
 <p><a class="btn btn-ghost btn-tiny" href="/admin">Sponsors</a> <a class="btn btn-ghost btn-tiny" href="/admin/guests">Guests</a> <a class="btn btn-ghost btn-tiny" href="/admin/leads.csv">All leads CSV</a> <a class="btn btn-ghost btn-tiny" href="/admin/giveaway.csv">Entrants CSV</a> <a class="btn btn-ghost btn-tiny" href="/draw">Draw a winner</a> <a class="btn btn-ghost btn-tiny" href="/overlays">Overlays</a></p>
+${hostLinksHtml()}
 <details class="panel" open>
   <summary>Add a sponsor</summary>
   <form class="stack" style="padding-top:14px" method="post" action="/admin/sponsors">
