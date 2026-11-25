@@ -35,6 +35,8 @@ test("the six hours run Santa to Christmasaire, and host controls move the displ
   assert.equal(index.status, 200);
   const indexText = await index.text();
   assert.match(indexText, /Call Santa/);
+  assert.match(indexText, /2:00–3:00 PM ET/);
+  assert.doesNotMatch(indexText, /ET ET/);
   assert.match(indexText, /Coming soon/);
   assert.match(indexText, /href="\/games\/price\/display"/);
 

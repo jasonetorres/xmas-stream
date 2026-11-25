@@ -63,7 +63,7 @@ export function renderGameIndex() {
       ? `<span class="meta">Coming soon</span>`
       : `<a class="btn" href="${esc(segment.href)}"${segment.href.startsWith("http") ? ` target="_blank" rel="noopener noreferrer"` : ""}>${esc(segment.watch || "Watch")}</a>`;
     const host = GAME_SLUGS.includes(segment.id) ? `<a href="/games/${esc(segment.id)}/host">Host</a>` : "";
-    return `<article class="card"><h2>${esc(segment.name)}</h2><p class="meta">${esc(when)} ET</p><p>${esc(segment.note)}</p><div class="row">${watch}${host}</div></article>`;
+    return `<article class="card"><h2>${esc(segment.name)}</h2><p class="meta">${esc(when)}</p><p>${esc(segment.note)}</p><div class="row">${watch}${host}</div></article>`;
   }).join("");
   return page("Games", hostCss, `<div class="wrap"><p class="meta">Friday, Dec 18, 2026 · 2:00–8:00 PM ET</p><h1>Games</h1><p>One game an hour. Call Santa opens the show. Christmasaire 2.0 closes it.</p>${rows}</div>`);
 }
