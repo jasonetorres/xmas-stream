@@ -1,7 +1,7 @@
 import { formatRange } from "./time.js";
 
 /** Public Game Night site. Host pages stay off this site. */
-export const GAME_NIGHT_URL = String(process.env.GAME_NIGHT_URL || "https://christmasmillionaire.vercel.app").replace(/\/+$/, "");
+export const GAME_NIGHT_URL = String(process.env.GAME_NIGHT_URL || "https://chrisstmass.vercel.app").replace(/\/+$/, "");
 
 function night(path) {
   return `${GAME_NIGHT_URL}${path}`;
@@ -80,7 +80,7 @@ export function scheduleHtml() {
       ? `<p><a class="watch" href="${escapeHtml(segment.href)}"${segment.href.startsWith("http") ? ` target="_blank" rel="noopener noreferrer"` : ""}>${escapeHtml(segment.watch || "Watch")}</a></p>`
       : "";
     return `<li class="game"><time datetime="${STREAM_DATE}T${hour}:00:00-05:00">${segmentRange(segment)}</time><div><h3>${escapeHtml(segment.name)}</h3><p>${escapeHtml(segment.note)}</p>${soon}${link}</div></li>`;
-  }).join("")}</ol><p class="fun">Or <a href="https://findsanta.vercel.app">Call Santa</a> whenever you like.</p>`;
+  }).join("")}</ol><p class="fun"><a href="${escapeHtml(night("/react"))}" target="_blank" rel="noopener noreferrer">Audience reactions</a>. Or <a href="https://findsanta.vercel.app">Call Santa</a> whenever you like.</p>`;
 }
 
 function escapeHtml(value) {
